@@ -14,3 +14,1844 @@ index c7066dc97c..6dbb030de7 100755
  "VC-CE","cl::::WINCE::BN_LLONG RC4_INDEX EXPORT_VAR_AS_FN ${x86_gcc_opts}:${no_asm}:win32",
  
  # Borland C++ 4.5
+diff --git a/apps/openssl.c b/apps/openssl.c
+index c3da5d6cd0..1a5fc0c39f 100644
+--- a/apps/openssl.c
++++ b/apps/openssl.c
+@@ -215,7 +215,7 @@ static void lock_dbg_cb(int mode, int type, const char *file, int line)
+ # define ARGV Argv
+ #endif
+ 
+-int main(int Argc, char *ARGV[])
++int __cdecl main(int Argc, char *ARGV[]) // OfficeDev: add __cdecl
+ {
+     ARGS arg;
+ #define PROG_NAME_SIZE  39
+@@ -587,7 +587,8 @@ static int do_cmd(LHASH_OF(FUNCTION) *prog, int argc, char *argv[])
+     return (ret);
+ }
+ 
+-static int SortFnByName(const void *_f1, const void *_f2)
++// OfficeDev: add __cdecl
++static int __cdecl SortFnByName(const void *_f1, const void *_f2)
+ {
+     const FUNCTION *f1 = _f1;
+     const FUNCTION *f2 = _f2;
+diff --git a/apps/s_socket.c b/apps/s_socket.c
+index b3848dd156..e633a55870 100644
+--- a/apps/s_socket.c
++++ b/apps/s_socket.c
+@@ -189,7 +189,7 @@ static int ssl_sock_init(void)
+         int err;
+ 
+ #  ifdef SIGINT
+-        signal(SIGINT, (void (*)(int))ssl_sock_cleanup);
++        signal(SIGINT, (void (__cdecl *)(int))ssl_sock_cleanup); // OfficeDev: add __cdecl
+ #  endif
+         wsa_init_done = 1;
+         memset(&wsa_state, 0, sizeof(wsa_state));
+diff --git a/crypto/asn1/a_set.c b/crypto/asn1/a_set.c
+index 5fb5865575..65cab03043 100644
+--- a/crypto/asn1/a_set.c
++++ b/crypto/asn1/a_set.c
+@@ -71,7 +71,7 @@ typedef struct {
+ /*
+  * SetBlobCmp This function compares two elements of SET_OF block
+  */
+-static int SetBlobCmp(const void *elem1, const void *elem2)
++static int __cdecl SetBlobCmp(const void *elem1, const void *elem2)
+ {
+     const MYBLOB *b1 = (const MYBLOB *)elem1;
+     const MYBLOB *b2 = (const MYBLOB *)elem2;
+diff --git a/crypto/asn1/a_strnid.c b/crypto/asn1/a_strnid.c
+index 99ffe73787..3f1de99369 100644
+--- a/crypto/asn1/a_strnid.c
++++ b/crypto/asn1/a_strnid.c
+@@ -65,7 +65,8 @@
+ 
+ static STACK_OF(ASN1_STRING_TABLE) *stable = NULL;
+ static void st_free(ASN1_STRING_TABLE *tbl);
+-static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+                         const ASN1_STRING_TABLE *const *b);
+ 
+ /*
+@@ -196,7 +197,8 @@ static const ASN1_STRING_TABLE tbl_standard[] = {
+     {NID_jurisdictionCountryName, 2, 2, B_ASN1_PRINTABLESTRING, STABLE_NO_MASK}
+ };
+ 
+-static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+                         const ASN1_STRING_TABLE *const *b)
+ {
+     return (*a)->nid - (*b)->nid;
+@@ -204,7 +206,8 @@ static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(ASN1_STRING_TABLE, ASN1_STRING_TABLE, table);
+ 
+-static int table_cmp(const ASN1_STRING_TABLE *a, const ASN1_STRING_TABLE *b)
++// OfficeDev: add __cdecl
++static int __cdecl table_cmp(const ASN1_STRING_TABLE *a, const ASN1_STRING_TABLE *b)
+ {
+     return a->nid - b->nid;
+ }
+diff --git a/crypto/asn1/ameth_lib.c b/crypto/asn1/ameth_lib.c
+index cc8f9a8243..d29fb18ef0 100644
+--- a/crypto/asn1/ameth_lib.c
++++ b/crypto/asn1/ameth_lib.c
+@@ -101,7 +101,8 @@ static const EVP_PKEY_ASN1_METHOD *standard_methods[] = {
+ #endif
+ };
+ 
+-typedef int sk_cmp_fn_type(const char *const *a, const char *const *b);
++// OfficeDev: add __cdecl
++typedef int __cdecl sk_cmp_fn_type(const char *const *a, const char *const *b);
+ DECLARE_STACK_OF(EVP_PKEY_ASN1_METHOD)
+ static STACK_OF(EVP_PKEY_ASN1_METHOD) *app_methods = NULL;
+ 
+@@ -120,7 +121,8 @@ void main()
+ DECLARE_OBJ_BSEARCH_CMP_FN(const EVP_PKEY_ASN1_METHOD *,
+                            const EVP_PKEY_ASN1_METHOD *, ameth);
+ 
+-static int ameth_cmp(const EVP_PKEY_ASN1_METHOD *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl ameth_cmp(const EVP_PKEY_ASN1_METHOD *const *a,
+                      const EVP_PKEY_ASN1_METHOD *const *b)
+ {
+     return ((*a)->pkey_id - (*b)->pkey_id);
+diff --git a/crypto/asn1/asn_mime.c b/crypto/asn1/asn_mime.c
+index 02b7c9b7ef..d6f0e6e7a4 100644
+--- a/crypto/asn1/asn_mime.c
++++ b/crypto/asn1/asn_mime.c
+@@ -97,9 +97,11 @@ static char *strip_end(char *name);
+ static MIME_HEADER *mime_hdr_new(char *name, char *value);
+ static int mime_hdr_addparam(MIME_HEADER *mhdr, char *name, char *value);
+ static STACK_OF(MIME_HEADER) *mime_parse_hdr(BIO *bio);
+-static int mime_hdr_cmp(const MIME_HEADER *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl mime_hdr_cmp(const MIME_HEADER *const *a,
+                         const MIME_HEADER *const *b);
+-static int mime_param_cmp(const MIME_PARAM *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl mime_param_cmp(const MIME_PARAM *const *a,
+                           const MIME_PARAM *const *b);
+ static void mime_param_free(MIME_PARAM *param);
+ static int mime_bound_check(char *line, int linelen, char *bound, int blen);
+@@ -873,7 +875,8 @@ static int mime_hdr_addparam(MIME_HEADER *mhdr, char *name, char *value)
+     return 1;
+ }
+ 
+-static int mime_hdr_cmp(const MIME_HEADER *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl mime_hdr_cmp(const MIME_HEADER *const *a,
+                         const MIME_HEADER *const *b)
+ {
+     if (!(*a)->name || !(*b)->name)
+@@ -882,7 +885,8 @@ static int mime_hdr_cmp(const MIME_HEADER *const *a,
+     return (strcmp((*a)->name, (*b)->name));
+ }
+ 
+-static int mime_param_cmp(const MIME_PARAM *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl mime_param_cmp(const MIME_PARAM *const *a,
+                           const MIME_PARAM *const *b)
+ {
+     if (!(*a)->param_name || !(*b)->param_name)
+diff --git a/crypto/asn1/tasn_enc.c b/crypto/asn1/tasn_enc.c
+index 1824b2fc80..533da5fadc 100644
+--- a/crypto/asn1/tasn_enc.c
++++ b/crypto/asn1/tasn_enc.c
+@@ -412,7 +412,8 @@ typedef struct {
+     ASN1_VALUE *field;
+ } DER_ENC;
+ 
+-static int der_cmp(const void *a, const void *b)
++// OfficeDev: add __cdecl
++static int __cdecl der_cmp(const void *a, const void *b)
+ {
+     const DER_ENC *d1 = a, *d2 = b;
+     int cmplen, i;
+diff --git a/crypto/asn1/x_crl.c b/crypto/asn1/x_crl.c
+index c78ded89ef..df02d91463 100644
+--- a/crypto/asn1/x_crl.c
++++ b/crypto/asn1/x_crl.c
+@@ -63,7 +63,8 @@
+ #include <openssl/x509.h>
+ #include <openssl/x509v3.h>
+ 
+-static int X509_REVOKED_cmp(const X509_REVOKED *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl X509_REVOKED_cmp(const X509_REVOKED *const *a,
+                             const X509_REVOKED *const *b);
+ static void setup_idp(X509_CRL *crl, ISSUING_DIST_POINT *idp);
+ 
+@@ -350,7 +351,8 @@ IMPLEMENT_ASN1_FUNCTIONS(X509_CRL)
+ 
+ IMPLEMENT_ASN1_DUP_FUNCTION(X509_CRL)
+ 
+-static int X509_REVOKED_cmp(const X509_REVOKED *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl X509_REVOKED_cmp(const X509_REVOKED *const *a,
+                             const X509_REVOKED *const *b)
+ {
+     return (ASN1_STRING_cmp((ASN1_STRING *)(*a)->serialNumber,
+diff --git a/crypto/bf/bftest.c b/crypto/bf/bftest.c
+index bd20a8e211..b54607a5a0 100644
+--- a/crypto/bf/bftest.c
++++ b/crypto/bf/bftest.c
+@@ -280,7 +280,7 @@ static unsigned char key_out[KEY_TEST_NUM][8] = {
+ 
+ static int test(void);
+ static int print_test_data(void);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int ret;
+ 
+diff --git a/crypto/bn/bntest.c b/crypto/bn/bntest.c
+index abe5dbe0b0..950c6438d1 100644
+--- a/crypto/bn/bntest.c
++++ b/crypto/bn/bntest.c
+@@ -140,7 +140,7 @@ static void message(BIO *out, char *m)
+     BIO_puts(out, "\\n\"\n");
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     BN_CTX *ctx;
+     BIO *out;
+diff --git a/crypto/bn/exptest.c b/crypto/bn/exptest.c
+index 779ee90203..acea369476 100644
+--- a/crypto/bn/exptest.c
++++ b/crypto/bn/exptest.c
+@@ -175,7 +175,7 @@ static int test_exp_mod_zero()
+     return ret;
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     BN_CTX *ctx;
+     BIO *out = NULL;
+diff --git a/crypto/cast/casttest.c b/crypto/cast/casttest.c
+index dc31bc6604..0db6b592ae 100644
+--- a/crypto/cast/casttest.c
++++ b/crypto/cast/casttest.c
+@@ -140,7 +140,7 @@ static unsigned char cfb_cipher64[CFB_TEST_SIZE] = {
+ };
+ # endif
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+ # ifdef FULL_TEST
+     long l;
+diff --git a/crypto/constant_time_test.c b/crypto/constant_time_test.c
+index d313d0c7a9..9b7cd46487 100644
+--- a/crypto/constant_time_test.c
++++ b/crypto/constant_time_test.c
+@@ -223,7 +223,7 @@ static int signed_test_values[] = { 0, 1, -1, 1024, -1024, 12345, -12345,
+     INT_MIN + 1
+ };
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     unsigned int a, b, i, j;
+     int c, d;
+diff --git a/crypto/crypto.h b/crypto/crypto.h
+index 6c644ce12a..f8125e25a0 100644
+--- a/crypto/crypto.h
++++ b/crypto/crypto.h
+@@ -496,37 +496,38 @@ void (*CRYPTO_get_dynlock_destroy_callback(void)) (struct CRYPTO_dynlock_value
+  * CRYPTO_set_mem_functions includes CRYPTO_set_locked_mem_functions -- call
+  * the latter last if you need different functions
+  */
+-int CRYPTO_set_mem_functions(void *(*m) (size_t), void *(*r) (void *, size_t),
+-                             void (*f) (void *));
+-int CRYPTO_set_locked_mem_functions(void *(*m) (size_t),
+-                                    void (*free_func) (void *));
+-int CRYPTO_set_mem_ex_functions(void *(*m) (size_t, const char *, int),
+-                                void *(*r) (void *, size_t, const char *,
+-                                            int), void (*f) (void *));
+-int CRYPTO_set_locked_mem_ex_functions(void *(*m) (size_t, const char *, int),
+-                                       void (*free_func) (void *));
+-int CRYPTO_set_mem_debug_functions(void (*m)
++// OfficeDev: add __cdecl to stdlib function pointers
++int CRYPTO_set_mem_functions(void *(__cdecl *m) (size_t), void *(__cdecl *r) (void *, size_t),
++                             void (__cdecl *f) (void *));
++int CRYPTO_set_locked_mem_functions(void *(__cdecl *m) (size_t),
++                                    void (__cdecl *free_func) (void *));
++int CRYPTO_set_mem_ex_functions(void *(__cdecl *m) (size_t, const char *, int),
++                                void *(__cdecl *r) (void *, size_t, const char *,
++                                            int), void (__cdecl *f) (void *));
++int CRYPTO_set_locked_mem_ex_functions(void *(__cdecl *m) (size_t, const char *, int),
++                                       void (__cdecl *free_func) (void *));
++int CRYPTO_set_mem_debug_functions(void (__cdecl *m)
+                                     (void *, int, const char *, int, int),
+-                                   void (*r) (void *, void *, int,
++                                   void (__cdecl *r) (void *, void *, int,
+                                               const char *, int, int),
+-                                   void (*f) (void *, int), void (*so) (long),
++                                   void (__cdecl *f) (void *, int), void (*so) (long),
+                                    long (*go) (void));
+-void CRYPTO_get_mem_functions(void *(**m) (size_t),
+-                              void *(**r) (void *, size_t),
+-                              void (**f) (void *));
+-void CRYPTO_get_locked_mem_functions(void *(**m) (size_t),
+-                                     void (**f) (void *));
+-void CRYPTO_get_mem_ex_functions(void *(**m) (size_t, const char *, int),
+-                                 void *(**r) (void *, size_t, const char *,
+-                                              int), void (**f) (void *));
++void CRYPTO_get_mem_functions(void *(__cdecl **m) (size_t),
++                              void *(__cdecl **r) (void *, size_t),
++                              void (__cdecl **f) (void *));
++void CRYPTO_get_locked_mem_functions(void *(__cdecl **m) (size_t),
++                                     void (__cdecl **f) (void *));
++void CRYPTO_get_mem_ex_functions(void *(__cdecl **m) (size_t, const char *, int),
++                                 void *(__cdecl **r) (void *, size_t, const char *,
++                                              int), void (__cdecl **f) (void *));
+ void CRYPTO_get_locked_mem_ex_functions(void
+-                                        *(**m) (size_t, const char *, int),
+-                                        void (**f) (void *));
+-void CRYPTO_get_mem_debug_functions(void (**m)
++                                        *(__cdecl **m) (size_t, const char *, int),
++                                        void (__cdecl **f) (void *));
++void CRYPTO_get_mem_debug_functions(void (__cdecl **m)
+                                      (void *, int, const char *, int, int),
+-                                    void (**r) (void *, void *, int,
++                                    void (__cdecl **r) (void *, void *, int,
+                                                 const char *, int, int),
+-                                    void (**f) (void *, int),
++                                    void (__cdecl **f) (void *, int),
+                                     void (**so) (long), long (**go) (void));
+ 
+ void *CRYPTO_malloc_locked(int num, const char *file, int line);
+@@ -560,11 +561,12 @@ int CRYPTO_remove_all_info(void);
+  * 0:   called before the actual memory allocation has taken place
+  * 1:   called after the actual memory allocation has taken place
+  */
+-void CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
++// OfficeDev: add __cdecl
++void __cdecl CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
+                        int before_p);
+-void CRYPTO_dbg_realloc(void *addr1, void *addr2, int num, const char *file,
++void __cdecl CRYPTO_dbg_realloc(void *addr1, void *addr2, int num, const char *file,
+                         int line, int before_p);
+-void CRYPTO_dbg_free(void *addr, int before_p);
++void __cdecl CRYPTO_dbg_free(void *addr, int before_p);
+ /*-
+  * Tell the debugging code about options.  By default, the following values
+  * apply:
+diff --git a/crypto/des/destest.c b/crypto/des/destest.c
+index f2041c1e11..0f073bb1d5 100644
+--- a/crypto/des/destest.c
++++ b/crypto/des/destest.c
+@@ -358,7 +358,7 @@ static char *pt(unsigned char *p);
+ static int cfb_test(int bits, unsigned char *cfb_cipher);
+ static int cfb64_test(unsigned char *cfb_cipher);
+ static int ede_cfb64_test(unsigned char *cfb_cipher);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int j, err = 0;
+     unsigned int i;
+diff --git a/crypto/dh/dhtest.c b/crypto/dh/dhtest.c
+index cb83109c40..5799074980 100644
+--- a/crypto/dh/dhtest.c
++++ b/crypto/dh/dhtest.c
+@@ -98,7 +98,7 @@ static const char rnd_seed[] =
+ 
+ static int run_rfc5114_tests(void);
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     BN_GENCB _cb;
+     DH *a;
+diff --git a/crypto/dsa/dsatest.c b/crypto/dsa/dsatest.c
+index bee95431df..1695e96c59 100644
+--- a/crypto/dsa/dsatest.c
++++ b/crypto/dsa/dsatest.c
+@@ -139,7 +139,7 @@ static const char rnd_seed[] =
+ 
+ static BIO *bio_err = NULL;
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     BN_GENCB cb;
+     DSA *dsa = NULL;
+diff --git a/crypto/ec/ectest.c b/crypto/ec/ectest.c
+index 5e1ef50933..7fecf9ba07 100644
+--- a/crypto/ec/ectest.c
++++ b/crypto/ec/ectest.c
+@@ -1829,7 +1829,7 @@ static void nistp_tests()
+ static const char rnd_seed[] =
+     "string to make the random number generator think it has entropy";
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+ 
+     /* enable memory leak checking unless explicitly disabled */
+diff --git a/crypto/ecdh/ecdhtest.c b/crypto/ecdh/ecdhtest.c
+index 3febf10188..2fa38b3c03 100644
+--- a/crypto/ecdh/ecdhtest.c
++++ b/crypto/ecdh/ecdhtest.c
+@@ -476,7 +476,7 @@ static int ecdh_kat(BIO *out, const char *cname, int nid,
+                 bp##bits##_db, sizeof(bp##bits##_db), \
+                 bp##bits##_Z, sizeof(bp##bits##_Z))
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     BN_CTX *ctx = NULL;
+     int ret = 1;
+diff --git a/crypto/ecdsa/ecdsatest.c b/crypto/ecdsa/ecdsatest.c
+index 4350afbf04..430e55f297 100644
+--- a/crypto/ecdsa/ecdsatest.c
++++ b/crypto/ecdsa/ecdsatest.c
+@@ -515,7 +515,7 @@ int test_builtin(BIO *out)
+     return ret;
+ }
+ 
+-int main(void)
++int __cdecl main(void) // OfficeDev: add __cdecl
+ {
+     int ret = 1;
+     BIO *out;
+diff --git a/crypto/engine/engine.h b/crypto/engine/engine.h
+index bd7b591447..b0d2f6a668 100644
+--- a/crypto/engine/engine.h
++++ b/crypto/engine/engine.h
+@@ -748,9 +748,9 @@ void ENGINE_add_conf_module(void);
+  * same static data as the calling application (or library), and thus whether
+  * these callbacks need to be set or not.
+  */
+-typedef void *(*dyn_MEM_malloc_cb) (size_t);
+-typedef void *(*dyn_MEM_realloc_cb) (void *, size_t);
+-typedef void (*dyn_MEM_free_cb) (void *);
++typedef void *(__cdecl *dyn_MEM_malloc_cb) (size_t); // OfficeDev: add __cdecl
++typedef void *(__cdecl *dyn_MEM_realloc_cb) (void *, size_t); // OfficeDev: add __cdecl
++typedef void (__cdecl *dyn_MEM_free_cb) (void *); // OfficeDev: add __cdecl
+ typedef struct st_dynamic_MEM_fns {
+     dyn_MEM_malloc_cb malloc_cb;
+     dyn_MEM_realloc_cb realloc_cb;
+diff --git a/crypto/engine/enginetest.c b/crypto/engine/enginetest.c
+index ab7c0c00dd..b852de41e4 100644
+--- a/crypto/engine/enginetest.c
++++ b/crypto/engine/enginetest.c
+@@ -94,7 +94,7 @@ static void display_engine_list(void)
+     ENGINE_free(h);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     ENGINE *block[512];
+     char buf[256];
+diff --git a/crypto/evp/evp_extra_test.c b/crypto/evp/evp_extra_test.c
+index 0f7b011ce8..c226291232 100644
+--- a/crypto/evp/evp_extra_test.c
++++ b/crypto/evp/evp_extra_test.c
+@@ -432,7 +432,7 @@ static int test_EVP_PKCS82PKEY(void)
+ }
+ #endif
+ 
+-int main(void)
++int __cdecl main(void) // OfficeDev: add __cdecl
+ {
+     CRYPTO_malloc_debug_init();
+     CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
+diff --git a/crypto/evp/evp_pbe.c b/crypto/evp/evp_pbe.c
+index 5d2f04bf9e..7de630d9ad 100644
+--- a/crypto/evp/evp_pbe.c
++++ b/crypto/evp/evp_pbe.c
+@@ -202,7 +202,8 @@ int EVP_PBE_CipherInit(ASN1_OBJECT *pbe_obj, const char *pass, int passlen,
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(EVP_PBE_CTL, EVP_PBE_CTL, pbe2);
+ 
+-static int pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
++// OfficeDev: add __cdecl
++static int __cdecl pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
+ {
+     int ret = pbe1->pbe_type - pbe2->pbe_type;
+     if (ret)
+@@ -213,7 +214,8 @@ static int pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(EVP_PBE_CTL, EVP_PBE_CTL, pbe2);
+ 
+-static int pbe_cmp(const EVP_PBE_CTL *const *a, const EVP_PBE_CTL *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl pbe_cmp(const EVP_PBE_CTL *const *a, const EVP_PBE_CTL *const *b)
+ {
+     int ret = (*a)->pbe_type - (*b)->pbe_type;
+     if (ret)
+diff --git a/crypto/evp/evp_test.c b/crypto/evp/evp_test.c
+index 97a2083027..918bb81778 100755
+--- a/crypto/evp/evp_test.c
++++ b/crypto/evp/evp_test.c
+@@ -450,7 +450,7 @@ static int test_digest(const char *digest,
+     return 1;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     const char *szTestFile;
+     FILE *f;
+diff --git a/crypto/evp/pmeth_lib.c b/crypto/evp/pmeth_lib.c
+index e50826b568..568a5718e5 100644
+--- a/crypto/evp/pmeth_lib.c
++++ b/crypto/evp/pmeth_lib.c
+@@ -102,7 +102,8 @@ static const EVP_PKEY_METHOD *standard_methods[] = {
+ DECLARE_OBJ_BSEARCH_CMP_FN(const EVP_PKEY_METHOD *, const EVP_PKEY_METHOD *,
+                            pmeth);
+ 
+-static int pmeth_cmp(const EVP_PKEY_METHOD *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl pmeth_cmp(const EVP_PKEY_METHOD *const *a,
+                      const EVP_PKEY_METHOD *const *b)
+ {
+     return ((*a)->pkey_id - (*b)->pkey_id);
+diff --git a/crypto/hmac/hmactest.c b/crypto/hmac/hmactest.c
+index 5a573950a4..e56a293b13 100644
+--- a/crypto/hmac/hmactest.c
++++ b/crypto/hmac/hmactest.c
+@@ -134,7 +134,7 @@ static struct test_st {
+ 
+ static char *pt(unsigned char *md, unsigned int len);
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+ # ifndef OPENSSL_NO_MD5
+     int i;
+diff --git a/crypto/idea/ideatest.c b/crypto/idea/ideatest.c
+index a967dd58a7..72bfa1cf61 100644
+--- a/crypto/idea/ideatest.c
++++ b/crypto/idea/ideatest.c
+@@ -109,7 +109,7 @@ static unsigned char cfb_cipher64[CFB_TEST_SIZE] = {
+ 
+ static int cfb64_test(unsigned char *cfb_cipher);
+ static char *pt(unsigned char *p);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     IDEA_KEY_SCHEDULE key, dkey;
+diff --git a/crypto/md4/md4test.c b/crypto/md4/md4test.c
+index 59f23bb5d6..a8fd0345a4 100644
+--- a/crypto/md4/md4test.c
++++ b/crypto/md4/md4test.c
+@@ -94,7 +94,7 @@ static char *ret[] = {
+ };
+ 
+ static char *pt(unsigned char *md);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     char **P, **R;
+diff --git a/crypto/md5/md5test.c b/crypto/md5/md5test.c
+index 0d0ab2d7d1..ce5291dad4 100644
+--- a/crypto/md5/md5test.c
++++ b/crypto/md5/md5test.c
+@@ -94,7 +94,7 @@ static char *ret[] = {
+ };
+ 
+ static char *pt(unsigned char *md);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     char **P, **R;
+diff --git a/crypto/mdc2/mdc2test.c b/crypto/mdc2/mdc2test.c
+index 8416252f80..b3618a4cd5 100644
+--- a/crypto/mdc2/mdc2test.c
++++ b/crypto/mdc2/mdc2test.c
+@@ -90,7 +90,7 @@ static unsigned char pad2[16] = {
+     0x35, 0xD8, 0x7A, 0xFE, 0xAB, 0x33, 0xBE, 0xE2
+ };
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int ret = 0;
+     unsigned char md[MDC2_DIGEST_LENGTH];
+diff --git a/crypto/mem.c b/crypto/mem.c
+index dd4c9ce9e0..1a885c7dd1 100644
+--- a/crypto/mem.c
++++ b/crypto/mem.c
+@@ -73,13 +73,13 @@ static int allow_customize_debug = 1; /* exchanging memory-related functions
+  * the following pointers may be changed as long as 'allow_customize' is set
+  */
+ 
+-static void *(*malloc_func) (size_t) = malloc;
+-static void *default_malloc_ex(size_t num, const char *file, int line)
++static void *(__cdecl *malloc_func) (size_t) = malloc; // OfficeDev: add __cdecl
++static void * __cdecl default_malloc_ex(size_t num, const char *file, int line) // OfficeDev: add __cdecl
+ {
+     return malloc_func(num);
+ }
+ 
+-static void *(*malloc_ex_func) (size_t, const char *file, int line)
++static void *(__cdecl *malloc_ex_func) (size_t, const char *file, int line) // OfficeDev: add __cdecl
+     = default_malloc_ex;
+ 
+ #ifdef OPENSSL_SYS_VMS
+@@ -90,65 +90,66 @@ static void *(*malloc_ex_func) (size_t, const char *file, int line)
+ # endif
+ #endif
+ 
+-static void *(*realloc_func) (void *, size_t) = realloc;
+-static void *default_realloc_ex(void *str, size_t num,
++static void *(__cdecl *realloc_func) (void *, size_t) = realloc; // OfficeDev: add __cdecl
++static void * __cdecl default_realloc_ex(void *str, size_t num, // OfficeDev: add __cdecl
+                                 const char *file, int line)
+ {
+     return realloc_func(str, num);
+ }
+ 
+-static void *(*realloc_ex_func) (void *, size_t, const char *file, int line)
++static void * (__cdecl *realloc_ex_func) (void *, size_t, const char *file, int line) // OfficeDev: add __cdecl
+     = default_realloc_ex;
+ 
+ #ifdef OPENSSL_SYS_VMS
+-   static void (*free_func) (__void_ptr64) = free;
++   static void (__cdecl *free_func) (__void_ptr64) = free; // OfficeDev: add __cdecl
+ #else
+-   static void (*free_func) (void *) = free;
++   static void (__cdecl *free_func) (void *) = free; // OfficeDev: add __cdecl
+ #endif
+ 
+-static void *(*malloc_locked_func) (size_t) = malloc;
+-static void *default_malloc_locked_ex(size_t num, const char *file, int line)
++static void *(__cdecl *malloc_locked_func) (size_t) = malloc; // OfficeDev: add __cdecl
++static void * __cdecl default_malloc_locked_ex(size_t num, const char *file, int line) // OfficeDev: add __cdecl
+ {
+     return malloc_locked_func(num);
+ }
+ 
+-static void *(*malloc_locked_ex_func) (size_t, const char *file, int line)
++static void *(__cdecl *malloc_locked_ex_func) (size_t, const char *file, int line) // OfficeDev: add __cdecl
+     = default_malloc_locked_ex;
+ 
+ #ifdef OPENSSL_SYS_VMS
+-   static void (*free_locked_func) (__void_ptr64) = free;
++   static void (__cdecl *free_locked_func) (__void_ptr64) = free; // OfficeDev: add __cdecl
+ #else
+-   static void (*free_locked_func) (void *) = free;
++   static void (__cdecl *free_locked_func) (void *) = free; // OfficeDev: add __cdecl
+ #endif
+ 
+ /* may be changed as long as 'allow_customize_debug' is set */
+ /* XXX use correct function pointer types */
+ #ifdef CRYPTO_MDEBUG
+ /* use default functions from mem_dbg.c */
+-static void (*malloc_debug_func) (void *, int, const char *, int, int)
++static void (__cdecl *malloc_debug_func) (void *, int, const char *, int, int) // OfficeDev: add __cdecl
+     = CRYPTO_dbg_malloc;
+-static void (*realloc_debug_func) (void *, void *, int, const char *, int,
++static void (__cdecl *realloc_debug_func) (void *, void *, int, const char *, int, // OfficeDev: add __cdecl
+                                    int)
+     = CRYPTO_dbg_realloc;
+-static void (*free_debug_func) (void *, int) = CRYPTO_dbg_free;
+-static void (*set_debug_options_func) (long) = CRYPTO_dbg_set_options;
+-static long (*get_debug_options_func) (void) = CRYPTO_dbg_get_options;
++static void (__cdecl *free_debug_func) (void *, int) = CRYPTO_dbg_free; // OfficeDev: add __cdecl
++static void (__cdecl *set_debug_options_func) (long) = CRYPTO_dbg_set_options; // OfficeDev: add __cdecl
++static long (__cdecl *get_debug_options_func) (void) = CRYPTO_dbg_get_options; // OfficeDev: add __cdecl
+ #else
+ /*
+  * applications can use CRYPTO_malloc_debug_init() to select above case at
+  * run-time
+  */
+-static void (*malloc_debug_func) (void *, int, const char *, int, int) = NULL;
+-static void (*realloc_debug_func) (void *, void *, int, const char *, int,
++static void (__cdecl *malloc_debug_func) (void *, int, const char *, int, int) = NULL; // OfficeDev: add __cdecl
++static void (__cdecl *realloc_debug_func) (void *, void *, int, const char *, int, // OfficeDev: add __cdecl
+                                    int)
+     = NULL;
+-static void (*free_debug_func) (void *, int) = NULL;
+-static void (*set_debug_options_func) (long) = NULL;
+-static long (*get_debug_options_func) (void) = NULL;
++static void (__cdecl *free_debug_func) (void *, int) = NULL; // OfficeDev: add __cdecl
++static void (*set_debug_options_func) (long) = NULL; // OfficeDev: add __cdecl
++static long (*get_debug_options_func) (void) = NULL; // OfficeDev: add __cdecl
+ #endif
+ 
+-int CRYPTO_set_mem_functions(void *(*m) (size_t), void *(*r) (void *, size_t),
+-                             void (*f) (void *))
++// OfficeDev: add __cdecl
++int CRYPTO_set_mem_functions(void *(__cdecl *m) (size_t), void *(__cdecl *r) (void *, size_t),
++                             void (__cdecl *f) (void *))
+ {
+     if (!allow_customize)
+         return 0;
+@@ -167,9 +168,10 @@ int CRYPTO_set_mem_functions(void *(*m) (size_t), void *(*r) (void *, size_t),
+     return 1;
+ }
+ 
+-int CRYPTO_set_mem_ex_functions(void *(*m) (size_t, const char *, int),
+-                                void *(*r) (void *, size_t, const char *,
+-                                            int), void (*f) (void *))
++// OfficeDev: add __cdecl
++int CRYPTO_set_mem_ex_functions(void *(__cdecl *m) (size_t, const char *, int),
++                                void *(__cdecl *r) (void *, size_t, const char *,
++                                            int), void (__cdecl *f) (void *))
+ {
+     if (!allow_customize)
+         return 0;
+@@ -186,7 +188,8 @@ int CRYPTO_set_mem_ex_functions(void *(*m) (size_t, const char *, int),
+     return 1;
+ }
+ 
+-int CRYPTO_set_locked_mem_functions(void *(*m) (size_t), void (*f) (void *))
++// OfficeDev: add __cdecl
++int CRYPTO_set_locked_mem_functions(void *(__cdecl *m) (size_t), void (__cdecl *f) (void *))
+ {
+     if (!allow_customize)
+         return 0;
+@@ -198,8 +201,9 @@ int CRYPTO_set_locked_mem_functions(void *(*m) (size_t), void (*f) (void *))
+     return 1;
+ }
+ 
+-int CRYPTO_set_locked_mem_ex_functions(void *(*m) (size_t, const char *, int),
+-                                       void (*f) (void *))
++// OfficeDev: add __cdecl
++int CRYPTO_set_locked_mem_ex_functions(void *(__cdecl *m) (size_t, const char *, int),
++                                       void (__cdecl *f) (void *))
+ {
+     if (!allow_customize)
+         return 0;
+@@ -211,11 +215,12 @@ int CRYPTO_set_locked_mem_ex_functions(void *(*m) (size_t, const char *, int),
+     return 1;
+ }
+ 
+-int CRYPTO_set_mem_debug_functions(void (*m)
++// OfficeDev: add __cdecl
++int CRYPTO_set_mem_debug_functions(void (__cdecl *m)
+                                     (void *, int, const char *, int, int),
+-                                   void (*r) (void *, void *, int,
++                                   void (__cdecl *r) (void *, void *, int,
+                                               const char *, int, int),
+-                                   void (*f) (void *, int), void (*so) (long),
++                                   void (__cdecl *f) (void *, int), void (*so) (long),
+                                    long (*go) (void))
+ {
+     if (!allow_customize_debug)
+@@ -229,9 +234,10 @@ int CRYPTO_set_mem_debug_functions(void (*m)
+     return 1;
+ }
+ 
+-void CRYPTO_get_mem_functions(void *(**m) (size_t),
+-                              void *(**r) (void *, size_t),
+-                              void (**f) (void *))
++// OfficeDev: add __cdecl
++void CRYPTO_get_mem_functions(void *(__cdecl **m) (size_t),
++                              void *(__cdecl **r) (void *, size_t),
++                              void (__cdecl **f) (void *))
+ {
+     if (m != NULL)
+         *m = (malloc_ex_func == default_malloc_ex) ? malloc_func : 0;
+@@ -241,9 +247,10 @@ void CRYPTO_get_mem_functions(void *(**m) (size_t),
+         *f = free_func;
+ }
+ 
+-void CRYPTO_get_mem_ex_functions(void *(**m) (size_t, const char *, int),
+-                                 void *(**r) (void *, size_t, const char *,
+-                                              int), void (**f) (void *))
++// OfficeDev: add __cdecl
++void CRYPTO_get_mem_ex_functions(void *(__cdecl **m) (size_t, const char *, int),
++                                 void *(__cdecl **r) (void *, size_t, const char *,
++                                              int), void (__cdecl **f) (void *))
+ {
+     if (m != NULL)
+         *m = (malloc_ex_func != default_malloc_ex) ? malloc_ex_func : 0;
+@@ -253,8 +260,9 @@ void CRYPTO_get_mem_ex_functions(void *(**m) (size_t, const char *, int),
+         *f = free_func;
+ }
+ 
+-void CRYPTO_get_locked_mem_functions(void *(**m) (size_t),
+-                                     void (**f) (void *))
++// OfficeDev: add __cdecl
++void CRYPTO_get_locked_mem_functions(void *(__cdecl **m) (size_t),
++                                     void (__cdecl **f) (void *))
+ {
+     if (m != NULL)
+         *m = (malloc_locked_ex_func == default_malloc_locked_ex) ?
+@@ -263,9 +271,10 @@ void CRYPTO_get_locked_mem_functions(void *(**m) (size_t),
+         *f = free_locked_func;
+ }
+ 
++// OfficeDev: add __cdecl
+ void CRYPTO_get_locked_mem_ex_functions(void
+-                                        *(**m) (size_t, const char *, int),
+-                                        void (**f) (void *))
++                                        *(__cdecl **m) (size_t, const char *, int),
++                                        void (__cdecl **f) (void *))
+ {
+     if (m != NULL)
+         *m = (malloc_locked_ex_func != default_malloc_locked_ex) ?
+@@ -274,11 +283,12 @@ void CRYPTO_get_locked_mem_ex_functions(void
+         *f = free_locked_func;
+ }
+ 
+-void CRYPTO_get_mem_debug_functions(void (**m)
++// OfficeDev: add __cdecl
++void CRYPTO_get_mem_debug_functions(void (__cdecl **m)
+                                      (void *, int, const char *, int, int),
+-                                    void (**r) (void *, void *, int,
++                                    void (__cdecl **r) (void *, void *, int,
+                                                 const char *, int, int),
+-                                    void (**f) (void *, int),
++                                    void (__cdecl **f) (void *, int),
+                                     void (**so) (long), long (**go) (void))
+ {
+     if (m != NULL)
+@@ -293,6 +303,7 @@ void CRYPTO_get_mem_debug_functions(void (**m)
+         *go = get_debug_options_func;
+ }
+ 
++// OfficeDev: add __cdecl
+ void *CRYPTO_malloc_locked(int num, const char *file, int line)
+ {
+     void *ret = NULL;
+diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
+index 579e9d1825..e4db270e08 100644
+--- a/crypto/mem_clr.c
++++ b/crypto/mem_clr.c
+@@ -65,7 +65,7 @@
+  * the pointer and can't assume that it points to any function in
+  * particular (such as memset, which it then might further "optimize")
+  */
+-typedef void *(*memset_t)(void *,int,size_t);
++typedef void *(__cdecl *memset_t)(void *,int,size_t); // OfficeDev: add __cdecl
+ 
+ static volatile memset_t memset_func = memset;
+ 
+diff --git a/crypto/mem_dbg.c b/crypto/mem_dbg.c
+index 9e1be50895..94f80c7e80 100644
+--- a/crypto/mem_dbg.c
++++ b/crypto/mem_dbg.c
+@@ -463,7 +463,8 @@ int CRYPTO_remove_all_info(void)
+ }
+ 
+ static unsigned long break_order_num = 0;
+-void CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
++// OfficeDev: add __cdecl
++void __cdecl CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
+                        int before_p)
+ {
+     MEM *m, *mm;
+@@ -540,7 +541,8 @@ void CRYPTO_dbg_malloc(void *addr, int num, const char *file, int line,
+     return;
+ }
+ 
+-void CRYPTO_dbg_free(void *addr, int before_p)
++// OfficeDev: add __cdecl
++void __cdecl CRYPTO_dbg_free(void *addr, int before_p)
+ {
+     MEM m, *mp;
+ 
+@@ -573,7 +575,8 @@ void CRYPTO_dbg_free(void *addr, int before_p)
+     }
+ }
+ 
+-void CRYPTO_dbg_realloc(void *addr1, void *addr2, int num,
++// OfficeDev: add __cdecl
++void __cdecl CRYPTO_dbg_realloc(void *addr1, void *addr2, int num,
+                         const char *file, int line, int before_p)
+ {
+     MEM m, *mp;
+diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
+index b8bdc5c520..c49a730422 100644
+--- a/crypto/objects/o_names.c
++++ b/crypto/objects/o_names.c
+@@ -14,8 +14,9 @@
+  * pointers.  One way is to define a macro that takes care of casting them
+  * correctly.
+  */
++// OfficeDev: add __cdecl
+ #ifdef OPENSSL_SYS_VMS_DECC
+-# define OPENSSL_strcmp (int (*)(const char *,const char *))strcmp
++# define OPENSSL_strcmp (int (__cdecl *)(const char *,const char *))strcmp
+ #else
+ # define OPENSSL_strcmp strcmp
+ #endif
+@@ -28,9 +29,10 @@ DECLARE_LHASH_OF(OBJ_NAME);
+ static LHASH_OF(OBJ_NAME) *names_lh = NULL;
+ static int names_type_num = OBJ_NAME_TYPE_NUM;
+ 
++// OfficeDev: add __cdecl
+ typedef struct name_funcs_st {
+     unsigned long (*hash_func) (const char *name);
+-    int (*cmp_func) (const char *a, const char *b);
++    int (__cdecl *cmp_func) (const char *a, const char *b);
+     void (*free_func) (const char *, int, const char *);
+ } NAME_FUNCS;
+ 
+@@ -63,8 +65,9 @@ int OBJ_NAME_init(void)
+     return (names_lh != NULL);
+ }
+ 
++// OfficeDev: add __cdecl
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *))
+ {
+     int ret;
+@@ -295,7 +298,7 @@ static void do_all_sorted_fn(const OBJ_NAME *name, void *d_)
+     d->names[d->n++] = name;
+ }
+ 
+-static int do_all_sorted_cmp(const void *n1_, const void *n2_)
++static int __cdecl do_all_sorted_cmp(const void *n1_, const void *n2_) // OfficeDev: add __cdecl
+ {
+     const OBJ_NAME *const *n1 = n1_;
+     const OBJ_NAME *const *n2 = n2_;
+diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
+index 315afa9dbe..f86ddc65ae 100644
+--- a/crypto/objects/obj_dat.c
++++ b/crypto/objects/obj_dat.c
+@@ -99,14 +99,16 @@ DECLARE_LHASH_OF(ADDED_OBJ);
+ static int new_nid = NUM_NID;
+ static LHASH_OF(ADDED_OBJ) *added = NULL;
+ 
+-static int sn_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
++// OfficeDev: add __cdecl
++static int __cdecl sn_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
+ {
+     return (strcmp((*a)->sn, nid_objs[*b].sn));
+ }
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, sn);
+ 
+-static int ln_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
++// OfficeDev: add __cdecl
++static int __cdecl ln_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
+ {
+     return (strcmp((*a)->ln, nid_objs[*b].ln));
+ }
+@@ -148,7 +150,8 @@ static unsigned long added_obj_hash(const ADDED_OBJ *ca)
+ 
+ static IMPLEMENT_LHASH_HASH_FN(added_obj, ADDED_OBJ)
+ 
+-static int added_obj_cmp(const ADDED_OBJ *ca, const ADDED_OBJ *cb)
++// OfficeDev: add __cdecl
++static int __cdecl added_obj_cmp(const ADDED_OBJ *ca, const ADDED_OBJ *cb)
+ {
+     ASN1_OBJECT *a, *b;
+     int i;
+@@ -390,7 +393,8 @@ const char *OBJ_nid2ln(int n)
+     }
+ }
+ 
+-static int obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
++// OfficeDev: add __cdecl
++static int __cdecl obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
+ {
+     int j;
+     const ASN1_OBJECT *a = *ap;
+@@ -669,15 +673,17 @@ int OBJ_sn2nid(const char *s)
+     return (nid_objs[*op].nid);
+ }
+ 
++// OfficeDev: add __cdecl
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *))
++                         int (__cdecl *cmp) (const void *, const void *))
+ {
+     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
+ }
+ 
++// OfficeDev: add __cdecl
+ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags)
+ {
+     const char *base = base_;
+diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
+index 97b305d213..ecb4665fee 100644
+--- a/crypto/objects/obj_xref.c
++++ b/crypto/objects/obj_xref.c
+@@ -63,7 +63,8 @@
+ DECLARE_STACK_OF(nid_triple)
+ STACK_OF(nid_triple) *sig_app, *sigx_app;
+ 
+-static int sig_cmp(const nid_triple *a, const nid_triple *b)
++// OfficeDev: add __cdecl
++static int __cdecl sig_cmp(const nid_triple *a, const nid_triple *b)
+ {
+     return a->sign_id - b->sign_id;
+ }
+@@ -71,14 +72,16 @@ static int sig_cmp(const nid_triple *a, const nid_triple *b)
+ DECLARE_OBJ_BSEARCH_CMP_FN(nid_triple, nid_triple, sig);
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(nid_triple, nid_triple, sig);
+ 
+-static int sig_sk_cmp(const nid_triple *const *a, const nid_triple *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl sig_sk_cmp(const nid_triple *const *a, const nid_triple *const *b)
+ {
+     return (*a)->sign_id - (*b)->sign_id;
+ }
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
+ 
+-static int sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
+ {
+     int ret;
+     ret = (*a)->hash_id - (*b)->hash_id;
+diff --git a/crypto/objects/objects.h b/crypto/objects/objects.h
+index b8dafa89ce..12ae454e0c 100644
+--- a/crypto/objects/objects.h
++++ b/crypto/objects/objects.h
+@@ -991,8 +991,9 @@ typedef struct obj_name_st {
+ # define         OBJ_create_and_add_object(a,b,c) OBJ_create(a,b,c)
+ 
+ int OBJ_NAME_init(void);
++// OfficeDev: add __cdecl
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *));
+ const char *OBJ_NAME_get(const char *name, int type);
+ int OBJ_NAME_add(const char *name, int type, const char *data);
+@@ -1016,15 +1017,16 @@ int OBJ_ln2nid(const char *s);
+ int OBJ_sn2nid(const char *s);
+ int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *));
++                         int (__cdecl *cmp) (const void *, const void *)); // OfficeDev: add __cdecl
+ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *), // OfficeDev: add __cdecl
+                             int flags);
+ 
++// OfficeDev: add __cdecl
+ # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
+-  static int nm##_cmp(type1 const *, type2 const *); \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
++  static int __cdecl nm##_cmp(type1 const *, type2 const *); \
+   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
+ 
+ # define DECLARE_OBJ_BSEARCH_CMP_FN(type1, type2, cmp)   \
+@@ -1059,8 +1061,9 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+  * comparison routines do always not touch their arguments.
+  */
+ 
++// OfficeDev: add __cdecl, casts
+ # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+@@ -1073,8 +1076,9 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+       } \
+       extern void dummy_prototype(void)
+ 
++// OfficeDev: add __cdecl, casts
+ # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+diff --git a/crypto/rand/randtest.c b/crypto/rand/randtest.c
+index 91bcac9906..439d349241 100644
+--- a/crypto/rand/randtest.c
++++ b/crypto/rand/randtest.c
+@@ -65,7 +65,7 @@
+ /* some FIPS 140-1 random number test */
+ /* some simple tests */
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     unsigned char buf[2500];
+     int i, j, k, s, sign, nsign, err = 0;
+diff --git a/crypto/rc2/rc2test.c b/crypto/rc2/rc2test.c
+index e61df342ea..609c9ec999 100644
+--- a/crypto/rc2/rc2test.c
++++ b/crypto/rc2/rc2test.c
+@@ -145,7 +145,7 @@ static unsigned char cfb_cipher64[CFB_TEST_SIZE] = {
+ static char *pt(unsigned char *p);
+ # endif
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, n, err = 0;
+     RC2_KEY key;
+diff --git a/crypto/rc4/rc4test.c b/crypto/rc4/rc4test.c
+index e2bfbfa1fc..0703242872 100644
+--- a/crypto/rc4/rc4test.c
++++ b/crypto/rc4/rc4test.c
+@@ -113,7 +113,7 @@ static unsigned char output[7][30] = {
+     {0},
+ };
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     int j;
+diff --git a/crypto/ripemd/rmdtest.c b/crypto/ripemd/rmdtest.c
+index 95f6f46ab1..96f20fe17e 100644
+--- a/crypto/ripemd/rmdtest.c
++++ b/crypto/ripemd/rmdtest.c
+@@ -100,7 +100,7 @@ static char *ret[] = {
+ };
+ 
+ static char *pt(unsigned char *md);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     char **P, **R;
+diff --git a/crypto/rsa/rsa_test.c b/crypto/rsa/rsa_test.c
+index ed78f01081..aba95e1f64 100644
+--- a/crypto/rsa/rsa_test.c
++++ b/crypto/rsa/rsa_test.c
+@@ -208,7 +208,7 @@ static int pad_unknown(void)
+ static const char rnd_seed[] =
+     "string to make the random number generator think it has entropy";
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int err = 0;
+     int v;
+diff --git a/crypto/sha/sha1test.c b/crypto/sha/sha1test.c
+index 551a348df3..766799801c 100644
+--- a/crypto/sha/sha1test.c
++++ b/crypto/sha/sha1test.c
+@@ -103,7 +103,7 @@ static char *bigret = "34aa973cd4c4daa4f61eeb2bdbad27316534016f";
+ # endif
+ 
+ static char *pt(unsigned char *md);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     char **P, **R;
+diff --git a/crypto/sha/sha256t.c b/crypto/sha/sha256t.c
+index 35dbbc2a96..bbc5bbbf17 100644
+--- a/crypto/sha/sha256t.c
++++ b/crypto/sha/sha256t.c
+@@ -60,7 +60,7 @@ unsigned char addenum_3[SHA224_DIGEST_LENGTH] = {
+     0x4e, 0xe7, 0xad, 0x67
+ };
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     unsigned char md[SHA256_DIGEST_LENGTH];
+     int i;
+diff --git a/crypto/sha/sha512t.c b/crypto/sha/sha512t.c
+index 178882fc76..78c60aaef9 100644
+--- a/crypto/sha/sha512t.c
++++ b/crypto/sha/sha512t.c
+@@ -79,7 +79,7 @@ unsigned char app_d3[SHA384_DIGEST_LENGTH] = {
+     0xae, 0x97, 0xdd, 0xd8, 0x7f, 0x3d, 0x89, 0x85
+ };
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     unsigned char md[SHA512_DIGEST_LENGTH];
+     int i;
+diff --git a/crypto/sha/shatest.c b/crypto/sha/shatest.c
+index 105060a7ec..1c0b9d8ffe 100644
+--- a/crypto/sha/shatest.c
++++ b/crypto/sha/shatest.c
+@@ -103,7 +103,7 @@ static char *bigret = "34aa973cd4c4daa4f61eeb2bdbad27316534016f";
+ # endif
+ 
+ static char *pt(unsigned char *md);
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     int i, err = 0;
+     char **P, **R;
+diff --git a/crypto/srp/srptest.c b/crypto/srp/srptest.c
+index 00e001bd6b..bb64c9a4c6 100644
+--- a/crypto/srp/srptest.c
++++ b/crypto/srp/srptest.c
+@@ -121,7 +121,7 @@ static int run_srp(const char *username, const char *client_pass,
+     return ret;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     BIO *bio_err;
+     bio_err = BIO_new_fp(stderr, BIO_NOCLOSE);
+diff --git a/crypto/stack/safestack.h b/crypto/stack/safestack.h
+index 1d4f87eab3..3212671de5 100644
+--- a/crypto/stack/safestack.h
++++ b/crypto/stack/safestack.h
+@@ -81,9 +81,10 @@ extern "C" {
+ # define CHECKED_SK_FREE_FUNC(type, p) \
+     ((void (*)(void *)) ((1 ? p : (void (*)(type *))0)))
+ 
++// OfficeDev: add __cdecl
+ # define CHECKED_SK_CMP_FUNC(type, p) \
+-    ((int (*)(const void *, const void *)) \
+-        ((1 ? p : (int (*)(const type * const *, const type * const *))0)))
++    ((int (__cdecl *)(const void *, const void *)) \
++        ((1 ? p : (int (__cdecl *)(const type * const *, const type * const *))0)))
+ 
+ # define STACK_OF(type) struct stack_st_##type
+ # define PREDECLARE_STACK_OF(type) STACK_OF(type);
+@@ -171,7 +172,7 @@ DECLARE_SPECIAL_STACK_OF(OPENSSL_BLOCK, void)
+ # define SKM_sk_insert(type, st,val, i) \
+         sk_insert(CHECKED_STACK_OF(type, st), CHECKED_PTR_OF(type, val), i)
+ # define SKM_sk_set_cmp_func(type, st, cmp) \
+-        ((int (*)(const type * const *,const type * const *)) \
++        ((int (__cdecl *)(const type * const *,const type * const *)) \
+         sk_set_cmp_func(CHECKED_STACK_OF(type, st), CHECKED_SK_CMP_FUNC(type, cmp)))
+ # define SKM_sk_dup(type, st) \
+         (STACK_OF(type) *)sk_dup(CHECKED_STACK_OF(type, st))
+diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
+index fa50083e22..67bc7a63ad 100644
+--- a/crypto/stack/stack.c
++++ b/crypto/stack/stack.c
+@@ -78,9 +78,10 @@ const char STACK_version[] = "Stack" OPENSSL_VERSION_PTEXT;
+ 
+ #include <errno.h>
+ 
+-int (*sk_set_cmp_func(_STACK *sk, int (*c) (const void *, const void *)))
++// OfficeDev: add __cdecl
++int (__cdecl *sk_set_cmp_func(_STACK *sk, int (__cdecl *c) (const void *, const void *)))
+  (const void *, const void *) {
+-    int (*old) (const void *, const void *) = sk->comp;
++    int (__cdecl *old) (const void *, const void *) = sk->comp;
+ 
+     if (sk->comp != c)
+         sk->sorted = 0;
+@@ -151,10 +152,10 @@ _STACK *sk_deep_copy(_STACK *sk, void *(*copy_func) (void *),
+ 
+ _STACK *sk_new_null(void)
+ {
+-    return sk_new((int (*)(const void *, const void *))0);
++    return sk_new((int (__cdecl *)(const void *, const void *))0); // OfficeDev: add __cdecl
+ }
+ 
+-_STACK *sk_new(int (*c) (const void *, const void *))
++_STACK *sk_new(int (__cdecl *c) (const void *, const void *)) // OfficeDev: add __cdecl
+ {
+     _STACK *ret;
+     int i;
+@@ -361,7 +362,7 @@ void *sk_set(_STACK *st, int i, void *value)
+ void sk_sort(_STACK *st)
+ {
+     if (st && !st->sorted && st->comp != NULL) {
+-        int (*comp_func) (const void *, const void *);
++        int (__cdecl *comp_func) (const void *, const void *); // OfficeDev: add __cdecl
+ 
+         /*
+          * same comment as in sk_find ... previously st->comp was declared as
+@@ -370,7 +371,7 @@ void sk_sort(_STACK *st)
+          * type**, so we leave the casting until absolutely necessary (ie.
+          * "now").
+          */
+-        comp_func = (int (*)(const void *, const void *))(st->comp);
++        comp_func = (int (__cdecl *)(const void *, const void *))(st->comp); // OfficeDev: add __cdecl
+         qsort(st->data, st->num, sizeof(char *), comp_func);
+         st->sorted = 1;
+     }
+diff --git a/crypto/stack/stack.h b/crypto/stack/stack.h
+index eb07216659..4cc89a55c9 100644
+--- a/crypto/stack/stack.h
++++ b/crypto/stack/stack.h
+@@ -68,7 +68,7 @@ typedef struct stack_st {
+     char **data;
+     int sorted;
+     int num_alloc;
+-    int (*comp) (const void *, const void *);
++    int (__cdecl *comp) (const void *, const void *); // OfficeDev: add __cdecl
+ } _STACK;                       /* Use STACK_OF(...) instead */
+ 
+ # define M_sk_num(sk)            ((sk) ? (sk)->num:-1)
+@@ -79,7 +79,7 @@ void *sk_value(const _STACK *, int);
+ 
+ void *sk_set(_STACK *, int, void *);
+ 
+-_STACK *sk_new(int (*cmp) (const void *, const void *));
++_STACK *sk_new(int (__cdecl *cmp) (const void *, const void *)); // OfficeDev: add __cdecl
+ _STACK *sk_new_null(void);
+ void sk_free(_STACK *);
+ void sk_pop_free(_STACK *st, void (*func) (void *));
+@@ -94,7 +94,8 @@ int sk_unshift(_STACK *st, void *data);
+ void *sk_shift(_STACK *st);
+ void *sk_pop(_STACK *st);
+ void sk_zero(_STACK *st);
+-int (*sk_set_cmp_func(_STACK *sk, int (*c) (const void *, const void *)))
++// OfficeDev: add __cdecl
++int (__cdecl *sk_set_cmp_func(_STACK *sk, int (__cdecl *c) (const void *, const void *)))
+  (const void *, const void *);
+ _STACK *sk_dup(_STACK *st);
+ void sk_sort(_STACK *st);
+diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
+index 1ad0cfc5b8..9efd6860fa 100644
+--- a/crypto/ui/ui_openssl.c
++++ b/crypto/ui/ui_openssl.c
+@@ -283,7 +283,7 @@ typedef int sig_atomic_t;
+ #ifdef SIGACTION
+ static struct sigaction savsig[NX509_SIG];
+ #else
+-static void (*savsig[NX509_SIG]) (int);
++static void (__cdecl *savsig[NX509_SIG]) (int); // OfficeDev: add __cdecl
+ #endif
+ 
+ #ifdef OPENSSL_SYS_VMS
+@@ -305,9 +305,9 @@ static int is_a_tty;
+ /* Declare static functions */
+ #if !defined(OPENSSL_SYS_WIN16) && !defined(OPENSSL_SYS_WINCE)
+ static int read_till_nl(FILE *);
+-static void recsig(int);
+-static void pushsig(void);
+-static void popsig(void);
++static void __cdecl recsig(int); // OfficeDev: add __cdecl
++static void __cdecl pushsig(void); // OfficeDev: add __cdecl
++static void __cdecl popsig(void); // OfficeDev: add __cdecl
+ #endif
+ #if defined(OPENSSL_SYS_MSDOS) && !defined(OPENSSL_SYS_WIN16)
+ static int noecho_fgets(char *buf, int size, FILE *tty);
+@@ -602,7 +602,8 @@ static int close_console(UI *ui)
+ 
+ #if !defined(OPENSSL_SYS_WIN16) && !defined(OPENSSL_SYS_WINCE)
+ /* Internal functions to handle signals and act on them */
+-static void pushsig(void)
++// OfficeDev: add __cdecl
++static void __cdecl pushsig(void)
+ {
+ # ifndef OPENSSL_SYS_WIN32
+     int i;
+@@ -648,7 +649,8 @@ static void pushsig(void)
+ # endif
+ }
+ 
+-static void popsig(void)
++// OfficeDev: add __cdecl
++static void __cdecl popsig(void)
+ {
+ # ifdef OPENSSL_SYS_WIN32
+     signal(SIGABRT, savsig[SIGABRT]);
+@@ -677,7 +679,8 @@ static void popsig(void)
+ # endif
+ }
+ 
+-static void recsig(int i)
++// OfficeDev: add __cdecl
++static void __cdecl recsig(int i)
+ {
+     intr_signal = i;
+ }
+diff --git a/crypto/whrlpool/wp_test.c b/crypto/whrlpool/wp_test.c
+index 2ea6251a58..1df9d70fab 100644
+--- a/crypto/whrlpool/wp_test.c
++++ b/crypto/whrlpool/wp_test.c
+@@ -117,7 +117,7 @@ unsigned char iso_test_9[WHIRLPOOL_DIGEST_LENGTH] = {
+     0x69, 0x53, 0xB2, 0x26, 0xE4, 0xED, 0x8B, 0x01
+ };
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     unsigned char md[WHIRLPOOL_DIGEST_LENGTH];
+     int i;
+diff --git a/crypto/x509/by_dir.c b/crypto/x509/by_dir.c
+index 6f0209a275..0ae8a3d14c 100644
+--- a/crypto/x509/by_dir.c
++++ b/crypto/x509/by_dir.c
+@@ -164,7 +164,8 @@ static void by_dir_hash_free(BY_DIR_HASH *hash)
+     OPENSSL_free(hash);
+ }
+ 
+-static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl by_dir_hash_cmp(const BY_DIR_HASH *const *a,
+                            const BY_DIR_HASH *const *b)
+ {
+     if ((*a)->hash > (*b)->hash)
+diff --git a/crypto/x509/x509_lu.c b/crypto/x509/x509_lu.c
+index 3d18ea90be..963ae5d1ea 100644
+--- a/crypto/x509/x509_lu.c
++++ b/crypto/x509/x509_lu.c
+@@ -157,7 +157,8 @@ int X509_LOOKUP_by_alias(X509_LOOKUP *ctx, int type, char *str, int len,
+     return ctx->method->get_by_alias(ctx, type, str, len, ret);
+ }
+ 
+-static int x509_object_cmp(const X509_OBJECT *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl x509_object_cmp(const X509_OBJECT *const *a,
+                            const X509_OBJECT *const *b)
+ {
+     int ret;
+diff --git a/crypto/x509/x509_trs.c b/crypto/x509/x509_trs.c
+index 11e0763403..e1b86211ba 100644
+--- a/crypto/x509/x509_trs.c
++++ b/crypto/x509/x509_trs.c
+@@ -61,7 +61,7 @@
+ #include "cryptlib.h"
+ #include <openssl/x509v3.h>
+ 
+-static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b);
++static int __cdecl tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b); // OfficeDev: add __cdecl
+ static void trtable_free(X509_TRUST *p);
+ 
+ static int trust_1oidany(X509_TRUST *trust, X509 *x, int flags);
+@@ -100,7 +100,8 @@ IMPLEMENT_STACK_OF(X509_TRUST)
+ 
+ static STACK_OF(X509_TRUST) *trtable = NULL;
+ 
+-static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b)
+ {
+     return (*a)->trust - (*b)->trust;
+ }
+diff --git a/crypto/x509/x509_vpm.c b/crypto/x509/x509_vpm.c
+index 7d68a4abbc..3630083537 100644
+--- a/crypto/x509/x509_vpm.c
++++ b/crypto/x509/x509_vpm.c
+@@ -587,7 +587,8 @@ static const X509_VERIFY_PARAM default_table[] = {
+ 
+ static STACK_OF(X509_VERIFY_PARAM) *param_table = NULL;
+ 
+-static int table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
++// OfficeDev: add __cdecl
++static int __cdecl table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
+ {
+     return strcmp(a->name, b->name);
+ }
+@@ -595,7 +596,8 @@ static int table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
+ DECLARE_OBJ_BSEARCH_CMP_FN(X509_VERIFY_PARAM, X509_VERIFY_PARAM, table);
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(X509_VERIFY_PARAM, X509_VERIFY_PARAM, table);
+ 
+-static int param_cmp(const X509_VERIFY_PARAM *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl param_cmp(const X509_VERIFY_PARAM *const *a,
+                      const X509_VERIFY_PARAM *const *b)
+ {
+     return strcmp((*a)->name, (*b)->name);
+diff --git a/crypto/x509v3/pcy_cache.c b/crypto/x509v3/pcy_cache.c
+index c8f41f24bc..a42eaa15d0 100644
+--- a/crypto/x509v3/pcy_cache.c
++++ b/crypto/x509v3/pcy_cache.c
+@@ -63,7 +63,8 @@
+ 
+ #include "pcy_int.h"
+ 
+-static int policy_data_cmp(const X509_POLICY_DATA *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl policy_data_cmp(const X509_POLICY_DATA *const *a,
+                            const X509_POLICY_DATA *const *b);
+ static int policy_cache_set_int(long *out, ASN1_INTEGER *value);
+ 
+@@ -252,7 +253,8 @@ X509_POLICY_DATA *policy_cache_find_data(const X509_POLICY_CACHE *cache,
+     return sk_X509_POLICY_DATA_value(cache->data, idx);
+ }
+ 
+-static int policy_data_cmp(const X509_POLICY_DATA *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl policy_data_cmp(const X509_POLICY_DATA *const *a,
+                            const X509_POLICY_DATA *const *b)
+ {
+     return OBJ_cmp((*a)->valid_policy, (*b)->valid_policy);
+diff --git a/crypto/x509v3/pcy_node.c b/crypto/x509v3/pcy_node.c
+index d6c917650a..3a070d219a 100644
+--- a/crypto/x509v3/pcy_node.c
++++ b/crypto/x509v3/pcy_node.c
+@@ -63,7 +63,8 @@
+ 
+ #include "pcy_int.h"
+ 
+-static int node_cmp(const X509_POLICY_NODE *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl node_cmp(const X509_POLICY_NODE *const *a,
+                     const X509_POLICY_NODE *const *b)
+ {
+     return OBJ_cmp((*a)->data->valid_policy, (*b)->data->valid_policy);
+diff --git a/crypto/x509v3/v3_lib.c b/crypto/x509v3/v3_lib.c
+index 1112802483..8529586b38 100644
+--- a/crypto/x509v3/v3_lib.c
++++ b/crypto/x509v3/v3_lib.c
+@@ -67,7 +67,8 @@
+ 
+ static STACK_OF(X509V3_EXT_METHOD) *ext_list = NULL;
+ 
+-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl ext_cmp(const X509V3_EXT_METHOD *const *a,
+                    const X509V3_EXT_METHOD *const *b);
+ static void ext_list_free(X509V3_EXT_METHOD *ext);
+ 
+@@ -84,7 +85,8 @@ int X509V3_EXT_add(X509V3_EXT_METHOD *ext)
+     return 1;
+ }
+ 
+-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
++// OfficeDev: add __cdecl
++static int __cdecl ext_cmp(const X509V3_EXT_METHOD *const *a,
+                    const X509V3_EXT_METHOD *const *b)
+ {
+     return ((*a)->ext_nid - (*b)->ext_nid);
+diff --git a/crypto/x509v3/v3_purp.c b/crypto/x509v3/v3_purp.c
+index 7080a51c4c..3081f3d8d1 100644
+--- a/crypto/x509v3/v3_purp.c
++++ b/crypto/x509v3/v3_purp.c
+@@ -83,7 +83,8 @@ static int check_purpose_timestamp_sign(const X509_PURPOSE *xp, const X509 *x,
+ static int no_check(const X509_PURPOSE *xp, const X509 *x, int ca);
+ static int ocsp_helper(const X509_PURPOSE *xp, const X509 *x, int ca);
+ 
+-static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b);
++// OfficeDev: add __cdecl
++static int __cdecl xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b);
+ static void xptable_free(X509_PURPOSE *p);
+ 
+ static X509_PURPOSE xstandard[] = {
+@@ -114,7 +115,8 @@ IMPLEMENT_STACK_OF(X509_PURPOSE)
+ 
+ static STACK_OF(X509_PURPOSE) *xptable = NULL;
+ 
+-static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b)
+ {
+     return (*a)->purpose - (*b)->purpose;
+ }
+@@ -296,7 +298,8 @@ int X509_PURPOSE_get_trust(X509_PURPOSE *xp)
+     return xp->trust;
+ }
+ 
+-static int nid_cmp(const int *a, const int *b)
++// OfficeDev: add __cdecl
++static int __cdecl nid_cmp(const int *a, const int *b)
+ {
+     return *a - *b;
+ }
+diff --git a/crypto/x509v3/v3_utl.c b/crypto/x509v3/v3_utl.c
+index 43b9cb9c58..4edcc65a0f 100644
+--- a/crypto/x509v3/v3_utl.c
++++ b/crypto/x509v3/v3_utl.c
+@@ -66,7 +66,7 @@
+ #include <openssl/bn.h>
+ 
+ static char *strip_spaces(char *name);
+-static int sk_strcmp(const char *const *a, const char *const *b);
++static int __cdecl sk_strcmp(const char *const *a, const char *const *b); // OfficeDev: add __cdecl
+ static STACK_OF(OPENSSL_STRING) *get_email(X509_NAME *name,
+                                            GENERAL_NAMES *gens);
+ static void str_free(OPENSSL_STRING str);
+@@ -517,7 +517,8 @@ int name_cmp(const char *name, const char *cmp)
+     return 1;
+ }
+ 
+-static int sk_strcmp(const char *const *a, const char *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl sk_strcmp(const char *const *a, const char *const *b)
+ {
+     return strcmp(*a, *b);
+ }
+diff --git a/crypto/x509v3/v3nametest.c b/crypto/x509v3/v3nametest.c
+index ac5c9ff432..00b9cd9179 100644
+--- a/crypto/x509v3/v3nametest.c
++++ b/crypto/x509v3/v3nametest.c
+@@ -321,7 +321,7 @@ static void run_cert(X509 *crt, const char *nameincert,
+     }
+ }
+ 
+-int main(void)
++int __cdecl main(void) // OfficeDev: add __cdecl
+ {
+     const struct set_name_fn *pfn = name_fns;
+     while (pfn->name) {
+diff --git a/ms/applink.c b/ms/applink.c
+index 2831b39e9a..c326eb9f22 100644
+--- a/ms/applink.c
++++ b/ms/applink.c
+@@ -29,42 +29,47 @@
+ # include <io.h>
+ # include <fcntl.h>
+ 
+-static void *app_stdin(void)
++
++#pragma warning(disable: 4152)
++
++// OfficeDev: make all __cdecl (since OpenSSL's inline assembly code that calls this assumes __cdecl)
++
++static void * __cdecl app_stdin(void)
+ {
+     return stdin;
+ }
+ 
+-static void *app_stdout(void)
++static void * __cdecl app_stdout(void)
+ {
+     return stdout;
+ }
+ 
+-static void *app_stderr(void)
++static void * __cdecl app_stderr(void)
+ {
+     return stderr;
+ }
+ 
+-static int app_feof(FILE *fp)
++static int  __cdecl app_feof(FILE *fp)
+ {
+     return feof(fp);
+ }
+ 
+-static int app_ferror(FILE *fp)
++static int  __cdecl app_ferror(FILE *fp)
+ {
+     return ferror(fp);
+ }
+ 
+-static void app_clearerr(FILE *fp)
++static void  __cdecl app_clearerr(FILE *fp)
+ {
+     clearerr(fp);
+ }
+ 
+-static int app_fileno(FILE *fp)
++static int  __cdecl app_fileno(FILE *fp)
+ {
+     return _fileno(fp);
+ }
+ 
+-static int app_fsetmod(FILE *fp, char mod)
++static int  __cdecl app_fsetmod(FILE *fp, char mod)
+ {
+     return _setmode(_fileno(fp), mod == 'b' ? _O_BINARY : _O_TEXT);
+ }
+diff --git a/ms/uplink.c b/ms/uplink.c
+index e58ab9d8f5..ae190c1151 100644
+--- a/ms/uplink.c
++++ b/ms/uplink.c
+@@ -22,7 +22,8 @@ static void unimplemented(void)
+     ExitProcess(1);
+ }
+ 
+-void OPENSSL_Uplink(volatile void **table, int index)
++// OfficeDev: make __cdecl (since OpenSSL's inline assembly code that calls this assumes __cdecl)
++void __cdecl OPENSSL_Uplink(volatile void **table, int index)
+ {
+     static HMODULE volatile apphandle = NULL;
+     static void **volatile applinktable = NULL;
+diff --git a/ms/uplink.h b/ms/uplink.h
+index 4881ba7d42..d31d67f95d 100644
+--- a/ms/uplink.h
++++ b/ms/uplink.h
+@@ -3,27 +3,29 @@
+ 
+ extern void *OPENSSL_UplinkTable[];
+ 
+-#define UP_stdin  (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
+-#define UP_stdout (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
+-#define UP_stderr (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
+-#define UP_fprintf (*(int (*)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
+-#define UP_fgets  (*(char *(*)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
+-#define UP_fread  (*(size_t (*)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
+-#define UP_fwrite (*(size_t (*)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
+-#define UP_fsetmod (*(int (*)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
+-#define UP_feof   (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
+-#define UP_fclose (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
++// OfficeDev: make all __cdecl (since OpenSSL's inline assembly code that calls this assumes __cdecl)
+ 
+-#define UP_fopen  (*(void *(*)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
+-#define UP_fseek  (*(int (*)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
+-#define UP_ftell  (*(long (*)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
+-#define UP_fflush (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
+-#define UP_ferror (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
+-#define UP_clearerr (*(void (*)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
+-#define UP_fileno (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
++#define UP_stdin  (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
++#define UP_stdout (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
++#define UP_stderr (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
++#define UP_fprintf (*(int (__cdecl *)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
++#define UP_fgets  (*(char *(__cdecl *)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
++#define UP_fread  (*(size_t (__cdecl *)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
++#define UP_fwrite (*(size_t (__cdecl *)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
++#define UP_fsetmod (*(int (__cdecl *)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
++#define UP_feof   (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
++#define UP_fclose (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
+ 
+-#define UP_open   (*(int (*)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
+-#define UP_read   (*(ossl_ssize_t (*)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
+-#define UP_write  (*(ossl_ssize_t (*)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
+-#define UP_lseek  (*(long (*)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
+-#define UP_close  (*(int (*)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
++#define UP_fopen  (*(void *(__cdecl *)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
++#define UP_fseek  (*(int (__cdecl *)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
++#define UP_ftell  (*(long (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
++#define UP_fflush (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
++#define UP_ferror (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
++#define UP_clearerr (*(void (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
++#define UP_fileno (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
++
++#define UP_open   (*(int (__cdecl *)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
++#define UP_read   (*(ossl_ssize_t (__cdecl *)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
++#define UP_write  (*(ossl_ssize_t (__cdecl *)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
++#define UP_lseek  (*(long (__cdecl *)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
++#define UP_close  (*(int (__cdecl *)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
+diff --git a/ssl/heartbeat_test.c b/ssl/heartbeat_test.c
+index 7623c36ccf..9dd102b37b 100644
+--- a/ssl/heartbeat_test.c
++++ b/ssl/heartbeat_test.c
+@@ -467,7 +467,7 @@ int main(int argc, char *argv[])
+ 
+ #else                           /* OPENSSL_NO_HEARTBEATS */
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[]) // OfficeDev: add __cdecl
+ {
+     return EXIT_SUCCESS;
+ }
+diff --git a/ssl/s3_clnt.c b/ssl/s3_clnt.c
+index bd0929d0e5..7a2d118820 100644
+--- a/ssl/s3_clnt.c
++++ b/ssl/s3_clnt.c
+@@ -167,7 +167,8 @@
+ # include <openssl/engine.h>
+ #endif
+ 
+-static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b);
++// OfficeDev: add __cdecl
++static int __cdecl ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b);
+ #ifndef OPENSSL_NO_TLSEXT
+ static int ssl3_check_finished(SSL *s);
+ #endif
+@@ -2272,7 +2273,8 @@ int ssl3_get_certificate_request(SSL *s)
+     return (ret);
+ }
+ 
+-static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return (X509_NAME_cmp(*a, *b));
+ }
+diff --git a/ssl/ssl_cert.c b/ssl/ssl_cert.c
+index 363d2b2d60..16ce5f3ebd 100644
+--- a/ssl/ssl_cert.c
++++ b/ssl/ssl_cert.c
+@@ -856,7 +856,8 @@ int SSL_CTX_add_client_CA(SSL_CTX *ctx, X509 *x)
+     return (add_client_CA(&(ctx->client_CA), x));
+ }
+ 
+-static int xname_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl xname_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return (X509_NAME_cmp(*a, *b));
+ }
+@@ -947,7 +948,8 @@ int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
+     X509 *x = NULL;
+     X509_NAME *xn = NULL;
+     int ret = 1;
+-    int (*oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
++    // OfficeDev: add __cdecl
++    int (__cdecl *oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
+ 
+     oldcmp = sk_X509_NAME_set_cmp_func(stack, xname_cmp);
+ 
+diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
+index ccdf00fa1b..9a17723a81 100644
+--- a/ssl/ssl_ciph.c
++++ b/ssl/ssl_ciph.c
+@@ -463,7 +463,8 @@ void ssl_load_ciphers(void)
+ 
+ #ifndef OPENSSL_NO_COMP
+ 
+-static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
++// OfficeDev: add __cdecl
++static int __cdecl sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
+ {
+     return ((*a)->id - (*b)->id);
+ }
+diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
+index aa0cbdb987..b461749ad2 100644
+--- a/ssl/ssl_lib.c
++++ b/ssl/ssl_lib.c
+@@ -1295,7 +1295,8 @@ long SSL_CTX_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
+     }
+ }
+ 
+-int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
++// OfficeDev: add __cdecl
++int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+ {
+     long l;
+ 
+@@ -1306,7 +1307,8 @@ int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+         return ((l > 0) ? 1 : -1);
+ }
+ 
+-int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++// OfficeDev: add __cdecl
++int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                           const SSL_CIPHER *const *bp)
+ {
+     long l;
+diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
+index 43789ad757..e138de8733 100644
+--- a/ssl/ssl_locl.h
++++ b/ssl/ssl_locl.h
+@@ -1076,9 +1076,11 @@ int ssl_get_new_session(SSL *s, int session);
+ int ssl_get_prev_session(SSL *s, unsigned char *session, int len,
+                          const unsigned char *limit);
+ SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket);
+-int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
++// OfficeDev: add __cdecl
++int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
+ DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
+-int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++// OfficeDev: add __cdecl
++int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                           const SSL_CIPHER *const *bp);
+ STACK_OF(SSL_CIPHER) *ssl_bytes_to_cipher_list(SSL *s, unsigned char *p,
+                                                int num,
+diff --git a/ssl/ssltest.c b/ssl/ssltest.c
+index b861e49569..8131349f8d 100644
+--- a/ssl/ssltest.c
++++ b/ssl/ssltest.c
+@@ -1031,7 +1031,7 @@ int opaque_prf_input_cb(SSL *ssl, void *peerinput, size_t len, void *arg_)
+ }
+ #endif
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     char *CApath = NULL, *CAfile = NULL;
+     int badop = 0;
+diff --git a/test/igetest.c b/test/igetest.c
+index 748685d144..dfa92f1c06 100644
+--- a/test/igetest.c
++++ b/test/igetest.c
+@@ -271,7 +271,7 @@ static int run_test_vectors(void)
+     return errs;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv) // OfficeDev: add __cdecl
+ {
+     unsigned char rkey[16];
+     unsigned char rkey2[16];
