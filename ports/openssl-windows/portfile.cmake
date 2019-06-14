@@ -21,6 +21,7 @@ vcpkg_extract_source_archive(${OPENSSL_SOURCE_ARCHIVE})
 vcpkg_apply_patches(
     SOURCE_PATH ${MASTER_COPY_SOURCE_PATH}
     PATCHES ${CMAKE_CURRENT_LIST_DIR}/ConfigureIncludeQuotesFix.patch
+            ${CMAKE_CURRENT_LIST_DIR}/ConfigureWinx86.patch
             ${CMAKE_CURRENT_LIST_DIR}/STRINGIFYPatch.patch
             ${CMAKE_CURRENT_LIST_DIR}/EmbedSymbolsInStaticLibsZ7.patch
 )
