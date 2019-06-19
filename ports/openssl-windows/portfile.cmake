@@ -37,6 +37,8 @@ set(CONFIGURE_COMMAND ${PERL} Configure
     enable-capieng
     no-ssl2
     -utf-8
+    no-asm
+    no-tests
 )
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
