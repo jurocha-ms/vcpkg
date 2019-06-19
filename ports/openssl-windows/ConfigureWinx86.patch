@@ -1389,6 +1389,19 @@ index 6f0209a275..0ae8a3d14c 100644
                             const BY_DIR_HASH *const *b)
  {
      if ((*a)->hash > (*b)->hash)
+diff --git a/crypto/x509/verify_extra_test.c b/crypto/x509/verify_extra_test.c
+index 08509f0131..e94e16bf79 100644
+--- a/crypto/x509/verify_extra_test.c
++++ b/crypto/x509/verify_extra_test.c
+@@ -183,7 +183,7 @@ static int test_alt_chains_cert_forgery(void)
+     return ret;
+ }
+ 
+-int main(void)
++int __cdecl main(void)
+ {
+     CRYPTO_malloc_debug_init();
+     CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
 diff --git a/crypto/x509/x509_lu.c b/crypto/x509/x509_lu.c
 index 3d18ea90be..963ae5d1ea 100644
 --- a/crypto/x509/x509_lu.c
@@ -1712,6 +1725,58 @@ index 4881ba7d42..d31d67f95d 100644
 +#define UP_write  (*(ossl_ssize_t (__cdecl *)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
 +#define UP_lseek  (*(long (__cdecl *)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
 +#define UP_close  (*(int (__cdecl *)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
+diff --git a/ssl/bad_dtls_test.c b/ssl/bad_dtls_test.c
+index ff754e1e49..ca08c1dedb 100644
+--- a/ssl/bad_dtls_test.c
++++ b/ssl/bad_dtls_test.c
+@@ -748,7 +748,7 @@ static struct {
+     /* The last test should be NODROP, because a DROP wouldn't get tested. */
+ };
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     SSL_SESSION *sess;
+     SSL_CTX *ctx;
+diff --git a/ssl/clienthellotest.c b/ssl/clienthellotest.c
+index 77517c61b1..1b3d859f0a 100644
+--- a/ssl/clienthellotest.c
++++ b/ssl/clienthellotest.c
+@@ -85,7 +85,7 @@
+  */
+ #define TEST_SET_SESSION_TICK_DATA_VER_NEG      1
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     SSL_CTX *ctx;
+     SSL *con;
+diff --git a/ssl/dtlstest.c b/ssl/dtlstest.c
+index 78ebc67744..e9f5deb65c 100644
+--- a/ssl/dtlstest.c
++++ b/ssl/dtlstest.c
+@@ -108,7 +108,7 @@ static int test_dtls_unprocessed(int testidx)
+     return testresult;
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     BIO *err = NULL;
+     int testresult = 0;
+diff --git a/ssl/fatalerrtest.c b/ssl/fatalerrtest.c
+index f9d66e27b3..c7ee31dd7c 100644
+--- a/ssl/fatalerrtest.c
++++ b/ssl/fatalerrtest.c
+@@ -11,7 +11,7 @@
+ #include <openssl/err.h>
+ #include "ssltestlib.h"
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     SSL_CTX *sctx = NULL, *cctx = NULL;
+     SSL *sssl = NULL, *cssl = NULL;
 diff --git a/ssl/heartbeat_test.c b/ssl/heartbeat_test.c
 index 7623c36ccf..9dd102b37b 100644
 --- a/ssl/heartbeat_test.c
@@ -1842,6 +1907,19 @@ index b861e49569..8131349f8d 100644
  {
      char *CApath = NULL, *CAfile = NULL;
      int badop = 0;
+diff --git a/ssl/sslv2conftest.c b/ssl/sslv2conftest.c
+index 2aed9950b9..c9d097b592 100644
+--- a/ssl/sslv2conftest.c
++++ b/ssl/sslv2conftest.c
+@@ -80,7 +80,7 @@ static int checksslv2(int test, int sslv2)
+     return ((options & SSL_OP_NO_SSLv2) == 0) ^ (sslv2 == SSLV2OFF);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     BIO *err;
+     int testresult = 0;
 diff --git a/test/igetest.c b/test/igetest.c
 index 748685d144..dfa92f1c06 100644
 --- a/test/igetest.c
