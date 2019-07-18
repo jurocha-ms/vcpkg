@@ -53,6 +53,7 @@ elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
     set(OPENSSL_ARCH VC-WIN32)
     set(OPENSSL_DO "ms\\do_ms.bat")
     set(CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
+        no-asm
         -D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE
         -wd4311 # ms\uplink.c(84)
         -wd4267 # crypto\cryptlib.c(911)
