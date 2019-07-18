@@ -37,13 +37,15 @@ set(CONFIGURE_COMMAND ${PERL} Configure
     enable-capieng
     no-ssl2
     -utf-8
-    no-asm
     no-tests
 )
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
     set(OPENSSL_ARCH VC-WIN32)
     set(OPENSSL_DO "ms\\do_nasm.bat")
+    set(CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
+        no-asm
+    )
 elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
     set(OPENSSL_ARCH VC-WIN64A)
     set(OPENSSL_DO "ms\\do_win64a.bat")
