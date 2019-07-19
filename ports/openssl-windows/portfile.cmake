@@ -12,7 +12,7 @@ endif()
 
 vcpkg_find_acquire_program(PERL)
 
-set(OPENSSL_VERSION 1.0.2s)
+set(OPENSSL_VERSION 1.0.2p)
 
 get_filename_component(PERL_EXE_PATH ${PERL} DIRECTORY)
 set(ENV{PATH} "$ENV{PATH};${PERL_EXE_PATH}")
@@ -20,7 +20,7 @@ set(ENV{PATH} "$ENV{PATH};${PERL_EXE_PATH}")
 vcpkg_download_distfile(ARCHIVE
     URLS "https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz" "https://www.openssl.org/source/old/1.0.2/openssl-${OPENSSL_VERSION}.tar.gz"
     FILENAME "openssl-${OPENSSL_VERSION}.tar.gz"
-    SHA512 9f745452c4f777df694158e95003cde78a2cf8199bc481a563ec36644664c3c1415a774779b9791dd18f2aeb57fa1721cb52b3db12d025955e970071d5b66d2a
+    SHA512 958c5a7c3324bbdc8f07dfb13e11329d9a1b4452c07cf41fbd2d42b5fe29c95679332a3476d24c2dc2b88be16e4a24744aba675a05a388c0905756c77a8a2f16
 )
 
 vcpkg_extract_source_archive_ex(
@@ -32,6 +32,7 @@ vcpkg_extract_source_archive_ex(
     EnableWinARM32.patch
     EmbedSymbolsInStaticLibsZ7.patch
     EnableWinARM64.patch
+    ConfigureWinx86.patch
 )
 
 vcpkg_find_acquire_program(NASM)
@@ -50,6 +51,10 @@ set(CONFIGURE_COMMAND ${PERL} Configure
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
     set(OPENSSL_ARCH VC-WIN32)
     set(OPENSSL_DO "ms\\do_nasm.bat")
+    set(CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
+        no-asm
+        -Gz
+    )
 elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
     set(OPENSSL_ARCH VC-WIN64A)
     set(OPENSSL_DO "ms\\do_win64a.bat")
@@ -66,6 +71,7 @@ elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm64")
     set(CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
         no-asm
         -D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE
+        -D_M_ARM64=1
     )
 else()
     message(FATAL_ERROR "Unsupported target architecture: ${VCPKG_TARGET_ARCHITECTURE}")
