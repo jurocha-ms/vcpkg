@@ -26,6 +26,8 @@ vcpkg_download_distfile(ARCHIVE
 vcpkg_extract_source_archive_ex(
   OUT_SOURCE_PATH SOURCE_PATH
   ARCHIVE ${ARCHIVE}
+  PATCHES
+    ExplicitCdecl.patch
 )
 
 vcpkg_find_acquire_program(NASM)
@@ -49,6 +51,9 @@ set(CONFIGURE_COMMAND ${PERL} Configure
 
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
     set(OPENSSL_ARCH VC-WIN32)
+    set(CONFIGURE_COMMAND ${CONFIGURE_COMMAND}
+        -Gz
+    )
 elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "x64")
     set(OPENSSL_ARCH VC-WIN64A)
 elseif(VCPKG_TARGET_ARCHITECTURE STREQUAL "arm")
