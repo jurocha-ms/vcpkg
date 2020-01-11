@@ -90,3 +90,77 @@ index 5e8b5762f8..136c5d8993 100644
                         void (*free_func) (const char *, int, const char *));
  const char *OBJ_NAME_get(const char *name, int type);
  int OBJ_NAME_add(const char *name, int type, const char *data);
+diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
+index ef2d1e0dda..3c24a56ceb 100644
+--- a/crypto/objects/obj_dat.c
++++ b/crypto/objects/obj_dat.c
+@@ -580,14 +580,14 @@ int OBJ_sn2nid(const char *s)
+ }
+ 
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *))
++                         int (__cdecl *cmp) (const void *, const void *))
+ {
+     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
+ }
+ 
+ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags)
+ {
+     const char *base = base_;
+diff --git a/include/openssl/objects.h b/include/openssl/objects.h
+index 136c5d8993..cabe66ebc4 100644
+--- a/include/openssl/objects.h
++++ b/include/openssl/objects.h
+@@ -67,14 +67,14 @@ int OBJ_ln2nid(const char *s);
+ int OBJ_sn2nid(const char *s);
+ int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *));
++                         int (__cdecl *cmp) (const void *, const void *));
+ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags);
+ 
+ # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
+   static int nm##_cmp(type1 const *, type2 const *); \
+   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
+ 
+@@ -111,7 +111,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+  */
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+@@ -125,7 +125,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+       extern void dummy_prototype(void)
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+diff --git a/include/openssl/stack.h b/include/openssl/stack.h
+index cfc075057a..b26149bbc1 100644
+--- a/include/openssl/stack.h
++++ b/include/openssl/stack.h
+@@ -16,7 +16,7 @@ extern "C" {
+ 
+ typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
+ 
+-typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
++typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
+ typedef void (*OPENSSL_sk_freefunc)(void *);
+ typedef void *(*OPENSSL_sk_copyfunc)(const void *);
+ 
