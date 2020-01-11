@@ -59,6 +59,19 @@ index 9fc0e8ef68..1a9e0cae86 100644
  {
      OPENSSL_cleanup();
      return 0;
+diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
+index 35bfb74eae..b5ccbe2c32 100644
+--- a/crypto/mem_clr.c
++++ b/crypto/mem_clr.c
+@@ -15,7 +15,7 @@
+  * the pointer and can't assume that it points to any function in
+  * particular (such as memset, which it then might further "optimize")
+  */
+-typedef void *(*memset_t)(void *, int, size_t);
++typedef void *(__cdecl *memset_t)(void *, int, size_t);
+ 
+ static volatile memset_t memset_func = memset;
+ 
 diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
 index c4355370cb..254efbde61 100644
 --- a/crypto/objects/o_names.c
@@ -120,6 +133,19 @@ index ef2d1e0dda..3c24a56ceb 100644
                              int flags)
  {
      const char *base = base_;
+diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
+index 55a44023d5..9e3e805b1b 100644
+--- a/crypto/sha/keccak1600.c
++++ b/crypto/sha/keccak1600.c
+@@ -1146,7 +1146,7 @@ void SHA3_sponge(const unsigned char *inp, size_t len,
+ 
+ # include <stdio.h>
+ 
+-int main()
++int __cdecl main()
+ {
+     /*
+      * This is 5-bit SHAKE128 test from http://csrc.nist.gov/groups/ST/toolkit/examples.html#aHashing
 diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
 index 0ec9f0daf3..7acea74004 100644
 --- a/crypto/ui/ui_openssl.c
@@ -151,120 +177,6 @@ index 0ec9f0daf3..7acea74004 100644
  {
      intr_signal = i;
  }
-diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index 5e8b5762f8..cabe66ebc4 100644
---- a/include/openssl/objects.h
-+++ b/include/openssl/objects.h
-@@ -43,7 +43,7 @@ typedef struct obj_name_st {
- 
- int OBJ_NAME_init(void);
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
--                       int (*cmp_func) (const char *, const char *),
-+                       int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *));
- const char *OBJ_NAME_get(const char *name, int type);
- int OBJ_NAME_add(const char *name, int type, const char *data);
-@@ -67,14 +67,14 @@ int OBJ_ln2nid(const char *s);
- int OBJ_sn2nid(const char *s);
- int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
- const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
--                         int (*cmp) (const void *, const void *));
-+                         int (__cdecl *cmp) (const void *, const void *));
- const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-                             int size,
--                            int (*cmp) (const void *, const void *),
-+                            int (__cdecl *cmp) (const void *, const void *),
-                             int flags);
- 
- # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
-   static int nm##_cmp(type1 const *, type2 const *); \
-   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
- 
-@@ -111,7 +111,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-  */
- 
- # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-       { \
-       type1 const *a = a_; \
-       type2 const *b = b_; \
-@@ -125,7 +125,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-       extern void dummy_prototype(void)
- 
- # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-       { \
-       type1 const *a = a_; \
-       type2 const *b = b_; \
-diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index cfc075057a..b26149bbc1 100644
---- a/include/openssl/stack.h
-+++ b/include/openssl/stack.h
-@@ -16,7 +16,7 @@ extern "C" {
- 
- typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
- 
--typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
-+typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
- typedef void (*OPENSSL_sk_freefunc)(void *);
- typedef void *(*OPENSSL_sk_copyfunc)(const void *);
- 
-diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
-index 066bf47221..0162fa70af 100644
---- a/ssl/s3_lib.c
-+++ b/ssl/s3_lib.c
-@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
-     },
- };
- 
--static int cipher_compare(const void *a, const void *b)
-+static int __cdecl cipher_compare(const void *a, const void *b)
- {
-     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
-     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
-diff --git a/test/testutil/main.c b/test/testutil/main.c
-index d3ccdda391..f86bc5dbc5 100644
---- a/test/testutil/main.c
-+++ b/test/testutil/main.c
-@@ -31,7 +31,7 @@ static void check_arg_usage(void)
-         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     int ret = EXIT_FAILURE;
- 
-diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
-index 35bfb74eae..b5ccbe2c32 100644
---- a/crypto/mem_clr.c
-+++ b/crypto/mem_clr.c
-@@ -15,7 +15,7 @@
-  * the pointer and can't assume that it points to any function in
-  * particular (such as memset, which it then might further "optimize")
-  */
--typedef void *(*memset_t)(void *, int, size_t);
-+typedef void *(__cdecl *memset_t)(void *, int, size_t);
- 
- static volatile memset_t memset_func = memset;
- 
-diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
-index 55a44023d5..9e3e805b1b 100644
---- a/crypto/sha/keccak1600.c
-+++ b/crypto/sha/keccak1600.c
-@@ -1146,7 +1146,7 @@ void SHA3_sponge(const unsigned char *inp, size_t len,
- 
- # include <stdio.h>
- 
--int main()
-+int __cdecl main()
- {
-     /*
-      * This is 5-bit SHAKE128 test from http://csrc.nist.gov/groups/ST/toolkit/examples.html#aHashing
 diff --git a/demos/bio/client-arg.c b/demos/bio/client-arg.c
 index e8d5e46ab5..64da8b8d55 100644
 --- a/demos/bio/client-arg.c
@@ -655,6 +567,81 @@ index 86be5337e1..13e2cae10d 100644
      int n;
  
      FuzzerInitialize(&argc, &argv);
+diff --git a/include/openssl/objects.h b/include/openssl/objects.h
+index 5e8b5762f8..cabe66ebc4 100644
+--- a/include/openssl/objects.h
++++ b/include/openssl/objects.h
+@@ -43,7 +43,7 @@ typedef struct obj_name_st {
+ 
+ int OBJ_NAME_init(void);
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *));
+ const char *OBJ_NAME_get(const char *name, int type);
+ int OBJ_NAME_add(const char *name, int type, const char *data);
+@@ -67,14 +67,14 @@ int OBJ_ln2nid(const char *s);
+ int OBJ_sn2nid(const char *s);
+ int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *));
++                         int (__cdecl *cmp) (const void *, const void *));
+ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags);
+ 
+ # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
+   static int nm##_cmp(type1 const *, type2 const *); \
+   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
+ 
+@@ -111,7 +111,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+  */
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+@@ -125,7 +125,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+       extern void dummy_prototype(void)
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+diff --git a/include/openssl/stack.h b/include/openssl/stack.h
+index cfc075057a..b26149bbc1 100644
+--- a/include/openssl/stack.h
++++ b/include/openssl/stack.h
+@@ -16,7 +16,7 @@ extern "C" {
+ 
+ typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
+ 
+-typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
++typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
+ typedef void (*OPENSSL_sk_freefunc)(void *);
+ typedef void *(*OPENSSL_sk_copyfunc)(const void *);
+ 
+diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
+index 066bf47221..0162fa70af 100644
+--- a/ssl/s3_lib.c
++++ b/ssl/s3_lib.c
+@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
+     },
+ };
+ 
+-static int cipher_compare(const void *a, const void *b)
++static int __cdecl cipher_compare(const void *a, const void *b)
+ {
+     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
+     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
 diff --git a/test/aborttest.c b/test/aborttest.c
 index ba5055edff..885734d4bf 100644
 --- a/test/aborttest.c
@@ -758,6 +745,19 @@ index 36e6031f3a..4d97ea7bb9 100644
  {
      const char *CApath = NULL, *CAfile = NULL;
      int badop = 0;
+diff --git a/test/testutil/main.c b/test/testutil/main.c
+index d3ccdda391..f86bc5dbc5 100644
+--- a/test/testutil/main.c
++++ b/test/testutil/main.c
+@@ -31,7 +31,7 @@ static void check_arg_usage(void)
+         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     int ret = EXIT_FAILURE;
+ 
 diff --git a/test/versions.c b/test/versions.c
 index 3ab05ec35d..c9e32f6793 100644
 --- a/test/versions.c
@@ -784,3 +784,1753 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
+diff --git a/crypto/asn1/a_i2d_fp.c b/crypto/asn1/a_i2d_fp.c
+index 980c65a25d..b6c63fa764 100644
+--- a/crypto/asn1/a_i2d_fp.c
++++ b/crypto/asn1/a_i2d_fp.c
+@@ -15,7 +15,7 @@
+ #ifndef NO_OLD_ASN1
+ 
+ # ifndef OPENSSL_NO_STDIO
+-int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, void *x)
++int __cdecl ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, void *x)
+ {
+     BIO *b;
+     int ret;
+@@ -31,7 +31,7 @@ int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, void *x)
+ }
+ # endif
+ 
+-int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, unsigned char *x)
++int __cdecl ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, unsigned char *x)
+ {
+     char *b;
+     unsigned char *p;
+diff --git a/crypto/asn1/a_object.c b/crypto/asn1/a_object.c
+index 5e1424a806..534338a837 100644
+--- a/crypto/asn1/a_object.c
++++ b/crypto/asn1/a_object.c
+@@ -345,7 +345,7 @@ ASN1_OBJECT *ASN1_OBJECT_new(void)
+     return ret;
+ }
+ 
+-void ASN1_OBJECT_free(ASN1_OBJECT *a)
++void __cdecl ASN1_OBJECT_free(ASN1_OBJECT *a)
+ {
+     if (a == NULL)
+         return;
+diff --git a/crypto/asn1/a_strnid.c b/crypto/asn1/a_strnid.c
+index f19a9de647..32ad142840 100644
+--- a/crypto/asn1/a_strnid.c
++++ b/crypto/asn1/a_strnid.c
+@@ -13,8 +13,8 @@
+ #include <openssl/objects.h>
+ 
+ static STACK_OF(ASN1_STRING_TABLE) *stable = NULL;
+-static void st_free(ASN1_STRING_TABLE *tbl);
+-static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
++static void __cdecl st_free(ASN1_STRING_TABLE *tbl);
++static int __cdecl sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+                         const ASN1_STRING_TABLE *const *b);
+ 
+ /*
+@@ -109,7 +109,7 @@ ASN1_STRING *ASN1_STRING_set_by_NID(ASN1_STRING **out,
+ 
+ #include "tbl_standard.h"
+ 
+-static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
++static int __cdecl sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+                         const ASN1_STRING_TABLE *const *b)
+ {
+     return (*a)->nid - (*b)->nid;
+@@ -117,7 +117,7 @@ static int sk_table_cmp(const ASN1_STRING_TABLE *const *a,
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(ASN1_STRING_TABLE, ASN1_STRING_TABLE, table);
+ 
+-static int table_cmp(const ASN1_STRING_TABLE *a, const ASN1_STRING_TABLE *b)
++static int __cdecl table_cmp(const ASN1_STRING_TABLE *a, const ASN1_STRING_TABLE *b)
+ {
+     return a->nid - b->nid;
+ }
+@@ -212,7 +212,7 @@ void ASN1_STRING_TABLE_cleanup(void)
+     sk_ASN1_STRING_TABLE_pop_free(tmp, st_free);
+ }
+ 
+-static void st_free(ASN1_STRING_TABLE *tbl)
++static void __cdecl st_free(ASN1_STRING_TABLE *tbl)
+ {
+     if (tbl->flags & STABLE_FLAGS_MALLOC)
+         OPENSSL_free(tbl);
+diff --git a/crypto/asn1/ameth_lib.c b/crypto/asn1/ameth_lib.c
+index d7d270dbb5..dd23421ecd 100644
+--- a/crypto/asn1/ameth_lib.c
++++ b/crypto/asn1/ameth_lib.c
+@@ -18,13 +18,13 @@
+ 
+ #include "standard_methods.h"
+ 
+-typedef int sk_cmp_fn_type(const char *const *a, const char *const *b);
++typedef int __cdecl sk_cmp_fn_type(const char *const *a, const char *const *b);
+ static STACK_OF(EVP_PKEY_ASN1_METHOD) *app_methods = NULL;
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(const EVP_PKEY_ASN1_METHOD *,
+                            const EVP_PKEY_ASN1_METHOD *, ameth);
+ 
+-static int ameth_cmp(const EVP_PKEY_ASN1_METHOD *const *a,
++static int __cdecl ameth_cmp(const EVP_PKEY_ASN1_METHOD *const *a,
+                      const EVP_PKEY_ASN1_METHOD *const *b)
+ {
+     return ((*a)->pkey_id - (*b)->pkey_id);
+diff --git a/crypto/asn1/asn1_lib.c b/crypto/asn1/asn1_lib.c
+index 88c4b53918..50be225d7d 100644
+--- a/crypto/asn1/asn1_lib.c
++++ b/crypto/asn1/asn1_lib.c
+@@ -332,7 +332,7 @@ void asn1_string_embed_free(ASN1_STRING *a, int embed)
+         OPENSSL_free(a);
+ }
+ 
+-void ASN1_STRING_free(ASN1_STRING *a)
++void __cdecl ASN1_STRING_free(ASN1_STRING *a)
+ {
+     if (a == NULL)
+         return;
+diff --git a/crypto/asn1/asn_mime.c b/crypto/asn1/asn_mime.c
+index dfd5be6347..be0a35bff4 100644
+--- a/crypto/asn1/asn_mime.c
++++ b/crypto/asn1/asn_mime.c
+@@ -47,17 +47,17 @@ static char *strip_end(char *name);
+ static MIME_HEADER *mime_hdr_new(const char *name, const char *value);
+ static int mime_hdr_addparam(MIME_HEADER *mhdr, const char *name, const char *value);
+ static STACK_OF(MIME_HEADER) *mime_parse_hdr(BIO *bio);
+-static int mime_hdr_cmp(const MIME_HEADER *const *a,
++static int __cdecl mime_hdr_cmp(const MIME_HEADER *const *a,
+                         const MIME_HEADER *const *b);
+-static int mime_param_cmp(const MIME_PARAM *const *a,
++static int __cdecl mime_param_cmp(const MIME_PARAM *const *a,
+                           const MIME_PARAM *const *b);
+-static void mime_param_free(MIME_PARAM *param);
++static void __cdecl mime_param_free(MIME_PARAM *param);
+ static int mime_bound_check(char *line, int linelen, const char *bound, int blen);
+ static int multi_split(BIO *bio, const char *bound, STACK_OF(BIO) **ret);
+ static int strip_eol(char *linebuf, int *plen, int flags);
+ static MIME_HEADER *mime_hdr_find(STACK_OF(MIME_HEADER) *hdrs, const char *name);
+ static MIME_PARAM *mime_param_find(MIME_HEADER *hdr, const char *name);
+-static void mime_hdr_free(MIME_HEADER *hdr);
++static void __cdecl mime_hdr_free(MIME_HEADER *hdr);
+ 
+ #define MAX_SMLEN 1024
+ #define mime_debug(x)           /* x */
+@@ -854,7 +854,7 @@ static int mime_hdr_addparam(MIME_HEADER *mhdr, const char *name, const char *va
+     return 0;
+ }
+ 
+-static int mime_hdr_cmp(const MIME_HEADER *const *a,
++static int __cdecl mime_hdr_cmp(const MIME_HEADER *const *a,
+                         const MIME_HEADER *const *b)
+ {
+     if (!(*a)->name || !(*b)->name)
+@@ -863,7 +863,7 @@ static int mime_hdr_cmp(const MIME_HEADER *const *a,
+     return strcmp((*a)->name, (*b)->name);
+ }
+ 
+-static int mime_param_cmp(const MIME_PARAM *const *a,
++static int __cdecl mime_param_cmp(const MIME_PARAM *const *a,
+                           const MIME_PARAM *const *b)
+ {
+     if (!(*a)->param_name || !(*b)->param_name)
+@@ -897,7 +897,7 @@ static MIME_PARAM *mime_param_find(MIME_HEADER *hdr, const char *name)
+     return sk_MIME_PARAM_value(hdr->params, idx);
+ }
+ 
+-static void mime_hdr_free(MIME_HEADER *hdr)
++static void __cdecl mime_hdr_free(MIME_HEADER *hdr)
+ {
+     if (hdr == NULL)
+         return;
+@@ -908,7 +908,7 @@ static void mime_hdr_free(MIME_HEADER *hdr)
+     OPENSSL_free(hdr);
+ }
+ 
+-static void mime_param_free(MIME_PARAM *param)
++static void __cdecl mime_param_free(MIME_PARAM *param)
+ {
+     OPENSSL_free(param->param_name);
+     OPENSSL_free(param->param_value);
+diff --git a/crypto/asn1/i2d_pr.c b/crypto/asn1/i2d_pr.c
+index 445b0c8425..748901dbc0 100644
+--- a/crypto/asn1/i2d_pr.c
++++ b/crypto/asn1/i2d_pr.c
+@@ -14,7 +14,7 @@
+ #include "internal/asn1_int.h"
+ #include "internal/evp_int.h"
+ 
+-int i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp)
++int __cdecl i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp)
+ {
+     if (a->ameth && a->ameth->old_priv_encode) {
+         return a->ameth->old_priv_encode(a, pp);
+diff --git a/crypto/asn1/tasn_typ.c b/crypto/asn1/tasn_typ.c
+index 98d9879014..06404da1ad 100644
+--- a/crypto/asn1/tasn_typ.c
++++ b/crypto/asn1/tasn_typ.c
+@@ -20,7 +20,7 @@ sname *sname##_new(void) \
+ { \
+     return ASN1_STRING_type_new(V_##sname); \
+ } \
+-void sname##_free(sname *x) \
++void __cdecl sname##_free(sname *x) \
+ { \
+     ASN1_STRING_free(x); \
+ }
+diff --git a/crypto/asn1/x_info.c b/crypto/asn1/x_info.c
+index 8d99f07c63..e9a5cbf7bc 100644
+--- a/crypto/asn1/x_info.c
++++ b/crypto/asn1/x_info.c
+@@ -26,7 +26,7 @@ X509_INFO *X509_INFO_new(void)
+     return ret;
+ }
+ 
+-void X509_INFO_free(X509_INFO *x)
++void __cdecl X509_INFO_free(X509_INFO *x)
+ {
+     if (x == NULL)
+         return;
+diff --git a/crypto/bio/bio_lib.c b/crypto/bio/bio_lib.c
+index ca375b911a..f7c1636f22 100644
+--- a/crypto/bio/bio_lib.c
++++ b/crypto/bio/bio_lib.c
+@@ -170,7 +170,7 @@ int BIO_get_shutdown(BIO *a)
+     return a->shutdown;
+ }
+ 
+-void BIO_vfree(BIO *a)
++void __cdecl BIO_vfree(BIO *a)
+ {
+     BIO_free(a);
+ }
+diff --git a/crypto/ct/ct_log.c b/crypto/ct/ct_log.c
+index c1bca3e141..cba30257d6 100644
+--- a/crypto/ct/ct_log.c
++++ b/crypto/ct/ct_log.c
+@@ -260,7 +260,7 @@ err:
+ }
+ 
+ /* Frees CT log and associated structures */
+-void CTLOG_free(CTLOG *log)
++void __cdecl CTLOG_free(CTLOG *log)
+ {
+     if (log != NULL) {
+         OPENSSL_free(log->name);
+diff --git a/crypto/ct/ct_sct.c b/crypto/ct/ct_sct.c
+index 1dc16857ba..14dfa43d0a 100644
+--- a/crypto/ct/ct_sct.c
++++ b/crypto/ct/ct_sct.c
+@@ -33,7 +33,7 @@ SCT *SCT_new(void)
+     return sct;
+ }
+ 
+-void SCT_free(SCT *sct)
++void __cdecl SCT_free(SCT *sct)
+ {
+     if (sct == NULL)
+         return;
+diff --git a/crypto/dh/dh_asn1.c b/crypto/dh/dh_asn1.c
+index 1a40633b48..f3cde24e64 100644
+--- a/crypto/dh/dh_asn1.c
++++ b/crypto/dh/dh_asn1.c
+@@ -72,7 +72,7 @@ ASN1_SEQUENCE(DHxparams) = {
+ 
+ int_dhx942_dh *d2i_int_dhx(int_dhx942_dh **a,
+                            const unsigned char **pp, long length);
+-int i2d_int_dhx(const int_dhx942_dh *a, unsigned char **pp);
++int __cdecl i2d_int_dhx(const int_dhx942_dh *a, unsigned char **pp);
+ 
+ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(int_dhx942_dh, DHxparams, int_dhx)
+ 
+@@ -115,7 +115,7 @@ DH *d2i_DHxparams(DH **a, const unsigned char **pp, long length)
+     return dh;
+ }
+ 
+-int i2d_DHxparams(const DH *dh, unsigned char **pp)
++int __cdecl i2d_DHxparams(const DH *dh, unsigned char **pp)
+ {
+     int_dhx942_dh dhx;
+     int_dhvparams dhv;
+diff --git a/crypto/ec/ec_asn1.c b/crypto/ec/ec_asn1.c
+index 1ce1181fc1..671da0f4d1 100644
+--- a/crypto/ec/ec_asn1.c
++++ b/crypto/ec/ec_asn1.c
+@@ -933,7 +933,7 @@ EC_GROUP *d2i_ECPKParameters(EC_GROUP **a, const unsigned char **in, long len)
+     return group;
+ }
+ 
+-int i2d_ECPKParameters(const EC_GROUP *a, unsigned char **out)
++int __cdecl i2d_ECPKParameters(const EC_GROUP *a, unsigned char **out)
+ {
+     int ret = 0;
+     ECPKPARAMETERS *tmp = EC_GROUP_get_ecpkparameters(a, NULL);
+@@ -1031,7 +1031,7 @@ EC_KEY *d2i_ECPrivateKey(EC_KEY **a, const unsigned char **in, long len)
+     return NULL;
+ }
+ 
+-int i2d_ECPrivateKey(EC_KEY *a, unsigned char **out)
++int __cdecl i2d_ECPrivateKey(EC_KEY *a, unsigned char **out)
+ {
+     int ret = 0, ok = 0;
+     unsigned char *priv= NULL, *pub= NULL;
+@@ -1217,7 +1217,7 @@ ECDSA_SIG *ECDSA_SIG_new(void)
+     return sig;
+ }
+ 
+-void ECDSA_SIG_free(ECDSA_SIG *sig)
++void __cdecl ECDSA_SIG_free(ECDSA_SIG *sig)
+ {
+     if (sig == NULL)
+         return;
+diff --git a/crypto/engine/eng_dyn.c b/crypto/engine/eng_dyn.c
+index 843226c077..8844659541 100644
+--- a/crypto/engine/eng_dyn.c
++++ b/crypto/engine/eng_dyn.c
+@@ -117,7 +117,7 @@ struct st_dynamic_data_ctx {
+  */
+ static int dynamic_ex_data_idx = -1;
+ 
+-static void int_free_str(char *s)
++static void __cdecl int_free_str(char *s)
+ {
+     OPENSSL_free(s);
+ }
+diff --git a/crypto/engine/eng_lib.c b/crypto/engine/eng_lib.c
+index d7f2026fac..1e494730a6 100644
+--- a/crypto/engine/eng_lib.c
++++ b/crypto/engine/eng_lib.c
+@@ -157,7 +157,7 @@ void engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
+ }
+ 
+ /* The API function that performs all cleanup */
+-static void engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
++static void __cdecl engine_cleanup_cb_free(ENGINE_CLEANUP_ITEM *item)
+ {
+     (*(item->cb)) ();
+     OPENSSL_free(item);
+diff --git a/crypto/evp/evp_pbe.c b/crypto/evp/evp_pbe.c
+index 5a88817b4a..5cd9d07bf7 100644
+--- a/crypto/evp/evp_pbe.c
++++ b/crypto/evp/evp_pbe.c
+@@ -135,7 +135,7 @@ int EVP_PBE_CipherInit(ASN1_OBJECT *pbe_obj, const char *pass, int passlen,
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(EVP_PBE_CTL, EVP_PBE_CTL, pbe2);
+ 
+-static int pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
++static int __cdecl pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
+ {
+     int ret = pbe1->pbe_type - pbe2->pbe_type;
+     if (ret)
+@@ -146,7 +146,7 @@ static int pbe2_cmp(const EVP_PBE_CTL *pbe1, const EVP_PBE_CTL *pbe2)
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(EVP_PBE_CTL, EVP_PBE_CTL, pbe2);
+ 
+-static int pbe_cmp(const EVP_PBE_CTL *const *a, const EVP_PBE_CTL *const *b)
++static int __cdecl pbe_cmp(const EVP_PBE_CTL *const *a, const EVP_PBE_CTL *const *b)
+ {
+     int ret = (*a)->pbe_type - (*b)->pbe_type;
+     if (ret)
+@@ -235,7 +235,7 @@ int EVP_PBE_find(int type, int pbe_nid,
+     return 1;
+ }
+ 
+-static void free_evp_pbe_ctl(EVP_PBE_CTL *pbe)
++static void __cdecl free_evp_pbe_ctl(EVP_PBE_CTL *pbe)
+ {
+     OPENSSL_free(pbe);
+ }
+diff --git a/crypto/evp/pmeth_lib.c b/crypto/evp/pmeth_lib.c
+index 7fbf895e07..4d69a349e5 100644
+--- a/crypto/evp/pmeth_lib.c
++++ b/crypto/evp/pmeth_lib.c
+@@ -17,7 +17,7 @@
+ #include "internal/evp_int.h"
+ #include "internal/numbers.h"
+ 
+-typedef int sk_cmp_fn_type(const char *const *a, const char *const *b);
++typedef int __cdecl sk_cmp_fn_type(const char *const *a, const char *const *b);
+ 
+ static STACK_OF(EVP_PKEY_METHOD) *app_pkey_methods = NULL;
+ 
+@@ -72,7 +72,7 @@ static const EVP_PKEY_METHOD *standard_methods[] = {
+ DECLARE_OBJ_BSEARCH_CMP_FN(const EVP_PKEY_METHOD *, const EVP_PKEY_METHOD *,
+                            pmeth);
+ 
+-static int pmeth_cmp(const EVP_PKEY_METHOD *const *a,
++static int __cdecl pmeth_cmp(const EVP_PKEY_METHOD *const *a,
+                      const EVP_PKEY_METHOD *const *b)
+ {
+     return ((*a)->pkey_id - (*b)->pkey_id);
+@@ -234,7 +234,7 @@ void EVP_PKEY_meth_copy(EVP_PKEY_METHOD *dst, const EVP_PKEY_METHOD *src)
+     dst->check = src->check;
+ }
+ 
+-void EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth)
++void __cdecl EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth)
+ {
+     if (pmeth && (pmeth->flags & EVP_PKEY_FLAG_DYNAMIC))
+         OPENSSL_free(pmeth);
+diff --git a/crypto/ex_data.c b/crypto/ex_data.c
+index 08dc7c4073..9caa209495 100644
+--- a/crypto/ex_data.c
++++ b/crypto/ex_data.c
+@@ -79,7 +79,7 @@ static EX_CALLBACKS *get_and_lock(int class_index)
+     return ip;
+ }
+ 
+-static void cleanup_cb(EX_CALLBACK *funcs)
++static void __cdecl cleanup_cb(EX_CALLBACK *funcs)
+ {
+     OPENSSL_free(funcs);
+ }
+diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
+index 254efbde61..48f11089b6 100644
+--- a/crypto/objects/o_names.c
++++ b/crypto/objects/o_names.c
+@@ -377,7 +377,7 @@ static void names_lh_free_doall(OBJ_NAME *onp)
+         OBJ_NAME_remove(onp->name, onp->type);
+ }
+ 
+-static void name_funcs_free(NAME_FUNCS *ptr)
++static void __cdecl name_funcs_free(NAME_FUNCS *ptr)
+ {
+     OPENSSL_free(ptr);
+ }
+diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
+index 3c24a56ceb..88e6494f07 100644
+--- a/crypto/objects/obj_dat.c
++++ b/crypto/objects/obj_dat.c
+@@ -38,14 +38,14 @@ struct added_obj_st {
+ static int new_nid = NUM_NID;
+ static LHASH_OF(ADDED_OBJ) *added = NULL;
+ 
+-static int sn_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
++static int __cdecl sn_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
+ {
+     return strcmp((*a)->sn, nid_objs[*b].sn);
+ }
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, sn);
+ 
+-static int ln_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
++static int __cdecl ln_cmp(const ASN1_OBJECT *const *a, const unsigned int *b)
+ {
+     return strcmp((*a)->ln, nid_objs[*b].ln);
+ }
+@@ -298,7 +298,7 @@ const char *OBJ_nid2ln(int n)
+     }
+ }
+ 
+-static int obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
++static int __cdecl obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
+ {
+     int j;
+     const ASN1_OBJECT *a = *ap;
+diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
+index faf59eb20c..b9218cd74c 100644
+--- a/crypto/objects/obj_xref.c
++++ b/crypto/objects/obj_xref.c
+@@ -14,7 +14,7 @@
+ 
+ static STACK_OF(nid_triple) *sig_app, *sigx_app;
+ 
+-static int sig_cmp(const nid_triple *a, const nid_triple *b)
++static int __cdecl sig_cmp(const nid_triple *a, const nid_triple *b)
+ {
+     return a->sign_id - b->sign_id;
+ }
+@@ -22,14 +22,14 @@ static int sig_cmp(const nid_triple *a, const nid_triple *b)
+ DECLARE_OBJ_BSEARCH_CMP_FN(nid_triple, nid_triple, sig);
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(nid_triple, nid_triple, sig);
+ 
+-static int sig_sk_cmp(const nid_triple *const *a, const nid_triple *const *b)
++static int __cdecl sig_sk_cmp(const nid_triple *const *a, const nid_triple *const *b)
+ {
+     return (*a)->sign_id - (*b)->sign_id;
+ }
+ 
+ DECLARE_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
+ 
+-static int sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
++static int __cdecl sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
+ {
+     int ret;
+     ret = (*a)->hash_id - (*b)->hash_id;
+@@ -125,7 +125,7 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+     return 1;
+ }
+ 
+-static void sid_free(nid_triple *tt)
++static void __cdecl sid_free(nid_triple *tt)
+ {
+     OPENSSL_free(tt);
+ }
+diff --git a/crypto/rsa/rsa_locl.h b/crypto/rsa/rsa_locl.h
+index 2b94462a94..42c0219bec 100644
+--- a/crypto/rsa/rsa_locl.h
++++ b/crypto/rsa/rsa_locl.h
+@@ -125,8 +125,8 @@ RSA_PSS_PARAMS *rsa_pss_params_create(const EVP_MD *sigmd,
+ int rsa_pss_get_param(const RSA_PSS_PARAMS *pss, const EVP_MD **pmd,
+                       const EVP_MD **pmgf1md, int *psaltlen);
+ /* internal function to clear and free multi-prime parameters */
+-void rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo);
+-void rsa_multip_info_free(RSA_PRIME_INFO *pinfo);
++void __cdecl rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo);
++void __cdecl rsa_multip_info_free(RSA_PRIME_INFO *pinfo);
+ RSA_PRIME_INFO *rsa_multip_info_new(void);
+ int rsa_multip_calc_product(RSA *rsa);
+ int rsa_multip_cap(int bits);
+diff --git a/crypto/rsa/rsa_mp.c b/crypto/rsa/rsa_mp.c
+index e7e810823b..b8c7a7396c 100644
+--- a/crypto/rsa/rsa_mp.c
++++ b/crypto/rsa/rsa_mp.c
+@@ -12,14 +12,14 @@
+ #include <openssl/err.h>
+ #include "rsa_locl.h"
+ 
+-void rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo)
++void __cdecl rsa_multip_info_free_ex(RSA_PRIME_INFO *pinfo)
+ {
+     /* free pp and pinfo only */
+     BN_clear_free(pinfo->pp);
+     OPENSSL_free(pinfo);
+ }
+ 
+-void rsa_multip_info_free(RSA_PRIME_INFO *pinfo)
++void __cdecl rsa_multip_info_free(RSA_PRIME_INFO *pinfo)
+ {
+     /* free a RSA_PRIME_INFO structure */
+     BN_clear_free(pinfo->r);
+diff --git a/crypto/srp/srp_vfy.c b/crypto/srp/srp_vfy.c
+index eb279dd418..68e177db22 100644
+--- a/crypto/srp/srp_vfy.c
++++ b/crypto/srp/srp_vfy.c
+@@ -173,7 +173,7 @@ static int t_tob64(char *dst, const unsigned char *src, int size)
+     return 1;
+ }
+ 
+-void SRP_user_pwd_free(SRP_user_pwd *user_pwd)
++void __cdecl SRP_user_pwd_free(SRP_user_pwd *user_pwd)
+ {
+     if (user_pwd == NULL)
+         return;
+diff --git a/crypto/store/store_lib.c b/crypto/store/store_lib.c
+index 7de2e31f55..dcd8211221 100644
+--- a/crypto/store/store_lib.c
++++ b/crypto/store/store_lib.c
+@@ -439,7 +439,7 @@ X509_CRL *OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
+ /*
+  * Free the OSSL_STORE_INFO
+  */
+-void OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
++void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
+ {
+     if (info != NULL) {
+         switch (info->type) {
+diff --git a/crypto/ui/ui_lib.c b/crypto/ui/ui_lib.c
+index f550972d3e..a30b5d2ebe 100644
+--- a/crypto/ui/ui_lib.c
++++ b/crypto/ui/ui_lib.c
+@@ -49,7 +49,7 @@ UI *UI_new_method(const UI_METHOD *method)
+     return ret;
+ }
+ 
+-static void free_string(UI_STRING *uis)
++static void __cdecl free_string(UI_STRING *uis)
+ {
+     if (uis->flags & OUT_STRING_FREEABLE) {
+         OPENSSL_free((char *)uis->out_string);
+diff --git a/crypto/x509/by_dir.c b/crypto/x509/by_dir.c
+index b691a83a0d..0070026868 100644
+--- a/crypto/x509/by_dir.c
++++ b/crypto/x509/by_dir.c
+@@ -118,12 +118,12 @@ static int new_dir(X509_LOOKUP *lu)
+     return 0;
+ }
+ 
+-static void by_dir_hash_free(BY_DIR_HASH *hash)
++static void __cdecl by_dir_hash_free(BY_DIR_HASH *hash)
+ {
+     OPENSSL_free(hash);
+ }
+ 
+-static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
++static int __cdecl by_dir_hash_cmp(const BY_DIR_HASH *const *a,
+                            const BY_DIR_HASH *const *b)
+ {
+     if ((*a)->hash > (*b)->hash)
+@@ -133,7 +133,7 @@ static int by_dir_hash_cmp(const BY_DIR_HASH *const *a,
+     return 0;
+ }
+ 
+-static void by_dir_entry_free(BY_DIR_ENTRY *ent)
++static void __cdecl by_dir_entry_free(BY_DIR_ENTRY *ent)
+ {
+     OPENSSL_free(ent->dir);
+     sk_BY_DIR_HASH_pop_free(ent->hashes, by_dir_hash_free);
+diff --git a/crypto/x509/x509_lu.c b/crypto/x509/x509_lu.c
+index b7d2e66574..9c5b36cabc 100644
+--- a/crypto/x509/x509_lu.c
++++ b/crypto/x509/x509_lu.c
+@@ -135,7 +135,7 @@ X509_STORE *X509_LOOKUP_get_store(const X509_LOOKUP *ctx)
+ }
+ 
+ 
+-static int x509_object_cmp(const X509_OBJECT *const *a,
++static int __cdecl x509_object_cmp(const X509_OBJECT *const *a,
+                            const X509_OBJECT *const *b)
+ {
+     int ret;
+@@ -465,7 +465,7 @@ int X509_OBJECT_set1_X509_CRL(X509_OBJECT *a, X509_CRL *obj)
+     return 1;
+ }
+ 
+-void X509_OBJECT_free(X509_OBJECT *a)
++void __cdecl X509_OBJECT_free(X509_OBJECT *a)
+ {
+     x509_object_free_internal(a);
+     OPENSSL_free(a);
+diff --git a/crypto/x509/x509_trs.c b/crypto/x509/x509_trs.c
+index d749af4d59..7ca429180f 100644
+--- a/crypto/x509/x509_trs.c
++++ b/crypto/x509/x509_trs.c
+@@ -12,8 +12,8 @@
+ #include <openssl/x509v3.h>
+ #include "internal/x509_int.h"
+ 
+-static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b);
+-static void trtable_free(X509_TRUST *p);
++static int __cdecl tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b);
++static void __cdecl trtable_free(X509_TRUST *p);
+ 
+ static int trust_1oidany(X509_TRUST *trust, X509 *x, int flags);
+ static int trust_1oid(X509_TRUST *trust, X509 *x, int flags);
+@@ -49,7 +49,7 @@ static X509_TRUST trstandard[] = {
+ 
+ static STACK_OF(X509_TRUST) *trtable = NULL;
+ 
+-static int tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b)
++static int __cdecl tr_cmp(const X509_TRUST *const *a, const X509_TRUST *const *b)
+ {
+     return (*a)->trust - (*b)->trust;
+ }
+@@ -182,7 +182,7 @@ int X509_TRUST_add(int id, int flags, int (*ck) (X509_TRUST *, X509 *, int),
+     return 0;
+ }
+ 
+-static void trtable_free(X509_TRUST *p)
++static void __cdecl trtable_free(X509_TRUST *p)
+ {
+     if (!p)
+         return;
+diff --git a/crypto/x509/x509_vpm.c b/crypto/x509/x509_vpm.c
+index aea186295c..2a354ce00c 100644
+--- a/crypto/x509/x509_vpm.c
++++ b/crypto/x509/x509_vpm.c
+@@ -23,12 +23,12 @@
+ #define SET_HOST 0
+ #define ADD_HOST 1
+ 
+-static char *str_copy(const char *s)
++static char * __cdecl str_copy(const char *s)
+ {
+     return OPENSSL_strdup(s);
+ }
+ 
+-static void str_free(char *s)
++static void __cdecl str_free(char *s)
+ {
+     OPENSSL_free(s);
+ }
+@@ -95,7 +95,7 @@ X509_VERIFY_PARAM *X509_VERIFY_PARAM_new(void)
+     return param;
+ }
+ 
+-void X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param)
++void __cdecl X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param)
+ {
+     if (param == NULL)
+         return;
+@@ -531,7 +531,7 @@ static const X509_VERIFY_PARAM default_table[] = {
+ 
+ static STACK_OF(X509_VERIFY_PARAM) *param_table = NULL;
+ 
+-static int table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
++static int __cdecl table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
+ {
+     return strcmp(a->name, b->name);
+ }
+@@ -539,7 +539,7 @@ static int table_cmp(const X509_VERIFY_PARAM *a, const X509_VERIFY_PARAM *b)
+ DECLARE_OBJ_BSEARCH_CMP_FN(X509_VERIFY_PARAM, X509_VERIFY_PARAM, table);
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(X509_VERIFY_PARAM, X509_VERIFY_PARAM, table);
+ 
+-static int param_cmp(const X509_VERIFY_PARAM *const *a,
++static int __cdecl param_cmp(const X509_VERIFY_PARAM *const *a,
+                      const X509_VERIFY_PARAM *const *b)
+ {
+     return strcmp((*a)->name, (*b)->name);
+diff --git a/crypto/x509/x_crl.c b/crypto/x509/x_crl.c
+index 12ab3cca42..c830de507c 100644
+--- a/crypto/x509/x_crl.c
++++ b/crypto/x509/x_crl.c
+@@ -15,7 +15,7 @@
+ #include <openssl/x509v3.h>
+ #include "x509_lcl.h"
+ 
+-static int X509_REVOKED_cmp(const X509_REVOKED *const *a,
++static int __cdecl X509_REVOKED_cmp(const X509_REVOKED *const *a,
+                             const X509_REVOKED *const *b);
+ static void setup_idp(X509_CRL *crl, ISSUING_DIST_POINT *idp);
+ 
+@@ -311,7 +311,7 @@ IMPLEMENT_ASN1_FUNCTIONS(X509_CRL)
+ 
+ IMPLEMENT_ASN1_DUP_FUNCTION(X509_CRL)
+ 
+-static int X509_REVOKED_cmp(const X509_REVOKED *const *a,
++static int __cdecl X509_REVOKED_cmp(const X509_REVOKED *const *a,
+                             const X509_REVOKED *const *b)
+ {
+     return (ASN1_STRING_cmp((ASN1_STRING *)&(*a)->serialNumber,
+diff --git a/crypto/x509/x_name.c b/crypto/x509/x_name.c
+index a1e9bbdb66..e8c1ef76b3 100644
+--- a/crypto/x509/x_name.c
++++ b/crypto/x509/x_name.c
+@@ -125,12 +125,12 @@ static void x509_name_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+     *pval = NULL;
+ }
+ 
+-static void local_sk_X509_NAME_ENTRY_free(STACK_OF(X509_NAME_ENTRY) *ne)
++static void __cdecl local_sk_X509_NAME_ENTRY_free(STACK_OF(X509_NAME_ENTRY) *ne)
+ {
+     sk_X509_NAME_ENTRY_free(ne);
+ }
+ 
+-static void local_sk_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne)
++static void __cdecl local_sk_X509_NAME_ENTRY_pop_free(STACK_OF(X509_NAME_ENTRY) *ne)
+ {
+     sk_X509_NAME_ENTRY_pop_free(ne, X509_NAME_ENTRY_free);
+ }
+diff --git a/crypto/x509/x_pubkey.c b/crypto/x509/x_pubkey.c
+index 1c87b8268e..20e4f645cf 100644
+--- a/crypto/x509/x_pubkey.c
++++ b/crypto/x509/x_pubkey.c
+@@ -200,7 +200,7 @@ EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length)
+     return pktmp;
+ }
+ 
+-int i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp)
++int __cdecl i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp)
+ {
+     X509_PUBKEY *xpk = NULL;
+     int ret;
+@@ -238,7 +238,7 @@ RSA *d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length)
+     return key;
+ }
+ 
+-int i2d_RSA_PUBKEY(RSA *a, unsigned char **pp)
++int __cdecl i2d_RSA_PUBKEY(RSA *a, unsigned char **pp)
+ {
+     EVP_PKEY *pktmp;
+     int ret;
+@@ -278,7 +278,7 @@ DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length)
+     return key;
+ }
+ 
+-int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp)
++int __cdecl i2d_DSA_PUBKEY(DSA *a, unsigned char **pp)
+ {
+     EVP_PKEY *pktmp;
+     int ret;
+@@ -318,7 +318,7 @@ EC_KEY *d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length)
+     return key;
+ }
+ 
+-int i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp)
++int __cdecl i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp)
+ {
+     EVP_PKEY *pktmp;
+     int ret;
+diff --git a/crypto/x509/x_x509.c b/crypto/x509/x_x509.c
+index afe59c46c5..907db97c51 100644
+--- a/crypto/x509/x_x509.c
++++ b/crypto/x509/x_x509.c
+@@ -197,7 +197,7 @@ static int i2d_x509_aux_internal(X509 *a, unsigned char **pp)
+  * the allocation, nor can we allow i2d_X509_CERT_AUX() to increment the
+  * allocated buffer.
+  */
+-int i2d_X509_AUX(X509 *a, unsigned char **pp)
++int __cdecl i2d_X509_AUX(X509 *a, unsigned char **pp)
+ {
+     int length;
+     unsigned char *tmp;
+diff --git a/crypto/x509v3/pcy_cache.c b/crypto/x509v3/pcy_cache.c
+index 623870b1f6..42194005c7 100644
+--- a/crypto/x509v3/pcy_cache.c
++++ b/crypto/x509v3/pcy_cache.c
+@@ -14,7 +14,7 @@
+ 
+ #include "pcy_int.h"
+ 
+-static int policy_data_cmp(const X509_POLICY_DATA *const *a,
++static int __cdecl policy_data_cmp(const X509_POLICY_DATA *const *a,
+                            const X509_POLICY_DATA *const *b);
+ static int policy_cache_set_int(long *out, ASN1_INTEGER *value);
+ 
+@@ -207,7 +207,7 @@ X509_POLICY_DATA *policy_cache_find_data(const X509_POLICY_CACHE *cache,
+     return sk_X509_POLICY_DATA_value(cache->data, idx);
+ }
+ 
+-static int policy_data_cmp(const X509_POLICY_DATA *const *a,
++static int __cdecl policy_data_cmp(const X509_POLICY_DATA *const *a,
+                            const X509_POLICY_DATA *const *b)
+ {
+     return OBJ_cmp((*a)->valid_policy, (*b)->valid_policy);
+diff --git a/crypto/x509v3/pcy_data.c b/crypto/x509v3/pcy_data.c
+index bd3bb0e40d..1ce8f6ce77 100644
+--- a/crypto/x509v3/pcy_data.c
++++ b/crypto/x509v3/pcy_data.c
+@@ -15,7 +15,7 @@
+ 
+ /* Policy Node routines */
+ 
+-void policy_data_free(X509_POLICY_DATA *data)
++void __cdecl policy_data_free(X509_POLICY_DATA *data)
+ {
+     if (data == NULL)
+         return;
+diff --git a/crypto/x509v3/pcy_int.h b/crypto/x509v3/pcy_int.h
+index 5daf78de45..8f16cd61a3 100644
+--- a/crypto/x509v3/pcy_int.h
++++ b/crypto/x509v3/pcy_int.h
+@@ -137,7 +137,7 @@ struct X509_POLICY_TREE_st {
+ 
+ X509_POLICY_DATA *policy_data_new(POLICYINFO *policy, const ASN1_OBJECT *id,
+                                   int crit);
+-void policy_data_free(X509_POLICY_DATA *data);
++void __cdecl policy_data_free(X509_POLICY_DATA *data);
+ 
+ X509_POLICY_DATA *policy_cache_find_data(const X509_POLICY_CACHE *cache,
+                                          const ASN1_OBJECT *id);
+@@ -160,7 +160,7 @@ X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
+                                  X509_POLICY_DATA *data,
+                                  X509_POLICY_NODE *parent,
+                                  X509_POLICY_TREE *tree);
+-void policy_node_free(X509_POLICY_NODE *node);
++void __cdecl policy_node_free(X509_POLICY_NODE *node);
+ int policy_node_match(const X509_POLICY_LEVEL *lvl,
+                       const X509_POLICY_NODE *node, const ASN1_OBJECT *oid);
+ 
+diff --git a/crypto/x509v3/pcy_node.c b/crypto/x509v3/pcy_node.c
+index 1ffe98498b..f43bf9b52a 100644
+--- a/crypto/x509v3/pcy_node.c
++++ b/crypto/x509v3/pcy_node.c
+@@ -14,7 +14,7 @@
+ 
+ #include "pcy_int.h"
+ 
+-static int node_cmp(const X509_POLICY_NODE *const *a,
++static int __cdecl node_cmp(const X509_POLICY_NODE *const *a,
+                     const X509_POLICY_NODE *const *b)
+ {
+     return OBJ_cmp((*a)->data->valid_policy, (*b)->data->valid_policy);
+@@ -113,7 +113,7 @@ X509_POLICY_NODE *level_add_node(X509_POLICY_LEVEL *level,
+     return NULL;
+ }
+ 
+-void policy_node_free(X509_POLICY_NODE *node)
++void __cdecl policy_node_free(X509_POLICY_NODE *node)
+ {
+     OPENSSL_free(node);
+ }
+diff --git a/crypto/x509v3/pcy_tree.c b/crypto/x509v3/pcy_tree.c
+index 87f51d001b..676c2ccc79 100644
+--- a/crypto/x509v3/pcy_tree.c
++++ b/crypto/x509v3/pcy_tree.c
+@@ -598,7 +598,7 @@ static int tree_evaluate(X509_POLICY_TREE *tree)
+     return X509_PCY_TREE_VALID;
+ }
+ 
+-static void exnode_free(X509_POLICY_NODE *node)
++static void __cdecl exnode_free(X509_POLICY_NODE *node)
+ {
+     if (node->data && (node->data->flags & POLICY_DATA_FLAG_EXTRA_NODE))
+         OPENSSL_free(node);
+diff --git a/crypto/x509v3/v3_addr.c b/crypto/x509v3/v3_addr.c
+index bb58e04846..b6fceb2779 100644
+--- a/crypto/x509v3/v3_addr.c
++++ b/crypto/x509v3/v3_addr.c
+@@ -316,7 +316,7 @@ static int IPAddressOrRange_cmp(const IPAddressOrRange *a,
+  * IPv4-specific closure over IPAddressOrRange_cmp, since sk_sort()
+  * comparison routines are only allowed two arguments.
+  */
+-static int v4IPAddressOrRange_cmp(const IPAddressOrRange *const *a,
++static int __cdecl v4IPAddressOrRange_cmp(const IPAddressOrRange *const *a,
+                                   const IPAddressOrRange *const *b)
+ {
+     return IPAddressOrRange_cmp(*a, *b, 4);
+@@ -326,7 +326,7 @@ static int v4IPAddressOrRange_cmp(const IPAddressOrRange *const *a,
+  * IPv6-specific closure over IPAddressOrRange_cmp, since sk_sort()
+  * comparison routines are only allowed two arguments.
+  */
+-static int v6IPAddressOrRange_cmp(const IPAddressOrRange *const *a,
++static int __cdecl v6IPAddressOrRange_cmp(const IPAddressOrRange *const *a,
+                                   const IPAddressOrRange *const *b)
+ {
+     return IPAddressOrRange_cmp(*a, *b, 16);
+@@ -666,7 +666,7 @@ int X509v3_addr_get_range(IPAddressOrRange *aor,
+  * null-SAFI rule to apply only within a single AFI, which is what I
+  * would have expected and is what the following code implements.
+  */
+-static int IPAddressFamily_cmp(const IPAddressFamily *const *a_,
++static int __cdecl IPAddressFamily_cmp(const IPAddressFamily *const *a_,
+                                const IPAddressFamily *const *b_)
+ {
+     const ASN1_OCTET_STRING *a = (*a_)->addressFamily;
+diff --git a/crypto/x509v3/v3_asid.c b/crypto/x509v3/v3_asid.c
+index 089f2ae29f..3bc9762a64 100644
+--- a/crypto/x509v3/v3_asid.c
++++ b/crypto/x509v3/v3_asid.c
+@@ -119,7 +119,7 @@ static int i2r_ASIdentifiers(const X509V3_EXT_METHOD *method,
+ /*
+  * Sort comparison function for a sequence of ASIdOrRange elements.
+  */
+-static int ASIdOrRange_cmp(const ASIdOrRange *const *a_,
++static int __cdecl ASIdOrRange_cmp(const ASIdOrRange *const *a_,
+                            const ASIdOrRange *const *b_)
+ {
+     const ASIdOrRange *a = *a_, *b = *b_;
+diff --git a/crypto/x509v3/v3_lib.c b/crypto/x509v3/v3_lib.c
+index 97c1cbc20f..eadec5615d 100644
+--- a/crypto/x509v3/v3_lib.c
++++ b/crypto/x509v3/v3_lib.c
+@@ -18,9 +18,9 @@
+ 
+ static STACK_OF(X509V3_EXT_METHOD) *ext_list = NULL;
+ 
+-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
++static int __cdecl ext_cmp(const X509V3_EXT_METHOD *const *a,
+                    const X509V3_EXT_METHOD *const *b);
+-static void ext_list_free(X509V3_EXT_METHOD *ext);
++static void __cdecl ext_list_free(X509V3_EXT_METHOD *ext);
+ 
+ int X509V3_EXT_add(X509V3_EXT_METHOD *ext)
+ {
+@@ -36,7 +36,7 @@ int X509V3_EXT_add(X509V3_EXT_METHOD *ext)
+     return 1;
+ }
+ 
+-static int ext_cmp(const X509V3_EXT_METHOD *const *a,
++static int __cdecl ext_cmp(const X509V3_EXT_METHOD *const *a,
+                    const X509V3_EXT_METHOD *const *b)
+ {
+     return ((*a)->ext_nid - (*b)->ext_nid);
+@@ -108,7 +108,7 @@ void X509V3_EXT_cleanup(void)
+     ext_list = NULL;
+ }
+ 
+-static void ext_list_free(X509V3_EXT_METHOD *ext)
++static void __cdecl ext_list_free(X509V3_EXT_METHOD *ext)
+ {
+     if (ext->ext_flags & X509V3_EXT_DYNAMIC)
+         OPENSSL_free(ext);
+diff --git a/crypto/x509v3/v3_purp.c b/crypto/x509v3/v3_purp.c
+index 2f06289d19..0f5b865f71 100644
+--- a/crypto/x509v3/v3_purp.c
++++ b/crypto/x509v3/v3_purp.c
+@@ -36,8 +36,8 @@ static int check_purpose_timestamp_sign(const X509_PURPOSE *xp, const X509 *x,
+ static int no_check(const X509_PURPOSE *xp, const X509 *x, int ca);
+ static int ocsp_helper(const X509_PURPOSE *xp, const X509 *x, int ca);
+ 
+-static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b);
+-static void xptable_free(X509_PURPOSE *p);
++static int __cdecl xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b);
++static void __cdecl xptable_free(X509_PURPOSE *p);
+ 
+ static X509_PURPOSE xstandard[] = {
+     {X509_PURPOSE_SSL_CLIENT, X509_TRUST_SSL_CLIENT, 0,
+@@ -65,7 +65,7 @@ static X509_PURPOSE xstandard[] = {
+ 
+ static STACK_OF(X509_PURPOSE) *xptable = NULL;
+ 
+-static int xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b)
++static int __cdecl xp_cmp(const X509_PURPOSE *const *a, const X509_PURPOSE *const *b)
+ {
+     return (*a)->purpose - (*b)->purpose;
+ }
+@@ -214,7 +214,7 @@ int X509_PURPOSE_add(int id, int trust, int flags,
+     return 0;
+ }
+ 
+-static void xptable_free(X509_PURPOSE *p)
++static void __cdecl xptable_free(X509_PURPOSE *p)
+ {
+     if (!p)
+         return;
+@@ -253,7 +253,7 @@ int X509_PURPOSE_get_trust(const X509_PURPOSE *xp)
+     return xp->trust;
+ }
+ 
+-static int nid_cmp(const int *a, const int *b)
++static int __cdecl nid_cmp(const int *a, const int *b)
+ {
+     return *a - *b;
+ }
+diff --git a/crypto/x509v3/v3_utl.c b/crypto/x509v3/v3_utl.c
+index c9b40d2c76..d051a495d2 100644
+--- a/crypto/x509v3/v3_utl.c
++++ b/crypto/x509v3/v3_utl.c
+@@ -21,10 +21,10 @@
+ #include "ext_dat.h"
+ 
+ static char *strip_spaces(char *name);
+-static int sk_strcmp(const char *const *a, const char *const *b);
++static int __cdecl sk_strcmp(const char *const *a, const char *const *b);
+ static STACK_OF(OPENSSL_STRING) *get_email(X509_NAME *name,
+                                            GENERAL_NAMES *gens);
+-static void str_free(OPENSSL_STRING str);
++static void __cdecl str_free(OPENSSL_STRING str);
+ static int append_ia5(STACK_OF(OPENSSL_STRING) **sk, const ASN1_IA5STRING *email);
+ 
+ static int ipv4_from_asc(unsigned char *v4, const char *in);
+@@ -75,7 +75,7 @@ int X509V3_add_value_uchar(const char *name, const unsigned char *value,
+ 
+ /* Free function for STACK_OF(CONF_VALUE) */
+ 
+-void X509V3_conf_free(CONF_VALUE *conf)
++void __cdecl X509V3_conf_free(CONF_VALUE *conf)
+ {
+     if (!conf)
+         return;
+@@ -410,7 +410,7 @@ int name_cmp(const char *name, const char *cmp)
+     return 1;
+ }
+ 
+-static int sk_strcmp(const char *const *a, const char *const *b)
++static int __cdecl sk_strcmp(const char *const *a, const char *const *b)
+ {
+     return strcmp(*a, *b);
+ }
+@@ -491,7 +491,7 @@ static STACK_OF(OPENSSL_STRING) *get_email(X509_NAME *name,
+     return ret;
+ }
+ 
+-static void str_free(OPENSSL_STRING str)
++static void __cdecl str_free(OPENSSL_STRING str)
+ {
+     OPENSSL_free(str);
+ }
+diff --git a/include/openssl/asn1.h b/include/openssl/asn1.h
+index 9522eec18f..8880d08834 100644
+--- a/include/openssl/asn1.h
++++ b/include/openssl/asn1.h
+@@ -229,12 +229,12 @@ typedef struct ASN1_VALUE_st ASN1_VALUE;
+ 
+ # define DECLARE_ASN1_ENCODE_FUNCTIONS(type, itname, name) \
+         type *d2i_##name(type **a, const unsigned char **in, long len); \
+-        int i2d_##name(type *a, unsigned char **out); \
++        int __cdecl i2d_##name(type *a, unsigned char **out); \
+         DECLARE_ASN1_ITEM(itname)
+ 
+ # define DECLARE_ASN1_ENCODE_FUNCTIONS_const(type, name) \
+         type *d2i_##name(type **a, const unsigned char **in, long len); \
+-        int i2d_##name(const type *a, unsigned char **out); \
++        int __cdecl i2d_##name(const type *a, unsigned char **out); \
+         DECLARE_ASN1_ITEM(name)
+ 
+ # define DECLARE_ASN1_NDEF_FUNCTION(name) \
+@@ -246,7 +246,7 @@ typedef struct ASN1_VALUE_st ASN1_VALUE;
+ 
+ # define DECLARE_ASN1_ALLOC_FUNCTIONS_name(type, name) \
+         type *name##_new(void); \
+-        void name##_free(type *a);
++        void __cdecl name##_free(type *a);
+ 
+ # define DECLARE_ASN1_PRINT_FUNCTION(stname) \
+         DECLARE_ASN1_PRINT_FUNCTION_fname(stname, stname)
+@@ -256,8 +256,8 @@ typedef struct ASN1_VALUE_st ASN1_VALUE;
+                                          const ASN1_PCTX *pctx);
+ 
+ # define D2I_OF(type) type *(*)(type **,const unsigned char **,long)
+-# define I2D_OF(type) int (*)(type *,unsigned char **)
+-# define I2D_OF_const(type) int (*)(const type *,unsigned char **)
++# define I2D_OF(type) int (__cdecl *)(type *,unsigned char **)
++# define I2D_OF_const(type) int (__cdecl *)(const type *,unsigned char **)
+ 
+ # define CHECKED_D2I_OF(type, d2i) \
+     ((d2i_of_void*) (1 ? d2i : ((D2I_OF(type))0)))
+@@ -271,7 +271,7 @@ typedef struct ASN1_VALUE_st ASN1_VALUE;
+     ((void**) (1 ? p : (type**)0))
+ 
+ # define TYPEDEF_D2I_OF(type) typedef type *d2i_of_##type(type **,const unsigned char **,long)
+-# define TYPEDEF_I2D_OF(type) typedef int i2d_of_##type(type *,unsigned char **)
++# define TYPEDEF_I2D_OF(type) typedef int __cdecl i2d_of_##type(type *,unsigned char **)
+ # define TYPEDEF_D2I2D_OF(type) TYPEDEF_D2I_OF(type); TYPEDEF_I2D_OF(type)
+ 
+ TYPEDEF_D2I2D_OF(void);
+@@ -526,7 +526,7 @@ ASN1_TYPE *ASN1_TYPE_pack_sequence(const ASN1_ITEM *it, void *s, ASN1_TYPE **t);
+ void *ASN1_TYPE_unpack_sequence(const ASN1_ITEM *it, const ASN1_TYPE *t);
+ 
+ ASN1_OBJECT *ASN1_OBJECT_new(void);
+-void ASN1_OBJECT_free(ASN1_OBJECT *a);
++void __cdecl ASN1_OBJECT_free(ASN1_OBJECT *a);
+ int i2d_ASN1_OBJECT(const ASN1_OBJECT *a, unsigned char **pp);
+ ASN1_OBJECT *d2i_ASN1_OBJECT(ASN1_OBJECT **a, const unsigned char **pp,
+                              long length);
+@@ -536,7 +536,7 @@ DECLARE_ASN1_ITEM(ASN1_OBJECT)
+ DEFINE_STACK_OF(ASN1_OBJECT)
+ 
+ ASN1_STRING *ASN1_STRING_new(void);
+-void ASN1_STRING_free(ASN1_STRING *a);
++void __cdecl ASN1_STRING_free(ASN1_STRING *a);
+ void ASN1_STRING_clear_free(ASN1_STRING *a);
+ int ASN1_STRING_copy(ASN1_STRING *dst, const ASN1_STRING *str);
+ ASN1_STRING *ASN1_STRING_dup(const ASN1_STRING *a);
+@@ -715,7 +715,7 @@ void *ASN1_d2i_fp(void *(*xnew) (void), d2i_of_void *d2i, FILE *in, void **x);
+                         CHECKED_PPTR_OF(type, x)))
+ 
+ void *ASN1_item_d2i_fp(const ASN1_ITEM *it, FILE *in, void *x);
+-int ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, void *x);
++int __cdecl ASN1_i2d_fp(i2d_of_void *i2d, FILE *out, void *x);
+ 
+ #  define ASN1_i2d_fp_of(type,i2d,out,x) \
+     (ASN1_i2d_fp(CHECKED_I2D_OF(type, i2d), \
+@@ -742,7 +742,7 @@ void *ASN1_d2i_bio(void *(*xnew) (void), d2i_of_void *d2i, BIO *in, void **x);
+                           CHECKED_PPTR_OF(type, x)))
+ 
+ void *ASN1_item_d2i_bio(const ASN1_ITEM *it, BIO *in, void *x);
+-int ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, unsigned char *x);
++int __cdecl ASN1_i2d_bio(i2d_of_void *i2d, BIO *out, unsigned char *x);
+ 
+ #  define ASN1_i2d_bio_of(type,i2d,out,x) \
+     (ASN1_i2d_bio(CHECKED_I2D_OF(type, i2d), \
+diff --git a/include/openssl/asn1t.h b/include/openssl/asn1t.h
+index a450ba0d9d..a81515e882 100644
+--- a/include/openssl/asn1t.h
++++ b/include/openssl/asn1t.h
+@@ -822,7 +822,7 @@ typedef struct ASN1_STREAM_ARG_st {
+         { \
+                 return (stname *)ASN1_item_new(ASN1_ITEM_rptr(itname)); \
+         } \
+-        void fname##_free(stname *a) \
++        void __cdecl fname##_free(stname *a) \
+         { \
+                 ASN1_item_free((ASN1_VALUE *)a, ASN1_ITEM_rptr(itname)); \
+         }
+@@ -836,7 +836,7 @@ typedef struct ASN1_STREAM_ARG_st {
+         { \
+                 return (stname *)ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
+         } \
+-        int i2d_##fname(stname *a, unsigned char **out) \
++        int __cdecl i2d_##fname(stname *a, unsigned char **out) \
+         { \
+                 return ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
+         }
+@@ -869,7 +869,7 @@ typedef struct ASN1_STREAM_ARG_st {
+         { \
+                 return (stname *)ASN1_item_d2i((ASN1_VALUE **)a, in, len, ASN1_ITEM_rptr(itname));\
+         } \
+-        int i2d_##fname(const stname *a, unsigned char **out) \
++        int __cdecl i2d_##fname(const stname *a, unsigned char **out) \
+         { \
+                 return ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
+         }
+diff --git a/include/openssl/bio.h b/include/openssl/bio.h
+index e1fddfb796..62f7bc33bb 100644
+--- a/include/openssl/bio.h
++++ b/include/openssl/bio.h
+@@ -553,7 +553,7 @@ void BIO_set_init(BIO *a, int init);
+ int BIO_get_init(BIO *a);
+ void BIO_set_shutdown(BIO *a, int shut);
+ int BIO_get_shutdown(BIO *a);
+-void BIO_vfree(BIO *a);
++void __cdecl BIO_vfree(BIO *a);
+ int BIO_up_ref(BIO *a);
+ int BIO_read(BIO *b, void *data, int dlen);
+ int BIO_read_ex(BIO *b, void *data, size_t dlen, size_t *readbytes);
+diff --git a/include/openssl/ct.h b/include/openssl/ct.h
+index d4262fa048..b74dcaa010 100644
+--- a/include/openssl/ct.h
++++ b/include/openssl/ct.h
+@@ -138,7 +138,7 @@ SCT *SCT_new_from_base64(unsigned char version,
+ /*
+  * Frees the SCT and the underlying data structures.
+  */
+-void SCT_free(SCT *sct);
++void __cdecl SCT_free(SCT *sct);
+ 
+ /*
+  * Free a stack of SCTs, and the underlying SCTs themselves.
+@@ -422,7 +422,7 @@ int CTLOG_new_from_base64(CTLOG ** ct_log,
+ /*
+  * Deletes a CT log instance and its fields.
+  */
+-void CTLOG_free(CTLOG *log);
++void __cdecl CTLOG_free(CTLOG *log);
+ 
+ /* Gets the name of the CT log */
+ const char *CTLOG_get0_name(const CTLOG *log);
+diff --git a/include/openssl/dh.h b/include/openssl/dh.h
+index 3527540cdd..794d995a1f 100644
+--- a/include/openssl/dh.h
++++ b/include/openssl/dh.h
+@@ -152,9 +152,9 @@ int DH_generate_key(DH *dh);
+ int DH_compute_key(unsigned char *key, const BIGNUM *pub_key, DH *dh);
+ int DH_compute_key_padded(unsigned char *key, const BIGNUM *pub_key, DH *dh);
+ DH *d2i_DHparams(DH **a, const unsigned char **pp, long length);
+-int i2d_DHparams(const DH *a, unsigned char **pp);
++int __cdecl i2d_DHparams(const DH *a, unsigned char **pp);
+ DH *d2i_DHxparams(DH **a, const unsigned char **pp, long length);
+-int i2d_DHxparams(const DH *a, unsigned char **pp);
++int __cdecl i2d_DHxparams(const DH *a, unsigned char **pp);
+ # ifndef OPENSSL_NO_STDIO
+ int DHparams_print_fp(FILE *fp, const DH *x);
+ # endif
+diff --git a/include/openssl/dsa.h b/include/openssl/dsa.h
+index 822eff347a..22a70e5274 100644
+--- a/include/openssl/dsa.h
++++ b/include/openssl/dsa.h
+@@ -74,7 +74,7 @@ typedef struct DSA_SIG_st DSA_SIG;
+ DSA *DSAparams_dup(DSA *x);
+ DSA_SIG *DSA_SIG_new(void);
+ void DSA_SIG_free(DSA_SIG *a);
+-int i2d_DSA_SIG(const DSA_SIG *a, unsigned char **pp);
++int __cdecl i2d_DSA_SIG(const DSA_SIG *a, unsigned char **pp);
+ DSA_SIG *d2i_DSA_SIG(DSA_SIG **v, const unsigned char **pp, long length);
+ void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
+ int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
+@@ -130,9 +130,9 @@ int DSA_generate_parameters_ex(DSA *dsa, int bits,
+                                BN_GENCB *cb);
+ 
+ int DSA_generate_key(DSA *a);
+-int i2d_DSAPublicKey(const DSA *a, unsigned char **pp);
+-int i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
+-int i2d_DSAparams(const DSA *a, unsigned char **pp);
++int __cdecl i2d_DSAPublicKey(const DSA *a, unsigned char **pp);
++int __cdecl i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
++int __cdecl i2d_DSAparams(const DSA *a, unsigned char **pp);
+ 
+ int DSAparams_print(BIO *bp, const DSA *x);
+ int DSA_print(BIO *bp, const DSA *x, int off);
+diff --git a/include/openssl/ec.h b/include/openssl/ec.h
+index 5af9ebdc7f..6b9952f424 100644
+--- a/include/openssl/ec.h
++++ b/include/openssl/ec.h
+@@ -791,7 +791,7 @@ int EC_GROUP_get_pentanomial_basis(const EC_GROUP *, unsigned int *k1,
+ # define OPENSSL_EC_NAMED_CURVE     0x001
+ 
+ EC_GROUP *d2i_ECPKParameters(EC_GROUP **, const unsigned char **in, long len);
+-int i2d_ECPKParameters(const EC_GROUP *, unsigned char **out);
++int __cdecl i2d_ECPKParameters(const EC_GROUP *, unsigned char **out);
+ 
+ # define d2i_ECPKParameters_bio(bp,x) ASN1_d2i_bio_of(EC_GROUP,NULL,d2i_ECPKParameters,bp,x)
+ # define i2d_ECPKParameters_bio(bp,x) ASN1_i2d_bio_of_const(EC_GROUP,i2d_ECPKParameters,bp,x)
+@@ -1022,7 +1022,7 @@ EC_KEY *d2i_ECPrivateKey(EC_KEY **key, const unsigned char **in, long len);
+  *               of bytes needed).
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int i2d_ECPrivateKey(EC_KEY *key, unsigned char **out);
++int __cdecl i2d_ECPrivateKey(EC_KEY *key, unsigned char **out);
+ 
+ /********************************************************************/
+ /*        de- and encoding functions for EC parameters              */
+@@ -1132,7 +1132,7 @@ ECDSA_SIG *ECDSA_SIG_new(void);
+ /** frees a ECDSA_SIG structure
+  *  \param  sig  pointer to the ECDSA_SIG structure
+  */
+-void ECDSA_SIG_free(ECDSA_SIG *sig);
++void __cdecl ECDSA_SIG_free(ECDSA_SIG *sig);
+ 
+ /** DER encode content of ECDSA_SIG object (note: this function modifies *pp
+  *  (*pp += length of the DER encoded signature)).
+@@ -1141,7 +1141,7 @@ void ECDSA_SIG_free(ECDSA_SIG *sig);
+  *  \return the length of the DER encoded ECDSA_SIG object or a negative value
+  *          on error
+  */
+-int i2d_ECDSA_SIG(const ECDSA_SIG *sig, unsigned char **pp);
++int __cdecl i2d_ECDSA_SIG(const ECDSA_SIG *sig, unsigned char **pp);
+ 
+ /** Decodes a DER encoded ECDSA signature (note: this function changes *pp
+  *  (*pp += len)).
+diff --git a/include/openssl/evp.h b/include/openssl/evp.h
+index 545654a98b..f3ca42c5aa 100644
+--- a/include/openssl/evp.h
++++ b/include/openssl/evp.h
+@@ -1048,7 +1048,7 @@ EVP_PKEY *d2i_PrivateKey(int type, EVP_PKEY **a, const unsigned char **pp,
+                          long length);
+ EVP_PKEY *d2i_AutoPrivateKey(EVP_PKEY **a, const unsigned char **pp,
+                              long length);
+-int i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp);
++int __cdecl i2d_PrivateKey(EVP_PKEY *a, unsigned char **pp);
+ 
+ int EVP_PKEY_copy_parameters(EVP_PKEY *to, const EVP_PKEY *from);
+ int EVP_PKEY_missing_parameters(const EVP_PKEY *pkey);
+@@ -1329,7 +1329,7 @@ EVP_PKEY_METHOD *EVP_PKEY_meth_new(int id, int flags);
+ void EVP_PKEY_meth_get0_info(int *ppkey_id, int *pflags,
+                              const EVP_PKEY_METHOD *meth);
+ void EVP_PKEY_meth_copy(EVP_PKEY_METHOD *dst, const EVP_PKEY_METHOD *src);
+-void EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth);
++void __cdecl EVP_PKEY_meth_free(EVP_PKEY_METHOD *pmeth);
+ int EVP_PKEY_meth_add0(const EVP_PKEY_METHOD *pmeth);
+ int EVP_PKEY_meth_remove(const EVP_PKEY_METHOD *pmeth);
+ size_t EVP_PKEY_meth_get_count(void);
+diff --git a/include/openssl/objects.h b/include/openssl/objects.h
+index cabe66ebc4..c7e8ce2d0d 100644
+--- a/include/openssl/objects.h
++++ b/include/openssl/objects.h
+@@ -75,7 +75,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+ 
+ # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
+   static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
+-  static int nm##_cmp(type1 const *, type2 const *); \
++  static int __cdecl nm##_cmp(type1 const *, type2 const *); \
+   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
+ 
+ # define DECLARE_OBJ_BSEARCH_CMP_FN(type1, type2, cmp)   \
+diff --git a/include/openssl/safestack.h b/include/openssl/safestack.h
+index 38b5578978..0d317b8a56 100644
+--- a/include/openssl/safestack.h
++++ b/include/openssl/safestack.h
+@@ -21,9 +21,9 @@ extern "C" {
+ 
+ # define SKM_DEFINE_STACK_OF(t1, t2, t3) \
+     STACK_OF(t1); \
+-    typedef int (*sk_##t1##_compfunc)(const t3 * const *a, const t3 *const *b); \
+-    typedef void (*sk_##t1##_freefunc)(t3 *a); \
+-    typedef t3 * (*sk_##t1##_copyfunc)(const t3 *a); \
++    typedef int (__cdecl *sk_##t1##_compfunc)(const t3 * const *a, const t3 *const *b); \
++    typedef void (__cdecl *sk_##t1##_freefunc)(t3 *a); \
++    typedef t3 * (__cdecl *sk_##t1##_copyfunc)(const t3 *a); \
+     static ossl_unused ossl_inline int sk_##t1##_num(const STACK_OF(t1) *sk) \
+     { \
+         return OPENSSL_sk_num((const OPENSSL_STACK *)sk); \
+diff --git a/include/openssl/srp.h b/include/openssl/srp.h
+index aaf13558e3..6fbf8aee4d 100644
+--- a/include/openssl/srp.h
++++ b/include/openssl/srp.h
+@@ -47,7 +47,7 @@ typedef struct SRP_user_pwd_st {
+     char *info;
+ } SRP_user_pwd;
+ 
+-void SRP_user_pwd_free(SRP_user_pwd *user_pwd);
++void __cdecl SRP_user_pwd_free(SRP_user_pwd *user_pwd);
+ 
+ DEFINE_STACK_OF(SRP_user_pwd)
+ 
+diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
+index 6724ccf2d2..e19138c7ab 100644
+--- a/include/openssl/ssl.h
++++ b/include/openssl/ssl.h
+@@ -1662,7 +1662,7 @@ int SSL_SESSION_print(BIO *fp, const SSL_SESSION *ses);
+ int SSL_SESSION_print_keylog(BIO *bp, const SSL_SESSION *x);
+ int SSL_SESSION_up_ref(SSL_SESSION *ses);
+ void SSL_SESSION_free(SSL_SESSION *ses);
+-__owur int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
++__owur int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
+ __owur int SSL_set_session(SSL *to, SSL_SESSION *session);
+ int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
+ int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
+diff --git a/include/openssl/store.h b/include/openssl/store.h
+index a40a7339e6..00b9ad2a3a 100644
+--- a/include/openssl/store.h
++++ b/include/openssl/store.h
+@@ -149,7 +149,7 @@ const char *OSSL_STORE_INFO_type_string(int type);
+ /*
+  * Free the OSSL_STORE_INFO
+  */
+-void OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
++void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
+ 
+ 
+ /*-
+diff --git a/include/openssl/ts.h b/include/openssl/ts.h
+index 3b58aa527e..c33fb17aab 100644
+--- a/include/openssl/ts.h
++++ b/include/openssl/ts.h
+@@ -69,8 +69,8 @@ DEFINE_STACK_OF(ESS_CERT_ID_V2)
+ typedef struct TS_resp_st TS_RESP;
+ 
+ TS_REQ *TS_REQ_new(void);
+-void TS_REQ_free(TS_REQ *a);
+-int i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
++void __cdecl TS_REQ_free(TS_REQ *a);
++int __cdecl i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
+ TS_REQ *d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
+ 
+ TS_REQ *TS_REQ_dup(TS_REQ *a);
+@@ -83,8 +83,8 @@ TS_REQ *d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
+ int i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
+ 
+ TS_MSG_IMPRINT *TS_MSG_IMPRINT_new(void);
+-void TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
+-int i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
++void __cdecl TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
++int __cdecl i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
+ TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
+                                    const unsigned char **pp, long length);
+ 
+@@ -98,8 +98,8 @@ TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT **a);
+ int i2d_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT *a);
+ 
+ TS_RESP *TS_RESP_new(void);
+-void TS_RESP_free(TS_RESP *a);
+-int i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
++void __cdecl TS_RESP_free(TS_RESP *a);
++int __cdecl i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
+ TS_RESP *d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
+ TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token);
+ TS_RESP *TS_RESP_dup(TS_RESP *a);
+@@ -112,15 +112,15 @@ TS_RESP *d2i_TS_RESP_bio(BIO *bio, TS_RESP **a);
+ int i2d_TS_RESP_bio(BIO *bio, TS_RESP *a);
+ 
+ TS_STATUS_INFO *TS_STATUS_INFO_new(void);
+-void TS_STATUS_INFO_free(TS_STATUS_INFO *a);
+-int i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
++void __cdecl TS_STATUS_INFO_free(TS_STATUS_INFO *a);
++int __cdecl i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
+ TS_STATUS_INFO *d2i_TS_STATUS_INFO(TS_STATUS_INFO **a,
+                                    const unsigned char **pp, long length);
+ TS_STATUS_INFO *TS_STATUS_INFO_dup(TS_STATUS_INFO *a);
+ 
+ TS_TST_INFO *TS_TST_INFO_new(void);
+-void TS_TST_INFO_free(TS_TST_INFO *a);
+-int i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
++void __cdecl TS_TST_INFO_free(TS_TST_INFO *a);
++int __cdecl i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
+ TS_TST_INFO *d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
+                              long length);
+ TS_TST_INFO *TS_TST_INFO_dup(TS_TST_INFO *a);
+@@ -133,44 +133,44 @@ TS_TST_INFO *d2i_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO **a);
+ int i2d_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO *a);
+ 
+ TS_ACCURACY *TS_ACCURACY_new(void);
+-void TS_ACCURACY_free(TS_ACCURACY *a);
+-int i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
++void __cdecl TS_ACCURACY_free(TS_ACCURACY *a);
++int __cdecl i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
+ TS_ACCURACY *d2i_TS_ACCURACY(TS_ACCURACY **a, const unsigned char **pp,
+                              long length);
+ TS_ACCURACY *TS_ACCURACY_dup(TS_ACCURACY *a);
+ 
+ ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_new(void);
+-void ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
+-int i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
++void __cdecl ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
++int __cdecl i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
+ ESS_ISSUER_SERIAL *d2i_ESS_ISSUER_SERIAL(ESS_ISSUER_SERIAL **a,
+                                          const unsigned char **pp,
+                                          long length);
+ ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_dup(ESS_ISSUER_SERIAL *a);
+ 
+ ESS_CERT_ID *ESS_CERT_ID_new(void);
+-void ESS_CERT_ID_free(ESS_CERT_ID *a);
+-int i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
++void __cdecl ESS_CERT_ID_free(ESS_CERT_ID *a);
++int __cdecl i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
+ ESS_CERT_ID *d2i_ESS_CERT_ID(ESS_CERT_ID **a, const unsigned char **pp,
+                              long length);
+ ESS_CERT_ID *ESS_CERT_ID_dup(ESS_CERT_ID *a);
+ 
+ ESS_SIGNING_CERT *ESS_SIGNING_CERT_new(void);
+-void ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
+-int i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
++void __cdecl ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
++int __cdecl i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
+ ESS_SIGNING_CERT *d2i_ESS_SIGNING_CERT(ESS_SIGNING_CERT **a,
+                                        const unsigned char **pp, long length);
+ ESS_SIGNING_CERT *ESS_SIGNING_CERT_dup(ESS_SIGNING_CERT *a);
+ 
+ ESS_CERT_ID_V2 *ESS_CERT_ID_V2_new(void);
+-void ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
+-int i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
++void __cdecl ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
++int __cdecl i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
+ ESS_CERT_ID_V2 *d2i_ESS_CERT_ID_V2(ESS_CERT_ID_V2 **a,
+                                    const unsigned char **pp, long length);
+ ESS_CERT_ID_V2 *ESS_CERT_ID_V2_dup(ESS_CERT_ID_V2 *a);
+ 
+ ESS_SIGNING_CERT_V2 *ESS_SIGNING_CERT_V2_new(void);
+-void ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
+-int i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
++void __cdecl ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
++int __cdecl i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
+ ESS_SIGNING_CERT_V2 *d2i_ESS_SIGNING_CERT_V2(ESS_SIGNING_CERT_V2 **a,
+                                              const unsigned char **pp,
+                                              long length);
+diff --git a/include/openssl/x509.h b/include/openssl/x509.h
+index 39ca0ba575..b3d2848156 100644
+--- a/include/openssl/x509.h
++++ b/include/openssl/x509.h
+@@ -510,18 +510,18 @@ EVP_PKEY *X509_PUBKEY_get0(X509_PUBKEY *key);
+ EVP_PKEY *X509_PUBKEY_get(X509_PUBKEY *key);
+ int X509_get_pubkey_parameters(EVP_PKEY *pkey, STACK_OF(X509) *chain);
+ long X509_get_pathlen(X509 *x);
+-int i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
++int __cdecl i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
+ EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
+ # ifndef OPENSSL_NO_RSA
+-int i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
++int __cdecl i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
+ RSA *d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
+ # endif
+ # ifndef OPENSSL_NO_DSA
+-int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
++int __cdecl i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
+ DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
+ # endif
+ # ifndef OPENSSL_NO_EC
+-int i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
++int __cdecl i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
+ EC_KEY *d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
+ # endif
+ 
+@@ -555,7 +555,7 @@ DECLARE_ASN1_FUNCTIONS(X509_CERT_AUX)
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509, l, p, newf, dupf, freef)
+ int X509_set_ex_data(X509 *r, int idx, void *arg);
+ void *X509_get_ex_data(X509 *r, int idx);
+-int i2d_X509_AUX(X509 *a, unsigned char **pp);
++int __cdecl i2d_X509_AUX(X509 *a, unsigned char **pp);
+ X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length);
+ 
+ int i2d_re_X509_tbs(X509 *x, unsigned char **pp);
+@@ -605,7 +605,7 @@ DECLARE_ASN1_FUNCTIONS(NETSCAPE_SPKAC)
+ DECLARE_ASN1_FUNCTIONS(NETSCAPE_CERT_SEQUENCE)
+ 
+ X509_INFO *X509_INFO_new(void);
+-void X509_INFO_free(X509_INFO *a);
++void __cdecl X509_INFO_free(X509_INFO *a);
+ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int size);
+ 
+ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *algor1,
+diff --git a/include/openssl/x509_vfy.h b/include/openssl/x509_vfy.h
+index adb8bce7cb..42f28f2ef7 100644
+--- a/include/openssl/x509_vfy.h
++++ b/include/openssl/x509_vfy.h
+@@ -258,7 +258,7 @@ X509_OBJECT *X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
+                                         X509_OBJECT *x);
+ int X509_OBJECT_up_ref_count(X509_OBJECT *a);
+ X509_OBJECT *X509_OBJECT_new(void);
+-void X509_OBJECT_free(X509_OBJECT *a);
++void __cdecl X509_OBJECT_free(X509_OBJECT *a);
+ X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a);
+ X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a);
+ int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
+@@ -526,7 +526,7 @@ void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
+ /* X509_VERIFY_PARAM functions */
+ 
+ X509_VERIFY_PARAM *X509_VERIFY_PARAM_new(void);
+-void X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
++void __cdecl X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
+ int X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *to,
+                               const X509_VERIFY_PARAM *from);
+ int X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
+diff --git a/include/openssl/x509v3.h b/include/openssl/x509v3.h
+index 6c6eca38a5..3713882f86 100644
+--- a/include/openssl/x509v3.h
++++ b/include/openssl/x509v3.h
+@@ -557,7 +557,7 @@ GENERAL_NAME *v2i_GENERAL_NAME_ex(GENERAL_NAME *out,
+                                   const X509V3_EXT_METHOD *method,
+                                   X509V3_CTX *ctx, CONF_VALUE *cnf,
+                                   int is_nc);
+-void X509V3_conf_free(CONF_VALUE *val);
++void __cdecl X509V3_conf_free(CONF_VALUE *val);
+ 
+ X509_EXTENSION *X509V3_EXT_nconf_nid(CONF *conf, X509V3_CTX *ctx, int ext_nid,
+                                      const char *value);
+diff --git a/ssl/ssl_asn1.c b/ssl/ssl_asn1.c
+index b56c5e96c5..be50781b4e 100644
+--- a/ssl/ssl_asn1.c
++++ b/ssl/ssl_asn1.c
+@@ -101,7 +101,7 @@ static void ssl_session_sinit(ASN1_OCTET_STRING **dest, ASN1_OCTET_STRING *os,
+         *dest = NULL;
+ }
+ 
+-int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
++int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
+ {
+ 
+     SSL_SESSION_ASN1 as;
+diff --git a/ssl/ssl_cert.c b/ssl/ssl_cert.c
+index 9df9fb9677..2fecb9753b 100644
+--- a/ssl/ssl_cert.c
++++ b/ssl/ssl_cert.c
+@@ -591,7 +591,7 @@ static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
+     return ret;
+ }
+ 
+-static int xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++static int __cdecl xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return xname_cmp(*a, *b);
+ }
+@@ -682,7 +682,7 @@ int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
+     X509 *x = NULL;
+     X509_NAME *xn = NULL;
+     int ret = 1;
+-    int (*oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
++    int (__cdecl *oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
+ 
+     oldcmp = sk_X509_NAME_set_cmp_func(stack, xname_sk_cmp);
+ 
+diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
+index 27a1b2ec68..1263b04638 100644
+--- a/ssl/ssl_ciph.c
++++ b/ssl/ssl_ciph.c
+@@ -450,7 +450,7 @@ int ssl_load_ciphers(void)
+ 
+ #ifndef OPENSSL_NO_COMP
+ 
+-static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
++static int __cdecl sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
+ {
+     return ((*a)->id - (*b)->id);
+ }
+@@ -1946,7 +1946,7 @@ STACK_OF(SSL_COMP) *SSL_COMP_set0_compression_methods(STACK_OF(SSL_COMP)
+     return old_meths;
+ }
+ 
+-static void cmeth_free(SSL_COMP *cm)
++static void __cdecl cmeth_free(SSL_COMP *cm)
+ {
+     OPENSSL_free(cm);
+ }
+diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
+index ac820cf9fe..070130a1fb 100644
+--- a/ssl/ssl_lib.c
++++ b/ssl/ssl_lib.c
+@@ -179,7 +179,7 @@ static void dane_ctx_final(struct dane_ctx_st *dctx)
+     dctx->mdmax = 0;
+ }
+ 
+-static void tlsa_free(danetls_record *t)
++static void __cdecl tlsa_free(danetls_record *t)
+ {
+     if (t == NULL)
+         return;
+@@ -2420,7 +2420,7 @@ int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+     return 0;
+ }
+ 
+-int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                           const SSL_CIPHER *const *bp)
+ {
+     if ((*ap)->id > (*bp)->id)
+diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
+index 25875c9f6d..516b00c786 100644
+--- a/ssl/ssl_locl.h
++++ b/ssl/ssl_locl.h
+@@ -2265,7 +2265,7 @@ __owur int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello);
+ __owur SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket);
+ __owur int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
+ DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
+-__owur int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++__owur int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                                  const SSL_CIPHER *const *bp);
+ __owur STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
+                                                     STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
+diff --git a/ssl/statem/statem_lib.c b/ssl/statem/statem_lib.c
+index 22e9f0490e..1c9ed9b9cf 100644
+--- a/ssl/statem/statem_lib.c
++++ b/ssl/statem/statem_lib.c
+@@ -2218,7 +2218,7 @@ int create_synthetic_message_hash(SSL *s, const unsigned char *hashval,
+     return 1;
+ }
+ 
+-static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++static int __cdecl ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return X509_NAME_cmp(*a, *b);
+ }
+diff --git a/test/evp_test.c b/test/evp_test.c
+index abb51384e8..b9e084eb41 100644
+--- a/test/evp_test.c
++++ b/test/evp_test.c
+@@ -106,7 +106,7 @@ struct evp_test_buffer_st {
+     int count_set;
+ };
+ 
+-static void evp_test_buffer_free(EVP_TEST_BUFFER *db)
++static void __cdecl evp_test_buffer_free(EVP_TEST_BUFFER *db)
+ {
+     if (db != NULL) {
+         OPENSSL_free(db->buf);
+@@ -919,7 +919,7 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
+ }
+ 
+ /* Because OPENSSL_free is a macro, it can't be passed as a function pointer */
+-static void openssl_free(char *m)
++static void __cdecl openssl_free(char *m)
+ {
+     OPENSSL_free(m);
+ }
+diff --git a/test/ssltestlib.c b/test/ssltestlib.c
+index 456afdf471..aec9b1d7f7 100644
+--- a/test/ssltestlib.c
++++ b/test/ssltestlib.c
+@@ -279,7 +279,7 @@ struct mempacket_st {
+     unsigned int type;
+ };
+ 
+-static void mempacket_free(MEMPACKET *pkt)
++static void __cdecl mempacket_free(MEMPACKET *pkt)
+ {
+     if (pkt->data != NULL)
+         OPENSSL_free(pkt->data);
+diff --git a/test/stack_test.c b/test/stack_test.c
+index 680f68d60e..3f8e4f96f5 100644
+--- a/test/stack_test.c
++++ b/test/stack_test.c
+@@ -41,7 +41,7 @@ DEFINE_SPECIAL_STACK_OF_CONST(uchar, unsigned char)
+ DEFINE_STACK_OF(SS)
+ DEFINE_STACK_OF_CONST(SU)
+ 
+-static int int_compare(const int *const *a, const int *const *b)
++static int __cdecl int_compare(const int *const *a, const int *const *b)
+ {
+     if (**a < **b)
+         return -1;
+@@ -165,7 +165,7 @@ end:
+     return testresult;
+ }
+ 
+-static int uchar_compare(const unsigned char *const *a,
++static int __cdecl uchar_compare(const unsigned char *const *a,
+                          const unsigned char *const *b)
+ {
+     return **a - (signed int)**b;
+@@ -251,7 +251,7 @@ end:
+     return testresult;
+ }
+ 
+-static SS *SS_copy(const SS *p)
++static SS * __cdecl SS_copy(const SS *p)
+ {
+     SS *q = OPENSSL_malloc(sizeof(*q));
+ 
+@@ -260,7 +260,7 @@ static SS *SS_copy(const SS *p)
+     return q;
+ }
+ 
+-static void SS_free(SS *p) {
++static void __cdecl SS_free(SS *p) {
+     OPENSSL_free(p);
+ }
+ 
+diff --git a/test/x509aux.c b/test/x509aux.c
+index e41f1f6809..5170dec1f7 100644
+--- a/test/x509aux.c
++++ b/test/x509aux.c
+@@ -27,7 +27,7 @@ static int test_certs(int num)
+     unsigned char *data = 0;
+     long len;
+     typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
+-    typedef int (*i2d_X509_t)(X509 *, unsigned char **);
++    typedef int (__cdecl * i2d_X509_t)(X509 *, unsigned char **);
+     int err = 0;
+     BIO *fp = BIO_new_file(test_get_argument(num), "r");
+     X509 *reuse = NULL;
