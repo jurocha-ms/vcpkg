@@ -77,19 +77,6 @@ index c4355370cb..254efbde61 100644
  {
      const OBJ_NAME *const *n1 = n1_;
      const OBJ_NAME *const *n2 = n2_;
-diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index 5e8b5762f8..136c5d8993 100644
---- a/include/openssl/objects.h
-+++ b/include/openssl/objects.h
-@@ -43,7 +43,7 @@ typedef struct obj_name_st {
- 
- int OBJ_NAME_init(void);
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
--                       int (*cmp_func) (const char *, const char *),
-+                       int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *));
- const char *OBJ_NAME_get(const char *name, int type);
- int OBJ_NAME_add(const char *name, int type, const char *data);
 diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
 index ef2d1e0dda..3c24a56ceb 100644
 --- a/crypto/objects/obj_dat.c
@@ -112,9 +99,18 @@ index ef2d1e0dda..3c24a56ceb 100644
  {
      const char *base = base_;
 diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index 136c5d8993..cabe66ebc4 100644
+index 5e8b5762f8..cabe66ebc4 100644
 --- a/include/openssl/objects.h
 +++ b/include/openssl/objects.h
+@@ -43,7 +43,7 @@ typedef struct obj_name_st {
+ 
+ int OBJ_NAME_init(void);
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *));
+ const char *OBJ_NAME_get(const char *name, int type);
+ int OBJ_NAME_add(const char *name, int type, const char *data);
 @@ -67,14 +67,14 @@ int OBJ_ln2nid(const char *s);
  int OBJ_sn2nid(const char *s);
  int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
@@ -163,4 +159,83 @@ index cfc075057a..b26149bbc1 100644
 +typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
  typedef void (*OPENSSL_sk_freefunc)(void *);
  typedef void *(*OPENSSL_sk_copyfunc)(const void *);
+ 
+diff --git a/apps/openssl.c b/apps/openssl.c
+index 9648f35b02..c070e9dbbe 100644
+--- a/apps/openssl.c
++++ b/apps/openssl.c
+@@ -116,7 +116,7 @@ static char *make_config_name(void)
+     return p;
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     FUNCTION f, *fp;
+     LHASH_OF(FUNCTION) *prog = NULL;
+@@ -640,7 +640,7 @@ static unsigned long function_hash(const FUNCTION * a)
+     return OPENSSL_LH_strhash(a->name);
+ }
+ 
+-static int SortFnByName(const void *_f1, const void *_f2)
++static int __cdecl SortFnByName(const void *_f1, const void *_f2)
+ {
+     const FUNCTION *f1 = _f1;
+     const FUNCTION *f2 = _f2;
+diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
+index 0ec9f0daf3..7acea74004 100644
+--- a/crypto/ui/ui_openssl.c
++++ b/crypto/ui/ui_openssl.c
+@@ -159,7 +159,7 @@ struct IOSB {
+ # ifdef SIGACTION
+ static struct sigaction savsig[NX509_SIG];
+ # else
+-static void (*savsig[NX509_SIG]) (int);
++static void (__cdecl *savsig[NX509_SIG]) (int);
+ # endif
+ 
+ # ifdef OPENSSL_SYS_VMS
+@@ -183,7 +183,7 @@ static int is_a_tty;
+ /* Declare static functions */
+ # if !defined(OPENSSL_SYS_WINCE)
+ static int read_till_nl(FILE *);
+-static void recsig(int);
++static void __cdecl recsig(int);
+ static void pushsig(void);
+ static void popsig(void);
+ # endif
+@@ -659,7 +659,7 @@ static void popsig(void)
+ #  endif
+ }
+ 
+-static void recsig(int i)
++static void __cdecl recsig(int i)
+ {
+     intr_signal = i;
+ }
+diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
+index 066bf47221..0162fa70af 100644
+--- a/ssl/s3_lib.c
++++ b/ssl/s3_lib.c
+@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
+     },
+ };
+ 
+-static int cipher_compare(const void *a, const void *b)
++static int __cdecl cipher_compare(const void *a, const void *b)
+ {
+     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
+     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
+diff --git a/test/testutil/main.c b/test/testutil/main.c
+index d3ccdda391..f86bc5dbc5 100644
+--- a/test/testutil/main.c
++++ b/test/testutil/main.c
+@@ -31,7 +31,7 @@ static void check_arg_usage(void)
+         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     int ret = EXIT_FAILURE;
  
