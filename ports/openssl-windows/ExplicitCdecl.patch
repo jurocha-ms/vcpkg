@@ -33,757 +33,6 @@ index df4bff41a2..b8436cc54f 100644
  {
      int i;
  
-diff --git a/crypto/asn1/tasn_enc.c b/crypto/asn1/tasn_enc.c
-index 30be314ff9..e04e20f37e 100644
---- a/crypto/asn1/tasn_enc.c
-+++ b/crypto/asn1/tasn_enc.c
-@@ -354,7 +354,7 @@ typedef struct {
-     ASN1_VALUE *field;
- } DER_ENC;
- 
--static int der_cmp(const void *a, const void *b)
-+static int __cdecl der_cmp(const void *a, const void *b)
- {
-     const DER_ENC *d1 = a, *d2 = b;
-     int cmplen, i;
-diff --git a/crypto/init.c b/crypto/init.c
-index 9fc0e8ef68..1a9e0cae86 100644
---- a/crypto/init.c
-+++ b/crypto/init.c
-@@ -119,7 +119,7 @@ err:
- 
- static CRYPTO_ONCE register_atexit = CRYPTO_ONCE_STATIC_INIT;
- #if !defined(OPENSSL_SYS_UEFI) && defined(_WIN32)
--static int win32atexit(void)
-+static int __cdecl win32atexit(void)
- {
-     OPENSSL_cleanup();
-     return 0;
-diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
-index 35bfb74eae..b5ccbe2c32 100644
---- a/crypto/mem_clr.c
-+++ b/crypto/mem_clr.c
-@@ -15,7 +15,7 @@
-  * the pointer and can't assume that it points to any function in
-  * particular (such as memset, which it then might further "optimize")
-  */
--typedef void *(*memset_t)(void *, int, size_t);
-+typedef void *(__cdecl *memset_t)(void *, int, size_t);
- 
- static volatile memset_t memset_func = memset;
- 
-diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
-index c4355370cb..254efbde61 100644
---- a/crypto/objects/o_names.c
-+++ b/crypto/objects/o_names.c
-@@ -30,7 +30,7 @@
-  * transparently assign function pointers to it.
-  */
- #if defined(OPENSSL_SYS_VMS_DECC) || defined(OPENSSL_SYS_UEFI)
--static int obj_strcasecmp(const char *a, const char *b)
-+static int __cdecl obj_strcasecmp(const char *a, const char *b)
- {
-     return strcasecmp(a, b);
- }
-@@ -48,7 +48,7 @@ static CRYPTO_RWLOCK *obj_lock = NULL;
- 
- struct name_funcs_st {
-     unsigned long (*hash_func) (const char *name);
--    int (*cmp_func) (const char *a, const char *b);
-+    int (__cdecl *cmp_func) (const char *a, const char *b);
-     void (*free_func) (const char *, int, const char *);
- };
- 
-@@ -79,7 +79,7 @@ int OBJ_NAME_init(void)
- }
- 
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
--                       int (*cmp_func) (const char *, const char *),
-+                       int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *))
- {
-     int ret = 0, i, push;
-@@ -334,7 +334,7 @@ static void do_all_sorted_fn(const OBJ_NAME *name, void *d_)
-     d->names[d->n++] = name;
- }
- 
--static int do_all_sorted_cmp(const void *n1_, const void *n2_)
-+static int __cdecl do_all_sorted_cmp(const void *n1_, const void *n2_)
- {
-     const OBJ_NAME *const *n1 = n1_;
-     const OBJ_NAME *const *n2 = n2_;
-diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
-index ef2d1e0dda..3c24a56ceb 100644
---- a/crypto/objects/obj_dat.c
-+++ b/crypto/objects/obj_dat.c
-@@ -580,14 +580,14 @@ int OBJ_sn2nid(const char *s)
- }
- 
- const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
--                         int (*cmp) (const void *, const void *))
-+                         int (__cdecl *cmp) (const void *, const void *))
- {
-     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
- }
- 
- const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
-                             int size,
--                            int (*cmp) (const void *, const void *),
-+                            int (__cdecl *cmp) (const void *, const void *),
-                             int flags)
- {
-     const char *base = base_;
-diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
-index 55a44023d5..9e3e805b1b 100644
---- a/crypto/sha/keccak1600.c
-+++ b/crypto/sha/keccak1600.c
-@@ -1146,7 +1146,7 @@ void SHA3_sponge(const unsigned char *inp, size_t len,
- 
- # include <stdio.h>
- 
--int main()
-+int __cdecl main()
- {
-     /*
-      * This is 5-bit SHAKE128 test from http://csrc.nist.gov/groups/ST/toolkit/examples.html#aHashing
-diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
-index 0ec9f0daf3..7acea74004 100644
---- a/crypto/ui/ui_openssl.c
-+++ b/crypto/ui/ui_openssl.c
-@@ -159,7 +159,7 @@ struct IOSB {
- # ifdef SIGACTION
- static struct sigaction savsig[NX509_SIG];
- # else
--static void (*savsig[NX509_SIG]) (int);
-+static void (__cdecl *savsig[NX509_SIG]) (int);
- # endif
- 
- # ifdef OPENSSL_SYS_VMS
-@@ -183,7 +183,7 @@ static int is_a_tty;
- /* Declare static functions */
- # if !defined(OPENSSL_SYS_WINCE)
- static int read_till_nl(FILE *);
--static void recsig(int);
-+static void __cdecl recsig(int);
- static void pushsig(void);
- static void popsig(void);
- # endif
-@@ -659,7 +659,7 @@ static void popsig(void)
- #  endif
- }
- 
--static void recsig(int i)
-+static void __cdecl recsig(int i)
- {
-     intr_signal = i;
- }
-diff --git a/demos/bio/client-arg.c b/demos/bio/client-arg.c
-index e8d5e46ab5..64da8b8d55 100644
---- a/demos/bio/client-arg.c
-+++ b/demos/bio/client-arg.c
-@@ -11,7 +11,7 @@
- #include <openssl/err.h>
- #include <openssl/ssl.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *sbio = NULL, *out = NULL;
-     int len;
-diff --git a/demos/bio/client-conf.c b/demos/bio/client-conf.c
-index e819030eec..223f1ca7d8 100644
---- a/demos/bio/client-conf.c
-+++ b/demos/bio/client-conf.c
-@@ -12,7 +12,7 @@
- #include <openssl/ssl.h>
- #include <openssl/conf.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *sbio = NULL, *out = NULL;
-     int i, len, rv;
-diff --git a/demos/bio/saccept.c b/demos/bio/saccept.c
-index de86ae6322..5bd262f50d 100644
---- a/demos/bio/saccept.c
-+++ b/demos/bio/saccept.c
-@@ -45,7 +45,7 @@ void sigsetup(void)
-     sigaction(SIGINT, &sa, NULL);
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     char *port = NULL;
-     BIO *in = NULL;
-diff --git a/demos/bio/sconnect.c b/demos/bio/sconnect.c
-index db71f29afe..3a377a9399 100644
---- a/demos/bio/sconnect.c
-+++ b/demos/bio/sconnect.c
-@@ -25,7 +25,7 @@
- #define HOSTPORT "localhost:4433"
- #define CAFILE "root.pem"
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     const char *hostport = HOSTPORT;
-     const char *CAfile = CAFILE;
-diff --git a/demos/bio/server-arg.c b/demos/bio/server-arg.c
-index d80d070f7a..9f079641b6 100644
---- a/demos/bio/server-arg.c
-+++ b/demos/bio/server-arg.c
-@@ -20,7 +20,7 @@
- #include <openssl/err.h>
- #include <openssl/ssl.h>
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     char *port = "*:4433";
-     BIO *ssl_bio, *tmp;
-diff --git a/demos/bio/server-cmod.c b/demos/bio/server-cmod.c
-index f1079ad329..caf3f18340 100644
---- a/demos/bio/server-cmod.c
-+++ b/demos/bio/server-cmod.c
-@@ -19,7 +19,7 @@
- #include <openssl/ssl.h>
- #include <openssl/conf.h>
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     unsigned char buf[512];
-     char *port = "*:4433";
-diff --git a/demos/bio/server-conf.c b/demos/bio/server-conf.c
-index 4d1655bfc9..f2a0773e52 100644
---- a/demos/bio/server-conf.c
-+++ b/demos/bio/server-conf.c
-@@ -21,7 +21,7 @@
- #include <openssl/ssl.h>
- #include <openssl/conf.h>
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     char *port = "*:4433";
-     BIO *in = NULL;
-diff --git a/demos/cms/cms_comp.c b/demos/cms/cms_comp.c
-index 0d548f93ca..d11002dd80 100644
---- a/demos/cms/cms_comp.c
-+++ b/demos/cms/cms_comp.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL;
-     CMS_ContentInfo *cms = NULL;
-diff --git a/demos/cms/cms_ddec.c b/demos/cms/cms_ddec.c
-index 8f2e9aecb2..04e8e519f0 100644
---- a/demos/cms/cms_ddec.c
-+++ b/demos/cms/cms_ddec.c
-@@ -15,7 +15,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL, *dcont = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/cms/cms_dec.c b/demos/cms/cms_dec.c
-index 4f9428b4e7..09bd72a002 100644
---- a/demos/cms/cms_dec.c
-+++ b/demos/cms/cms_dec.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/cms/cms_denc.c b/demos/cms/cms_denc.c
-index adba69b96d..62a73c390a 100644
---- a/demos/cms/cms_denc.c
-+++ b/demos/cms/cms_denc.c
-@@ -15,7 +15,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL, *dout = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/cms/cms_enc.c b/demos/cms/cms_enc.c
-index 4d17d720c6..d9205aa679 100644
---- a/demos/cms/cms_enc.c
-+++ b/demos/cms/cms_enc.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/cms/cms_sign.c b/demos/cms/cms_sign.c
-index 15bd5b8dd9..8e1a1e2d98 100644
---- a/demos/cms/cms_sign.c
-+++ b/demos/cms/cms_sign.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *scert = NULL;
-diff --git a/demos/cms/cms_sign2.c b/demos/cms/cms_sign2.c
-index 14ebf27775..e288b4b2cf 100644
---- a/demos/cms/cms_sign2.c
-+++ b/demos/cms/cms_sign2.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *scert = NULL, *scert2 = NULL;
-diff --git a/demos/cms/cms_uncomp.c b/demos/cms/cms_uncomp.c
-index 3e3b4c4c6e..4251a09a77 100644
---- a/demos/cms/cms_uncomp.c
-+++ b/demos/cms/cms_uncomp.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL;
-     CMS_ContentInfo *cms = NULL;
-diff --git a/demos/cms/cms_ver.c b/demos/cms/cms_ver.c
-index 43c10e2513..b6d62a108a 100644
---- a/demos/cms/cms_ver.c
-+++ b/demos/cms/cms_ver.c
-@@ -12,7 +12,7 @@
- #include <openssl/cms.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
-     X509_STORE *st = NULL;
-diff --git a/demos/evp/aesccm.c b/demos/evp/aesccm.c
-index cc4d0b5ee9..e06181d761 100644
---- a/demos/evp/aesccm.c
-+++ b/demos/evp/aesccm.c
-@@ -118,7 +118,7 @@ void aes_ccm_decrypt(void)
-     EVP_CIPHER_CTX_free(ctx);
- }
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     aes_ccm_encrypt();
-     aes_ccm_decrypt();
-diff --git a/demos/evp/aesgcm.c b/demos/evp/aesgcm.c
-index 3cef27f991..420384af91 100644
---- a/demos/evp/aesgcm.c
-+++ b/demos/evp/aesgcm.c
-@@ -114,7 +114,7 @@ void aes_gcm_decrypt(void)
-     EVP_CIPHER_CTX_free(ctx);
- }
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     aes_gcm_encrypt();
-     aes_gcm_decrypt();
-diff --git a/demos/pkcs12/pkread.c b/demos/pkcs12/pkread.c
-index e5f78f1b35..495bb16402 100644
---- a/demos/pkcs12/pkread.c
-+++ b/demos/pkcs12/pkread.c
-@@ -45,7 +45,7 @@ static char *find_friendly_name(PKCS12 *p12)
-     return name;
- }
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     FILE *fp;
-     EVP_PKEY *pkey = NULL;
-diff --git a/demos/pkcs12/pkwrite.c b/demos/pkcs12/pkwrite.c
-index e14cf8327d..6fa4b99735 100644
---- a/demos/pkcs12/pkwrite.c
-+++ b/demos/pkcs12/pkwrite.c
-@@ -15,7 +15,7 @@
- 
- /* Simple PKCS#12 file creator */
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     FILE *fp;
-     EVP_PKEY *pkey;
-diff --git a/demos/smime/smdec.c b/demos/smime/smdec.c
-index c4d1b090d9..3238f5bed5 100644
---- a/demos/smime/smdec.c
-+++ b/demos/smime/smdec.c
-@@ -12,7 +12,7 @@
- #include <openssl/pkcs7.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/smime/smenc.c b/demos/smime/smenc.c
-index 5d36e9a497..ec8107f7f8 100644
---- a/demos/smime/smenc.c
-+++ b/demos/smime/smenc.c
-@@ -12,7 +12,7 @@
- #include <openssl/pkcs7.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *rcert = NULL;
-diff --git a/demos/smime/smsign.c b/demos/smime/smsign.c
-index ba0adb3974..3ccccfe2bb 100644
---- a/demos/smime/smsign.c
-+++ b/demos/smime/smsign.c
-@@ -12,7 +12,7 @@
- #include <openssl/pkcs7.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *scert = NULL;
-diff --git a/demos/smime/smsign2.c b/demos/smime/smsign2.c
-index 2b7f45b294..80f8e3b518 100644
---- a/demos/smime/smsign2.c
-+++ b/demos/smime/smsign2.c
-@@ -12,7 +12,7 @@
- #include <openssl/pkcs7.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL;
-     X509 *scert = NULL, *scert2 = NULL;
-diff --git a/demos/smime/smver.c b/demos/smime/smver.c
-index 75411c40d0..01cd21813f 100644
---- a/demos/smime/smver.c
-+++ b/demos/smime/smver.c
-@@ -12,7 +12,7 @@
- #include <openssl/pkcs7.h>
- #include <openssl/err.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
-     X509_STORE *st = NULL;
-diff --git a/doc/man3/ASYNC_start_job.pod b/doc/man3/ASYNC_start_job.pod
-index b06db76708..7aa6cac37e 100644
---- a/doc/man3/ASYNC_start_job.pod
-+++ b/doc/man3/ASYNC_start_job.pod
-@@ -244,7 +244,7 @@ The following example demonstrates how to use most of the core async APIs:
-      return 1;
-  }
- 
-- int main(void)
-+ int __cdecl main(void)
-  {
-      ASYNC_JOB *job = NULL;
-      ASYNC_WAIT_CTX *ctx = NULL;
-diff --git a/doc/man3/EVP_DigestInit.pod b/doc/man3/EVP_DigestInit.pod
-index 3e3e342297..bf10d3bb6f 100644
---- a/doc/man3/EVP_DigestInit.pod
-+++ b/doc/man3/EVP_DigestInit.pod
-@@ -313,7 +313,7 @@ digest name passed on the command line.
-  #include <string.h>
-  #include <openssl/evp.h>
- 
-- int main(int argc, char *argv[])
-+ int __cdecl main(int argc, char *argv[])
-  {
-      EVP_MD_CTX *mdctx;
-      const EVP_MD *md;
-diff --git a/doc/man3/PKCS12_newpass.pod b/doc/man3/PKCS12_newpass.pod
-index 5fc041bfbd..d8df52c083 100644
---- a/doc/man3/PKCS12_newpass.pod
-+++ b/doc/man3/PKCS12_newpass.pod
-@@ -45,7 +45,7 @@ the result to a new file.
-  #include <openssl/err.h>
-  #include <openssl/pkcs12.h>
- 
-- int main(int argc, char **argv)
-+ int __cdecl main(int argc, char **argv)
-  {
-      FILE *fp;
-      PKCS12 *p12;
-diff --git a/fuzz/driver.c b/fuzz/driver.c
-index 54d67de202..b9010d6987 100644
---- a/fuzz/driver.c
-+++ b/fuzz/driver.c
-@@ -32,7 +32,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
- 
- #define BUF_SIZE 65536
- 
--int main(int argc, char** argv)
-+int __cdecl main(int argc, char** argv)
- {
-     FuzzerInitialize(&argc, &argv);
- 
-diff --git a/fuzz/test-corpus.c b/fuzz/test-corpus.c
-index 86be5337e1..13e2cae10d 100644
---- a/fuzz/test-corpus.c
-+++ b/fuzz/test-corpus.c
-@@ -58,7 +58,7 @@ static void testfile(const char *pathname)
-     fclose(f);
- }
- 
--int main(int argc, char **argv) {
-+int __cdecl main(int argc, char **argv) {
-     int n;
- 
-     FuzzerInitialize(&argc, &argv);
-diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index 5e8b5762f8..cabe66ebc4 100644
---- a/include/openssl/objects.h
-+++ b/include/openssl/objects.h
-@@ -43,7 +43,7 @@ typedef struct obj_name_st {
- 
- int OBJ_NAME_init(void);
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
--                       int (*cmp_func) (const char *, const char *),
-+                       int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *));
- const char *OBJ_NAME_get(const char *name, int type);
- int OBJ_NAME_add(const char *name, int type, const char *data);
-@@ -67,14 +67,14 @@ int OBJ_ln2nid(const char *s);
- int OBJ_sn2nid(const char *s);
- int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
- const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
--                         int (*cmp) (const void *, const void *));
-+                         int (__cdecl *cmp) (const void *, const void *));
- const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-                             int size,
--                            int (*cmp) (const void *, const void *),
-+                            int (__cdecl *cmp) (const void *, const void *),
-                             int flags);
- 
- # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
-   static int nm##_cmp(type1 const *, type2 const *); \
-   scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
- 
-@@ -111,7 +111,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-  */
- 
- # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-       { \
-       type1 const *a = a_; \
-       type2 const *b = b_; \
-@@ -125,7 +125,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-       extern void dummy_prototype(void)
- 
- # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
--  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-+  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
-       { \
-       type1 const *a = a_; \
-       type2 const *b = b_; \
-diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index cfc075057a..b26149bbc1 100644
---- a/include/openssl/stack.h
-+++ b/include/openssl/stack.h
-@@ -16,7 +16,7 @@ extern "C" {
- 
- typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
- 
--typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
-+typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
- typedef void (*OPENSSL_sk_freefunc)(void *);
- typedef void *(*OPENSSL_sk_copyfunc)(const void *);
- 
-diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
-index 066bf47221..0162fa70af 100644
---- a/ssl/s3_lib.c
-+++ b/ssl/s3_lib.c
-@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
-     },
- };
- 
--static int cipher_compare(const void *a, const void *b)
-+static int __cdecl cipher_compare(const void *a, const void *b)
- {
-     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
-     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
-diff --git a/test/aborttest.c b/test/aborttest.c
-index ba5055edff..885734d4bf 100644
---- a/test/aborttest.c
-+++ b/test/aborttest.c
-@@ -9,7 +9,7 @@
- 
- #include <openssl/crypto.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
-     return 0;
-diff --git a/test/asynctest.c b/test/asynctest.c
-index 9728a37911..2061b76020 100644
---- a/test/asynctest.c
-+++ b/test/asynctest.c
-@@ -269,7 +269,7 @@ static int test_ASYNC_block_pause(void)
-     return 1;
- }
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     if (!ASYNC_is_capable()) {
-         fprintf(stderr,
-diff --git a/test/generate_buildtest.pl b/test/generate_buildtest.pl
-index f9a663bea6..dff61939c1 100644
---- a/test/generate_buildtest.pl
-+++ b/test/generate_buildtest.pl
-@@ -27,7 +27,7 @@ print <<"_____";
- # include <openssl/$name.h>
- #endif
- 
--int main(void)
-+int __cdecl main(void)
- {
-     return 0;
- }
-diff --git a/test/memleaktest.c b/test/memleaktest.c
-index d239bd23b8..6179fa76ed 100644
---- a/test/memleaktest.c
-+++ b/test/memleaktest.c
-@@ -23,7 +23,7 @@
-  * but that is worse than avoiding the test framework's main.
-  */
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
- #ifndef OPENSSL_NO_CRYPTO_MDEBUG
-     char *p;
-diff --git a/test/ossl_shim/ossl_shim.cc b/test/ossl_shim/ossl_shim.cc
-index 90d1f1ef40..a38fe0fdc9 100644
---- a/test/ossl_shim/ossl_shim.cc
-+++ b/test/ossl_shim/ossl_shim.cc
-@@ -1295,6 +1295,6 @@ static int Main(int argc, char **argv) {
- 
- }  // namespace bssl
- 
--int main(int argc, char **argv) {
-+int __cdecl main(int argc, char **argv) {
-   return bssl::Main(argc, argv);
- }
-diff --git a/test/rsa_complex.c b/test/rsa_complex.c
-index fac581254a..55564a2d0a 100644
---- a/test/rsa_complex.c
-+++ b/test/rsa_complex.c
-@@ -20,7 +20,7 @@
- #include <openssl/rsa.h>
- #include <stdlib.h>
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     /* There are explicitly no run time checks for this one */
-     return EXIT_SUCCESS;
-diff --git a/test/shlibloadtest.c b/test/shlibloadtest.c
-index 86bbfcd849..a4ca1ae484 100644
---- a/test/shlibloadtest.c
-+++ b/test/shlibloadtest.c
-@@ -294,7 +294,7 @@ end:
-  * it to link against libcrypto (which the framework uses). The point of the
-  * test is to check dynamic loading and unloading of libcrypto/libssl.
-  */
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     const char *p;
- 
-diff --git a/test/ssltest_old.c b/test/ssltest_old.c
-index 36e6031f3a..4d97ea7bb9 100644
---- a/test/ssltest_old.c
-+++ b/test/ssltest_old.c
-@@ -872,7 +872,7 @@ static int set_protocol_version(const char *version, SSL *ssl, int setting)
-     return 1;
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     const char *CApath = NULL, *CAfile = NULL;
-     int badop = 0;
-diff --git a/test/testutil/main.c b/test/testutil/main.c
-index d3ccdda391..f86bc5dbc5 100644
---- a/test/testutil/main.c
-+++ b/test/testutil/main.c
-@@ -31,7 +31,7 @@ static void check_arg_usage(void)
-         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     int ret = EXIT_FAILURE;
- 
-diff --git a/test/versions.c b/test/versions.c
-index 3ab05ec35d..c9e32f6793 100644
---- a/test/versions.c
-+++ b/test/versions.c
-@@ -12,7 +12,7 @@
- #include <openssl/crypto.h>
- 
- /* A simple helper for the perl function OpenSSL::Test::openssl_versions */
--int main(void)
-+int __cdecl main(void)
- {
-     printf("Build version: 0x%08lX\n", OPENSSL_VERSION_NUMBER);
-     printf("Library version: 0x%08lX\n", OpenSSL_version_num());
-diff --git a/util/mkdef.pl b/util/mkdef.pl
-index 3ac79821b0..ed05e5584d 100755
---- a/util/mkdef.pl
-+++ b/util/mkdef.pl
-@@ -297,7 +297,7 @@ if($do_crypto == 1) {
-  * to link to all of them. This is *not* intended to be run!
-  */
- 
--int main()
-+int __cdecl main()
- {
- EOF
- 	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
 diff --git a/crypto/asn1/a_i2d_fp.c b/crypto/asn1/a_i2d_fp.c
 index 980c65a25d..b6c63fa764 100644
 --- a/crypto/asn1/a_i2d_fp.c
@@ -969,6 +218,19 @@ index 445b0c8425..748901dbc0 100644
  {
      if (a->ameth && a->ameth->old_priv_encode) {
          return a->ameth->old_priv_encode(a, pp);
+diff --git a/crypto/asn1/tasn_enc.c b/crypto/asn1/tasn_enc.c
+index 30be314ff9..e04e20f37e 100644
+--- a/crypto/asn1/tasn_enc.c
++++ b/crypto/asn1/tasn_enc.c
+@@ -354,7 +354,7 @@ typedef struct {
+     ASN1_VALUE *field;
+ } DER_ENC;
+ 
+-static int der_cmp(const void *a, const void *b)
++static int __cdecl der_cmp(const void *a, const void *b)
+ {
+     const DER_ENC *d1 = a, *d2 = b;
+     int cmplen, i;
 diff --git a/crypto/asn1/tasn_typ.c b/crypto/asn1/tasn_typ.c
 index 98d9879014..06404da1ad 100644
 --- a/crypto/asn1/tasn_typ.c
@@ -1188,10 +450,72 @@ index 08dc7c4073..9caa209495 100644
  {
      OPENSSL_free(funcs);
  }
+diff --git a/crypto/init.c b/crypto/init.c
+index 9fc0e8ef68..1a9e0cae86 100644
+--- a/crypto/init.c
++++ b/crypto/init.c
+@@ -119,7 +119,7 @@ err:
+ 
+ static CRYPTO_ONCE register_atexit = CRYPTO_ONCE_STATIC_INIT;
+ #if !defined(OPENSSL_SYS_UEFI) && defined(_WIN32)
+-static int win32atexit(void)
++static int __cdecl win32atexit(void)
+ {
+     OPENSSL_cleanup();
+     return 0;
+diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
+index 35bfb74eae..b5ccbe2c32 100644
+--- a/crypto/mem_clr.c
++++ b/crypto/mem_clr.c
+@@ -15,7 +15,7 @@
+  * the pointer and can't assume that it points to any function in
+  * particular (such as memset, which it then might further "optimize")
+  */
+-typedef void *(*memset_t)(void *, int, size_t);
++typedef void *(__cdecl *memset_t)(void *, int, size_t);
+ 
+ static volatile memset_t memset_func = memset;
+ 
 diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
-index 254efbde61..48f11089b6 100644
+index c4355370cb..48f11089b6 100644
 --- a/crypto/objects/o_names.c
 +++ b/crypto/objects/o_names.c
+@@ -30,7 +30,7 @@
+  * transparently assign function pointers to it.
+  */
+ #if defined(OPENSSL_SYS_VMS_DECC) || defined(OPENSSL_SYS_UEFI)
+-static int obj_strcasecmp(const char *a, const char *b)
++static int __cdecl obj_strcasecmp(const char *a, const char *b)
+ {
+     return strcasecmp(a, b);
+ }
+@@ -48,7 +48,7 @@ static CRYPTO_RWLOCK *obj_lock = NULL;
+ 
+ struct name_funcs_st {
+     unsigned long (*hash_func) (const char *name);
+-    int (*cmp_func) (const char *a, const char *b);
++    int (__cdecl *cmp_func) (const char *a, const char *b);
+     void (*free_func) (const char *, int, const char *);
+ };
+ 
+@@ -79,7 +79,7 @@ int OBJ_NAME_init(void)
+ }
+ 
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *))
+ {
+     int ret = 0, i, push;
+@@ -334,7 +334,7 @@ static void do_all_sorted_fn(const OBJ_NAME *name, void *d_)
+     d->names[d->n++] = name;
+ }
+ 
+-static int do_all_sorted_cmp(const void *n1_, const void *n2_)
++static int __cdecl do_all_sorted_cmp(const void *n1_, const void *n2_)
+ {
+     const OBJ_NAME *const *n1 = n1_;
+     const OBJ_NAME *const *n2 = n2_;
 @@ -377,7 +377,7 @@ static void names_lh_free_doall(OBJ_NAME *onp)
          OBJ_NAME_remove(onp->name, onp->type);
  }
@@ -1202,7 +526,7 @@ index 254efbde61..48f11089b6 100644
      OPENSSL_free(ptr);
  }
 diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
-index 3c24a56ceb..88e6494f07 100644
+index ef2d1e0dda..88e6494f07 100644
 --- a/crypto/objects/obj_dat.c
 +++ b/crypto/objects/obj_dat.c
 @@ -38,14 +38,14 @@ struct added_obj_st {
@@ -1231,6 +555,23 @@ index 3c24a56ceb..88e6494f07 100644
  {
      int j;
      const ASN1_OBJECT *a = *ap;
+@@ -580,14 +580,14 @@ int OBJ_sn2nid(const char *s)
+ }
+ 
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *))
++                         int (__cdecl *cmp) (const void *, const void *))
+ {
+     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
+ }
+ 
+ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags)
+ {
+     const char *base = base_;
 diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
 index faf59eb20c..b9218cd74c 100644
 --- a/crypto/objects/obj_xref.c
@@ -1306,6 +647,19 @@ index e7e810823b..b8c7a7396c 100644
  {
      /* free a RSA_PRIME_INFO structure */
      BN_clear_free(pinfo->r);
+diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
+index 55a44023d5..9e3e805b1b 100644
+--- a/crypto/sha/keccak1600.c
++++ b/crypto/sha/keccak1600.c
+@@ -1146,7 +1146,7 @@ void SHA3_sponge(const unsigned char *inp, size_t len,
+ 
+ # include <stdio.h>
+ 
+-int main()
++int __cdecl main()
+ {
+     /*
+      * This is 5-bit SHAKE128 test from http://csrc.nist.gov/groups/ST/toolkit/examples.html#aHashing
 diff --git a/crypto/srp/srp_vfy.c b/crypto/srp/srp_vfy.c
 index eb279dd418..68e177db22 100644
 --- a/crypto/srp/srp_vfy.c
@@ -1319,6 +673,19 @@ index eb279dd418..68e177db22 100644
  {
      if (user_pwd == NULL)
          return;
+diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
+index 975515db59..ff442ae033 100644
+--- a/crypto/stack/stack.c
++++ b/crypto/stack/stack.c
+@@ -357,7 +357,7 @@ void OPENSSL_sk_zero(OPENSSL_STACK *st)
+     st->num = 0;
+ }
+ 
+-void OPENSSL_sk_pop_free(OPENSSL_STACK *st, OPENSSL_sk_freefunc func)
++void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, OPENSSL_sk_freefunc func)
+ {
+     int i;
+ 
 diff --git a/crypto/store/store_lib.c b/crypto/store/store_lib.c
 index 7de2e31f55..dcd8211221 100644
 --- a/crypto/store/store_lib.c
@@ -1345,6 +712,37 @@ index f550972d3e..a30b5d2ebe 100644
  {
      if (uis->flags & OUT_STRING_FREEABLE) {
          OPENSSL_free((char *)uis->out_string);
+diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
+index 0ec9f0daf3..7acea74004 100644
+--- a/crypto/ui/ui_openssl.c
++++ b/crypto/ui/ui_openssl.c
+@@ -159,7 +159,7 @@ struct IOSB {
+ # ifdef SIGACTION
+ static struct sigaction savsig[NX509_SIG];
+ # else
+-static void (*savsig[NX509_SIG]) (int);
++static void (__cdecl *savsig[NX509_SIG]) (int);
+ # endif
+ 
+ # ifdef OPENSSL_SYS_VMS
+@@ -183,7 +183,7 @@ static int is_a_tty;
+ /* Declare static functions */
+ # if !defined(OPENSSL_SYS_WINCE)
+ static int read_till_nl(FILE *);
+-static void recsig(int);
++static void __cdecl recsig(int);
+ static void pushsig(void);
+ static void popsig(void);
+ # endif
+@@ -659,7 +659,7 @@ static void popsig(void)
+ #  endif
+ }
+ 
+-static void recsig(int i)
++static void __cdecl recsig(int i)
+ {
+     intr_signal = i;
+ }
 diff --git a/crypto/x509/by_dir.c b/crypto/x509/by_dir.c
 index b691a83a0d..0070026868 100644
 --- a/crypto/x509/by_dir.c
@@ -1824,6 +1222,396 @@ index c9b40d2c76..d051a495d2 100644
  {
      OPENSSL_free(str);
  }
+diff --git a/demos/bio/client-arg.c b/demos/bio/client-arg.c
+index e8d5e46ab5..64da8b8d55 100644
+--- a/demos/bio/client-arg.c
++++ b/demos/bio/client-arg.c
+@@ -11,7 +11,7 @@
+ #include <openssl/err.h>
+ #include <openssl/ssl.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *sbio = NULL, *out = NULL;
+     int len;
+diff --git a/demos/bio/client-conf.c b/demos/bio/client-conf.c
+index e819030eec..223f1ca7d8 100644
+--- a/demos/bio/client-conf.c
++++ b/demos/bio/client-conf.c
+@@ -12,7 +12,7 @@
+ #include <openssl/ssl.h>
+ #include <openssl/conf.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *sbio = NULL, *out = NULL;
+     int i, len, rv;
+diff --git a/demos/bio/saccept.c b/demos/bio/saccept.c
+index de86ae6322..5bd262f50d 100644
+--- a/demos/bio/saccept.c
++++ b/demos/bio/saccept.c
+@@ -45,7 +45,7 @@ void sigsetup(void)
+     sigaction(SIGINT, &sa, NULL);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     char *port = NULL;
+     BIO *in = NULL;
+diff --git a/demos/bio/sconnect.c b/demos/bio/sconnect.c
+index db71f29afe..3a377a9399 100644
+--- a/demos/bio/sconnect.c
++++ b/demos/bio/sconnect.c
+@@ -25,7 +25,7 @@
+ #define HOSTPORT "localhost:4433"
+ #define CAFILE "root.pem"
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     const char *hostport = HOSTPORT;
+     const char *CAfile = CAFILE;
+diff --git a/demos/bio/server-arg.c b/demos/bio/server-arg.c
+index d80d070f7a..9f079641b6 100644
+--- a/demos/bio/server-arg.c
++++ b/demos/bio/server-arg.c
+@@ -20,7 +20,7 @@
+ #include <openssl/err.h>
+ #include <openssl/ssl.h>
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     char *port = "*:4433";
+     BIO *ssl_bio, *tmp;
+diff --git a/demos/bio/server-cmod.c b/demos/bio/server-cmod.c
+index f1079ad329..caf3f18340 100644
+--- a/demos/bio/server-cmod.c
++++ b/demos/bio/server-cmod.c
+@@ -19,7 +19,7 @@
+ #include <openssl/ssl.h>
+ #include <openssl/conf.h>
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     unsigned char buf[512];
+     char *port = "*:4433";
+diff --git a/demos/bio/server-conf.c b/demos/bio/server-conf.c
+index 4d1655bfc9..f2a0773e52 100644
+--- a/demos/bio/server-conf.c
++++ b/demos/bio/server-conf.c
+@@ -21,7 +21,7 @@
+ #include <openssl/ssl.h>
+ #include <openssl/conf.h>
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     char *port = "*:4433";
+     BIO *in = NULL;
+diff --git a/demos/cms/cms_comp.c b/demos/cms/cms_comp.c
+index 0d548f93ca..d11002dd80 100644
+--- a/demos/cms/cms_comp.c
++++ b/demos/cms/cms_comp.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL;
+     CMS_ContentInfo *cms = NULL;
+diff --git a/demos/cms/cms_ddec.c b/demos/cms/cms_ddec.c
+index 8f2e9aecb2..04e8e519f0 100644
+--- a/demos/cms/cms_ddec.c
++++ b/demos/cms/cms_ddec.c
+@@ -15,7 +15,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL, *dcont = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/cms/cms_dec.c b/demos/cms/cms_dec.c
+index 4f9428b4e7..09bd72a002 100644
+--- a/demos/cms/cms_dec.c
++++ b/demos/cms/cms_dec.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/cms/cms_denc.c b/demos/cms/cms_denc.c
+index adba69b96d..62a73c390a 100644
+--- a/demos/cms/cms_denc.c
++++ b/demos/cms/cms_denc.c
+@@ -15,7 +15,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL, *dout = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/cms/cms_enc.c b/demos/cms/cms_enc.c
+index 4d17d720c6..d9205aa679 100644
+--- a/demos/cms/cms_enc.c
++++ b/demos/cms/cms_enc.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/cms/cms_sign.c b/demos/cms/cms_sign.c
+index 15bd5b8dd9..8e1a1e2d98 100644
+--- a/demos/cms/cms_sign.c
++++ b/demos/cms/cms_sign.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *scert = NULL;
+diff --git a/demos/cms/cms_sign2.c b/demos/cms/cms_sign2.c
+index 14ebf27775..e288b4b2cf 100644
+--- a/demos/cms/cms_sign2.c
++++ b/demos/cms/cms_sign2.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *scert = NULL, *scert2 = NULL;
+diff --git a/demos/cms/cms_uncomp.c b/demos/cms/cms_uncomp.c
+index 3e3b4c4c6e..4251a09a77 100644
+--- a/demos/cms/cms_uncomp.c
++++ b/demos/cms/cms_uncomp.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL;
+     CMS_ContentInfo *cms = NULL;
+diff --git a/demos/cms/cms_ver.c b/demos/cms/cms_ver.c
+index 43c10e2513..b6d62a108a 100644
+--- a/demos/cms/cms_ver.c
++++ b/demos/cms/cms_ver.c
+@@ -12,7 +12,7 @@
+ #include <openssl/cms.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
+     X509_STORE *st = NULL;
+diff --git a/demos/evp/aesccm.c b/demos/evp/aesccm.c
+index cc4d0b5ee9..e06181d761 100644
+--- a/demos/evp/aesccm.c
++++ b/demos/evp/aesccm.c
+@@ -118,7 +118,7 @@ void aes_ccm_decrypt(void)
+     EVP_CIPHER_CTX_free(ctx);
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     aes_ccm_encrypt();
+     aes_ccm_decrypt();
+diff --git a/demos/evp/aesgcm.c b/demos/evp/aesgcm.c
+index 3cef27f991..420384af91 100644
+--- a/demos/evp/aesgcm.c
++++ b/demos/evp/aesgcm.c
+@@ -114,7 +114,7 @@ void aes_gcm_decrypt(void)
+     EVP_CIPHER_CTX_free(ctx);
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     aes_gcm_encrypt();
+     aes_gcm_decrypt();
+diff --git a/demos/pkcs12/pkread.c b/demos/pkcs12/pkread.c
+index e5f78f1b35..495bb16402 100644
+--- a/demos/pkcs12/pkread.c
++++ b/demos/pkcs12/pkread.c
+@@ -45,7 +45,7 @@ static char *find_friendly_name(PKCS12 *p12)
+     return name;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     FILE *fp;
+     EVP_PKEY *pkey = NULL;
+diff --git a/demos/pkcs12/pkwrite.c b/demos/pkcs12/pkwrite.c
+index e14cf8327d..6fa4b99735 100644
+--- a/demos/pkcs12/pkwrite.c
++++ b/demos/pkcs12/pkwrite.c
+@@ -15,7 +15,7 @@
+ 
+ /* Simple PKCS#12 file creator */
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     FILE *fp;
+     EVP_PKEY *pkey;
+diff --git a/demos/smime/smdec.c b/demos/smime/smdec.c
+index c4d1b090d9..3238f5bed5 100644
+--- a/demos/smime/smdec.c
++++ b/demos/smime/smdec.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/smime/smenc.c b/demos/smime/smenc.c
+index 5d36e9a497..ec8107f7f8 100644
+--- a/demos/smime/smenc.c
++++ b/demos/smime/smenc.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *rcert = NULL;
+diff --git a/demos/smime/smsign.c b/demos/smime/smsign.c
+index ba0adb3974..3ccccfe2bb 100644
+--- a/demos/smime/smsign.c
++++ b/demos/smime/smsign.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *scert = NULL;
+diff --git a/demos/smime/smsign2.c b/demos/smime/smsign2.c
+index 2b7f45b294..80f8e3b518 100644
+--- a/demos/smime/smsign2.c
++++ b/demos/smime/smsign2.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL;
+     X509 *scert = NULL, *scert2 = NULL;
+diff --git a/demos/smime/smver.c b/demos/smime/smver.c
+index 75411c40d0..01cd21813f 100644
+--- a/demos/smime/smver.c
++++ b/demos/smime/smver.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs7.h>
+ #include <openssl/err.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     BIO *in = NULL, *out = NULL, *tbio = NULL, *cont = NULL;
+     X509_STORE *st = NULL;
+diff --git a/doc/man3/ASYNC_start_job.pod b/doc/man3/ASYNC_start_job.pod
+index b06db76708..7aa6cac37e 100644
+--- a/doc/man3/ASYNC_start_job.pod
++++ b/doc/man3/ASYNC_start_job.pod
+@@ -244,7 +244,7 @@ The following example demonstrates how to use most of the core async APIs:
+      return 1;
+  }
+ 
+- int main(void)
++ int __cdecl main(void)
+  {
+      ASYNC_JOB *job = NULL;
+      ASYNC_WAIT_CTX *ctx = NULL;
+diff --git a/doc/man3/EVP_DigestInit.pod b/doc/man3/EVP_DigestInit.pod
+index 3e3e342297..bf10d3bb6f 100644
+--- a/doc/man3/EVP_DigestInit.pod
++++ b/doc/man3/EVP_DigestInit.pod
+@@ -313,7 +313,7 @@ digest name passed on the command line.
+  #include <string.h>
+  #include <openssl/evp.h>
+ 
+- int main(int argc, char *argv[])
++ int __cdecl main(int argc, char *argv[])
+  {
+      EVP_MD_CTX *mdctx;
+      const EVP_MD *md;
+diff --git a/doc/man3/PKCS12_newpass.pod b/doc/man3/PKCS12_newpass.pod
+index 5fc041bfbd..d8df52c083 100644
+--- a/doc/man3/PKCS12_newpass.pod
++++ b/doc/man3/PKCS12_newpass.pod
+@@ -45,7 +45,7 @@ the result to a new file.
+  #include <openssl/err.h>
+  #include <openssl/pkcs12.h>
+ 
+- int main(int argc, char **argv)
++ int __cdecl main(int argc, char **argv)
+  {
+      FILE *fp;
+      PKCS12 *p12;
+diff --git a/fuzz/driver.c b/fuzz/driver.c
+index 54d67de202..b9010d6987 100644
+--- a/fuzz/driver.c
++++ b/fuzz/driver.c
+@@ -32,7 +32,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len)
+ 
+ #define BUF_SIZE 65536
+ 
+-int main(int argc, char** argv)
++int __cdecl main(int argc, char** argv)
+ {
+     FuzzerInitialize(&argc, &argv);
+ 
+diff --git a/fuzz/test-corpus.c b/fuzz/test-corpus.c
+index 86be5337e1..13e2cae10d 100644
+--- a/fuzz/test-corpus.c
++++ b/fuzz/test-corpus.c
+@@ -58,7 +58,7 @@ static void testfile(const char *pathname)
+     fclose(f);
+ }
+ 
+-int main(int argc, char **argv) {
++int __cdecl main(int argc, char **argv) {
+     int n;
+ 
+     FuzzerInitialize(&argc, &argv);
 diff --git a/include/openssl/asn1.h b/include/openssl/asn1.h
 index 9522eec18f..8880d08834 100644
 --- a/include/openssl/asn1.h
@@ -2079,18 +1867,56 @@ index 545654a98b..f3ca42c5aa 100644
  int EVP_PKEY_meth_remove(const EVP_PKEY_METHOD *pmeth);
  size_t EVP_PKEY_meth_get_count(void);
 diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index cabe66ebc4..c7e8ce2d0d 100644
+index 5e8b5762f8..c7e8ce2d0d 100644
 --- a/include/openssl/objects.h
 +++ b/include/openssl/objects.h
-@@ -75,7 +75,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+@@ -43,7 +43,7 @@ typedef struct obj_name_st {
+ 
+ int OBJ_NAME_init(void);
+ int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-                       int (*cmp_func) (const char *, const char *),
++                       int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *));
+ const char *OBJ_NAME_get(const char *name, int type);
+ int OBJ_NAME_add(const char *name, int type, const char *data);
+@@ -67,15 +67,15 @@ int OBJ_ln2nid(const char *s);
+ int OBJ_sn2nid(const char *s);
+ int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+ const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-                         int (*cmp) (const void *, const void *));
++                         int (__cdecl *cmp) (const void *, const void *));
+ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                             int size,
+-                            int (*cmp) (const void *, const void *),
++                            int (__cdecl *cmp) (const void *, const void *),
+                             int flags);
  
  # define _DECLARE_OBJ_BSEARCH_CMP_FN(scope, type1, type2, nm)    \
-   static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
 -  static int nm##_cmp(type1 const *, type2 const *); \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *, const void *); \
 +  static int __cdecl nm##_cmp(type1 const *, type2 const *); \
    scope type2 * OBJ_bsearch_##nm(type1 *key, type2 const *base, int num)
  
  # define DECLARE_OBJ_BSEARCH_CMP_FN(type1, type2, cmp)   \
+@@ -111,7 +111,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+  */
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_CMP_FN(type1, type2, nm)  \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
+@@ -125,7 +125,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+       extern void dummy_prototype(void)
+ 
+ # define IMPLEMENT_OBJ_BSEARCH_GLOBAL_CMP_FN(type1, type2, nm)   \
+-  static int nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
++  static int __cdecl nm##_cmp_BSEARCH_CMP_FN(const void *a_, const void *b_)    \
+       { \
+       type1 const *a = a_; \
+       type2 const *b = b_; \
 diff --git a/include/openssl/safestack.h b/include/openssl/safestack.h
 index 38b5578978..0d317b8a56 100644
 --- a/include/openssl/safestack.h
@@ -2134,6 +1960,32 @@ index 6724ccf2d2..e19138c7ab 100644
  __owur int SSL_set_session(SSL *to, SSL_SESSION *session);
  int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
  int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
+diff --git a/include/openssl/stack.h b/include/openssl/stack.h
+index cfc075057a..0eb9e533dd 100644
+--- a/include/openssl/stack.h
++++ b/include/openssl/stack.h
+@@ -16,9 +16,9 @@ extern "C" {
+ 
+ typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
+ 
+-typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
+-typedef void (*OPENSSL_sk_freefunc)(void *);
+-typedef void *(*OPENSSL_sk_copyfunc)(const void *);
++typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
++typedef void (__cdecl *OPENSSL_sk_freefunc)(void *);
++typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
+ 
+ int OPENSSL_sk_num(const OPENSSL_STACK *);
+ void *OPENSSL_sk_value(const OPENSSL_STACK *, int);
+@@ -30,7 +30,7 @@ OPENSSL_STACK *OPENSSL_sk_new_null(void);
+ OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
+ int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
+ void OPENSSL_sk_free(OPENSSL_STACK *);
+-void OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (*func) (void *));
++void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
+ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
+                                     OPENSSL_sk_copyfunc c,
+                                     OPENSSL_sk_freefunc f);
 diff --git a/include/openssl/store.h b/include/openssl/store.h
 index a40a7339e6..00b9ad2a3a 100644
 --- a/include/openssl/store.h
@@ -2341,6 +2193,19 @@ index 6c6eca38a5..3713882f86 100644
  
  X509_EXTENSION *X509V3_EXT_nconf_nid(CONF *conf, X509V3_CTX *ctx, int ext_nid,
                                       const char *value);
+diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
+index 066bf47221..0162fa70af 100644
+--- a/ssl/s3_lib.c
++++ b/ssl/s3_lib.c
+@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
+     },
+ };
+ 
+-static int cipher_compare(const void *a, const void *b)
++static int __cdecl cipher_compare(const void *a, const void *b)
+ {
+     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
+     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
 diff --git a/ssl/ssl_asn1.c b/ssl/ssl_asn1.c
 index b56c5e96c5..be50781b4e 100644
 --- a/ssl/ssl_asn1.c
@@ -2446,6 +2311,32 @@ index 22e9f0490e..1c9ed9b9cf 100644
  {
      return X509_NAME_cmp(*a, *b);
  }
+diff --git a/test/aborttest.c b/test/aborttest.c
+index ba5055edff..885734d4bf 100644
+--- a/test/aborttest.c
++++ b/test/aborttest.c
+@@ -9,7 +9,7 @@
+ 
+ #include <openssl/crypto.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
+     return 0;
+diff --git a/test/asynctest.c b/test/asynctest.c
+index 9728a37911..2061b76020 100644
+--- a/test/asynctest.c
++++ b/test/asynctest.c
+@@ -269,7 +269,7 @@ static int test_ASYNC_block_pause(void)
+     return 1;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     if (!ASYNC_is_capable()) {
+         fprintf(stderr,
 diff --git a/test/evp_test.c b/test/evp_test.c
 index abb51384e8..b9e084eb41 100644
 --- a/test/evp_test.c
@@ -2468,6 +2359,83 @@ index abb51384e8..b9e084eb41 100644
  {
      OPENSSL_free(m);
  }
+diff --git a/test/generate_buildtest.pl b/test/generate_buildtest.pl
+index f9a663bea6..dff61939c1 100644
+--- a/test/generate_buildtest.pl
++++ b/test/generate_buildtest.pl
+@@ -27,7 +27,7 @@ print <<"_____";
+ # include <openssl/$name.h>
+ #endif
+ 
+-int main(void)
++int __cdecl main(void)
+ {
+     return 0;
+ }
+diff --git a/test/memleaktest.c b/test/memleaktest.c
+index d239bd23b8..6179fa76ed 100644
+--- a/test/memleaktest.c
++++ b/test/memleaktest.c
+@@ -23,7 +23,7 @@
+  * but that is worse than avoiding the test framework's main.
+  */
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+ #ifndef OPENSSL_NO_CRYPTO_MDEBUG
+     char *p;
+diff --git a/test/ossl_shim/ossl_shim.cc b/test/ossl_shim/ossl_shim.cc
+index 90d1f1ef40..a38fe0fdc9 100644
+--- a/test/ossl_shim/ossl_shim.cc
++++ b/test/ossl_shim/ossl_shim.cc
+@@ -1295,6 +1295,6 @@ static int Main(int argc, char **argv) {
+ 
+ }  // namespace bssl
+ 
+-int main(int argc, char **argv) {
++int __cdecl main(int argc, char **argv) {
+   return bssl::Main(argc, argv);
+ }
+diff --git a/test/rsa_complex.c b/test/rsa_complex.c
+index fac581254a..55564a2d0a 100644
+--- a/test/rsa_complex.c
++++ b/test/rsa_complex.c
+@@ -20,7 +20,7 @@
+ #include <openssl/rsa.h>
+ #include <stdlib.h>
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     /* There are explicitly no run time checks for this one */
+     return EXIT_SUCCESS;
+diff --git a/test/shlibloadtest.c b/test/shlibloadtest.c
+index 86bbfcd849..a4ca1ae484 100644
+--- a/test/shlibloadtest.c
++++ b/test/shlibloadtest.c
+@@ -294,7 +294,7 @@ end:
+  * it to link against libcrypto (which the framework uses). The point of the
+  * test is to check dynamic loading and unloading of libcrypto/libssl.
+  */
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     const char *p;
+ 
+diff --git a/test/ssltest_old.c b/test/ssltest_old.c
+index 36e6031f3a..4d97ea7bb9 100644
+--- a/test/ssltest_old.c
++++ b/test/ssltest_old.c
+@@ -872,7 +872,7 @@ static int set_protocol_version(const char *version, SSL *ssl, int setting)
+     return 1;
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     const char *CApath = NULL, *CAfile = NULL;
+     int badop = 0;
 diff --git a/test/ssltestlib.c b/test/ssltestlib.c
 index 456afdf471..aec9b1d7f7 100644
 --- a/test/ssltestlib.c
@@ -2521,6 +2489,32 @@ index 680f68d60e..3f8e4f96f5 100644
      OPENSSL_free(p);
  }
  
+diff --git a/test/testutil/main.c b/test/testutil/main.c
+index d3ccdda391..f86bc5dbc5 100644
+--- a/test/testutil/main.c
++++ b/test/testutil/main.c
+@@ -31,7 +31,7 @@ static void check_arg_usage(void)
+         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     int ret = EXIT_FAILURE;
+ 
+diff --git a/test/versions.c b/test/versions.c
+index 3ab05ec35d..c9e32f6793 100644
+--- a/test/versions.c
++++ b/test/versions.c
+@@ -12,7 +12,7 @@
+ #include <openssl/crypto.h>
+ 
+ /* A simple helper for the perl function OpenSSL::Test::openssl_versions */
+-int main(void)
++int __cdecl main(void)
+ {
+     printf("Build version: 0x%08lX\n", OPENSSL_VERSION_NUMBER);
+     printf("Library version: 0x%08lX\n", OpenSSL_version_num());
 diff --git a/test/x509aux.c b/test/x509aux.c
 index e41f1f6809..5170dec1f7 100644
 --- a/test/x509aux.c
@@ -2534,3 +2528,44 @@ index e41f1f6809..5170dec1f7 100644
      int err = 0;
      BIO *fp = BIO_new_file(test_get_argument(num), "r");
      X509 *reuse = NULL;
+diff --git a/util/mkdef.pl b/util/mkdef.pl
+index 3ac79821b0..ed05e5584d 100755
+--- a/util/mkdef.pl
++++ b/util/mkdef.pl
+@@ -297,7 +297,7 @@ if($do_crypto == 1) {
+  * to link to all of them. This is *not* intended to be run!
+  */
+ 
+-int main()
++int __cdecl main()
+ {
+ EOF
+ 	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
+diff --git a/Configurations/windows-makefile.tmpl b/Configurations/windows-makefile.tmpl
+index 8ef70b8699..092175287b 100644
+--- a/Configurations/windows-makefile.tmpl
++++ b/Configurations/windows-makefile.tmpl
+@@ -353,9 +353,9 @@ list-tests:
+ 	@$(ECHO) "Tests are not supported with your chosen Configure options"
+ 	@{- output_on() if !$disabled{tests}; "" -}
+ 
+-install: install_sw install_ssldirs install_docs
++install: install_sw install_ssldirs
+ 
+-uninstall: uninstall_docs uninstall_sw
++uninstall: uninstall_sw
+ 
+ libclean:
+ 	"$(PERL)" -e "map { m/(.*)\.dll$$/; unlink glob """{.,apps,test,fuzz}/$$1.*"""; } @ARGV" $(SHLIBS)
+@@ -466,8 +466,9 @@ install_programs: install_runtime_libs build_programs
+ uninstall_runtime:
+ 
+ install_html_docs:
+-        "$(PERL)" "$(SRCDIR)\util\process_docs.pl" \
+-                "--destdir=$(INSTALLTOP)\html" --type=html
++	"$(PERL)" "--version"
++#        "$(PERL)" "$(SRCDIR)\util\process_docs.pl" \
++#                "--destdir=$(INSTALLTOP)\html" --type=html
+ 
+ uninstall_html_docs:
+ 
