@@ -463,6 +463,78 @@ index 9fc0e8ef68..1a9e0cae86 100644
  {
      OPENSSL_cleanup();
      return 0;
+diff --git a/crypto/mem.c b/crypto/mem.c
+index 780053ffef..55c7295526 100644
+--- a/crypto/mem.c
++++ b/crypto/mem.c
+@@ -23,11 +23,11 @@
+  */
+ static int allow_customize = 1;
+ 
+-static void *(*malloc_impl)(size_t, const char *, int)
++static void *(__cdecl *malloc_impl)(size_t, const char *, int)
+     = CRYPTO_malloc;
+-static void *(*realloc_impl)(void *, size_t, const char *, int)
++static void *(__cdecl *realloc_impl)(void *, size_t, const char *, int)
+     = CRYPTO_realloc;
+-static void (*free_impl)(void *, const char *, int)
++static void (__cdecl *free_impl)(void *, const char *, int)
+     = CRYPTO_free;
+ 
+ #ifndef OPENSSL_NO_CRYPTO_MDEBUG
+@@ -58,9 +58,9 @@ static int call_malloc_debug = 0;
+ #endif
+ 
+ int CRYPTO_set_mem_functions(
+-        void *(*m)(size_t, const char *, int),
+-        void *(*r)(void *, size_t, const char *, int),
+-        void (*f)(void *, const char *, int))
++        void *(__cdecl *m)(size_t, const char *, int),
++        void *(__cdecl *r)(void *, size_t, const char *, int),
++        void (__cdecl *f)(void *, const char *, int))
+ {
+     if (!allow_customize)
+         return 0;
+@@ -82,9 +82,9 @@ int CRYPTO_set_mem_debug(int flag)
+ }
+ 
+ void CRYPTO_get_mem_functions(
+-        void *(**m)(size_t, const char *, int),
+-        void *(**r)(void *, size_t, const char *, int),
+-        void (**f)(void *, const char *, int))
++        void *(__cdecl **m)(size_t, const char *, int),
++        void *(__cdecl **r)(void *, size_t, const char *, int),
++        void (__cdecl **f)(void *, const char *, int))
+ {
+     if (m != NULL)
+         *m = malloc_impl;
+@@ -189,7 +189,7 @@ void ossl_malloc_setup_failures(void)
+ }
+ #endif
+ 
+-void *CRYPTO_malloc(size_t num, const char *file, int line)
++void * __cdecl CRYPTO_malloc(size_t num, const char *file, int line)
+ {
+     void *ret = NULL;
+ 
+@@ -235,7 +235,7 @@ void *CRYPTO_zalloc(size_t num, const char *file, int line)
+     return ret;
+ }
+ 
+-void *CRYPTO_realloc(void *str, size_t num, const char *file, int line)
++void * __cdecl CRYPTO_realloc(void *str, size_t num, const char *file, int line)
+ {
+     INCREMENT(realloc_count);
+     if (realloc_impl != NULL && realloc_impl != &CRYPTO_realloc)
+@@ -292,7 +292,7 @@ void *CRYPTO_clear_realloc(void *str, size_t old_len, size_t num,
+     return ret;
+ }
+ 
+-void CRYPTO_free(void *str, const char *file, int line)
++void __cdecl CRYPTO_free(void *str, const char *file, int line)
+ {
+     INCREMENT(free_count);
+     if (free_impl != NULL && free_impl != &CRYPTO_free) {
 diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
 index 35bfb74eae..b5ccbe2c32 100644
 --- a/crypto/mem_clr.c
@@ -674,7 +746,7 @@ index eb279dd418..68e177db22 100644
      if (user_pwd == NULL)
          return;
 diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
-index 975515db59..ff442ae033 100644
+index 975515db59..80248f71b0 100644
 --- a/crypto/stack/stack.c
 +++ b/crypto/stack/stack.c
 @@ -357,7 +357,7 @@ void OPENSSL_sk_zero(OPENSSL_STACK *st)
@@ -686,6 +758,21 @@ index 975515db59..ff442ae033 100644
  {
      int i;
  
+@@ -377,12 +377,12 @@ void OPENSSL_sk_free(OPENSSL_STACK *st)
+     OPENSSL_free(st);
+ }
+ 
+-int OPENSSL_sk_num(const OPENSSL_STACK *st)
++int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *st)
+ {
+     return st == NULL ? -1 : st->num;
+ }
+ 
+-void *OPENSSL_sk_value(const OPENSSL_STACK *st, int i)
++void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *st, int i)
+ {
+     if (st == NULL || i < 0 || i >= st->num)
+         return NULL;
 diff --git a/crypto/store/store_lib.c b/crypto/store/store_lib.c
 index 7de2e31f55..dcd8211221 100644
 --- a/crypto/store/store_lib.c
@@ -1740,6 +1827,43 @@ index e1fddfb796..62f7bc33bb 100644
  int BIO_up_ref(BIO *a);
  int BIO_read(BIO *b, void *data, int dlen);
  int BIO_read_ex(BIO *b, void *data, size_t dlen, size_t *readbytes);
+diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
+index 7d0b526236..122b1088fe 100644
+--- a/include/openssl/crypto.h
++++ b/include/openssl/crypto.h
+@@ -254,23 +254,23 @@ typedef struct crypto_threadid_st {
+ # endif /* OPENSSL_API_COMPAT < 0x10100000L */
+ 
+ int CRYPTO_set_mem_functions(
+-        void *(*m) (size_t, const char *, int),
+-        void *(*r) (void *, size_t, const char *, int),
+-        void (*f) (void *, const char *, int));
++        void *(__cdecl *m) (size_t, const char *, int),
++        void *(__cdecl *r) (void *, size_t, const char *, int),
++        void (__cdecl *f) (void *, const char *, int));
+ int CRYPTO_set_mem_debug(int flag);
+ void CRYPTO_get_mem_functions(
+-        void *(**m) (size_t, const char *, int),
+-        void *(**r) (void *, size_t, const char *, int),
+-        void (**f) (void *, const char *, int));
++        void *(__cdecl **m) (size_t, const char *, int),
++        void *(__cdecl **r) (void *, size_t, const char *, int),
++        void (__cdecl **f) (void *, const char *, int));
+ 
+-void *CRYPTO_malloc(size_t num, const char *file, int line);
++void * __cdecl CRYPTO_malloc(size_t num, const char *file, int line);
+ void *CRYPTO_zalloc(size_t num, const char *file, int line);
+ void *CRYPTO_memdup(const void *str, size_t siz, const char *file, int line);
+ char *CRYPTO_strdup(const char *str, const char *file, int line);
+ char *CRYPTO_strndup(const char *str, size_t s, const char *file, int line);
+-void CRYPTO_free(void *ptr, const char *file, int line);
++void __cdecl CRYPTO_free(void *ptr, const char *file, int line);
+ void CRYPTO_clear_free(void *ptr, size_t num, const char *file, int line);
+-void *CRYPTO_realloc(void *addr, size_t num, const char *file, int line);
++void * __cdecl CRYPTO_realloc(void *addr, size_t num, const char *file, int line);
+ void *CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
+                            const char *file, int line);
+ 
 diff --git a/include/openssl/ct.h b/include/openssl/ct.h
 index d4262fa048..b74dcaa010 100644
 --- a/include/openssl/ct.h
@@ -1844,6 +1968,23 @@ index 5af9ebdc7f..6b9952f424 100644
  
  /** Decodes a DER encoded ECDSA signature (note: this function changes *pp
   *  (*pp += len)).
+diff --git a/include/openssl/engine.h b/include/openssl/engine.h
+index 0780f0fb5f..226277635a 100644
+--- a/include/openssl/engine.h
++++ b/include/openssl/engine.h
+@@ -656,9 +656,9 @@ void ENGINE_add_conf_module(void);
+  * same static data as the calling application (or library), and thus whether
+  * these callbacks need to be set or not.
+  */
+-typedef void *(*dyn_MEM_malloc_fn) (size_t, const char *, int);
+-typedef void *(*dyn_MEM_realloc_fn) (void *, size_t, const char *, int);
+-typedef void (*dyn_MEM_free_fn) (void *, const char *, int);
++typedef void *(__cdecl *dyn_MEM_malloc_fn) (size_t, const char *, int);
++typedef void *(__cdecl *dyn_MEM_realloc_fn) (void *, size_t, const char *, int);
++typedef void (__cdecl *dyn_MEM_free_fn) (void *, const char *, int);
+ typedef struct st_dynamic_MEM_fns {
+     dyn_MEM_malloc_fn malloc_fn;
+     dyn_MEM_realloc_fn realloc_fn;
 diff --git a/include/openssl/evp.h b/include/openssl/evp.h
 index 545654a98b..f3ca42c5aa 100644
 --- a/include/openssl/evp.h
@@ -1961,10 +2102,10 @@ index 6724ccf2d2..e19138c7ab 100644
  int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
  int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
 diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index cfc075057a..0eb9e533dd 100644
+index cfc075057a..e71b68d81a 100644
 --- a/include/openssl/stack.h
 +++ b/include/openssl/stack.h
-@@ -16,9 +16,9 @@ extern "C" {
+@@ -16,12 +16,12 @@ extern "C" {
  
  typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
  
@@ -1975,8 +2116,13 @@ index cfc075057a..0eb9e533dd 100644
 +typedef void (__cdecl *OPENSSL_sk_freefunc)(void *);
 +typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
  
- int OPENSSL_sk_num(const OPENSSL_STACK *);
- void *OPENSSL_sk_value(const OPENSSL_STACK *, int);
+-int OPENSSL_sk_num(const OPENSSL_STACK *);
+-void *OPENSSL_sk_value(const OPENSSL_STACK *, int);
++int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
++void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
+ 
+ void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
+ 
 @@ -30,7 +30,7 @@ OPENSSL_STACK *OPENSSL_sk_new_null(void);
  OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
  int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
@@ -2541,31 +2687,3 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/Configurations/windows-makefile.tmpl b/Configurations/windows-makefile.tmpl
-index 8ef70b8699..092175287b 100644
---- a/Configurations/windows-makefile.tmpl
-+++ b/Configurations/windows-makefile.tmpl
-@@ -353,9 +353,9 @@ list-tests:
- 	@$(ECHO) "Tests are not supported with your chosen Configure options"
- 	@{- output_on() if !$disabled{tests}; "" -}
- 
--install: install_sw install_ssldirs install_docs
-+install: install_sw install_ssldirs
- 
--uninstall: uninstall_docs uninstall_sw
-+uninstall: uninstall_sw
- 
- libclean:
- 	"$(PERL)" -e "map { m/(.*)\.dll$$/; unlink glob """{.,apps,test,fuzz}/$$1.*"""; } @ARGV" $(SHLIBS)
-@@ -466,8 +466,9 @@ install_programs: install_runtime_libs build_programs
- uninstall_runtime:
- 
- install_html_docs:
--        "$(PERL)" "$(SRCDIR)\util\process_docs.pl" \
--                "--destdir=$(INSTALLTOP)\html" --type=html
-+	"$(PERL)" "--version"
-+#        "$(PERL)" "$(SRCDIR)\util\process_docs.pl" \
-+#                "--destdir=$(INSTALLTOP)\html" --type=html
- 
- uninstall_html_docs:
- 
