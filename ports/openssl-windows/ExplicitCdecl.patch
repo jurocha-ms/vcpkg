@@ -2687,3 +2687,345 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
+diff --git a/apps/openssl.c b/apps/openssl.c
+index c070e9dbbe..f2e2fc5676 100644
+--- a/apps/openssl.c
++++ b/apps/openssl.c
+@@ -630,7 +630,7 @@ static void list_pkey_meth(void)
+     }
+ }
+ 
+-static int function_cmp(const FUNCTION * a, const FUNCTION * b)
++static int __cdecl function_cmp(const FUNCTION * a, const FUNCTION * b)
+ {
+     return strncmp(a->name, b->name, 8);
+ }
+diff --git a/apps/req.c b/apps/req.c
+index f9d6fba109..56e3603a99 100644
+--- a/apps/req.c
++++ b/apps/req.c
+@@ -158,7 +158,7 @@ static unsigned long ext_name_hash(const OPENSSL_STRING *a)
+     return OPENSSL_LH_strhash((const char *)a);
+ }
+ 
+-static int ext_name_cmp(const OPENSSL_STRING *a, const OPENSSL_STRING *b)
++static int __cdecl ext_name_cmp(const OPENSSL_STRING *a, const OPENSSL_STRING *b)
+ {
+     return strcmp((const char *)a, (const char *)b);
+ }
+diff --git a/crypto/conf/conf_api.c b/crypto/conf/conf_api.c
+index 5e57d749ce..86bbf53e77 100644
+--- a/crypto/conf/conf_api.c
++++ b/crypto/conf/conf_api.c
+@@ -104,7 +104,7 @@ static unsigned long conf_value_hash(const CONF_VALUE *v)
+     return (OPENSSL_LH_strhash(v->section) << 2) ^ OPENSSL_LH_strhash(v->name);
+ }
+ 
+-static int conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
++static int __cdecl conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
+ {
+     int i;
+ 
+diff --git a/crypto/engine/eng_table.c b/crypto/engine/eng_table.c
+index ac4b02fc12..cc46bdb969 100644
+--- a/crypto/engine/eng_table.c
++++ b/crypto/engine/eng_table.c
+@@ -56,7 +56,7 @@ static unsigned long engine_pile_hash(const ENGINE_PILE *c)
+     return c->nid;
+ }
+ 
+-static int engine_pile_cmp(const ENGINE_PILE *a, const ENGINE_PILE *b)
++static int __cdecl engine_pile_cmp(const ENGINE_PILE *a, const ENGINE_PILE *b)
+ {
+     return a->nid - b->nid;
+ }
+diff --git a/crypto/err/err.c b/crypto/err/err.c
+index 3a58ccb958..9daf4112d8 100644
+--- a/crypto/err/err.c
++++ b/crypto/err/err.c
+@@ -164,7 +164,7 @@ static unsigned long err_string_data_hash(const ERR_STRING_DATA *a)
+     return (ret ^ ret % 19 * 13);
+ }
+ 
+-static int err_string_data_cmp(const ERR_STRING_DATA *a,
++static int __cdecl err_string_data_cmp(const ERR_STRING_DATA *a,
+                                const ERR_STRING_DATA *b)
+ {
+     if (a->error == b->error)
+diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
+index 48f11089b6..9f9d815e87 100644
+--- a/crypto/objects/o_names.c
++++ b/crypto/objects/o_names.c
+@@ -61,7 +61,7 @@ static STACK_OF(NAME_FUNCS) *name_funcs_stack;
+  */
+ 
+ static unsigned long obj_name_hash(const OBJ_NAME *a);
+-static int obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b);
++static int __cdecl obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b);
+ 
+ static CRYPTO_ONCE init = CRYPTO_ONCE_STATIC_INIT;
+ DEFINE_RUN_ONCE_STATIC(o_names_init)
+@@ -137,7 +137,7 @@ out:
+     return ret;
+ }
+ 
+-static int obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b)
++static int __cdecl obj_name_cmp(const OBJ_NAME *a, const OBJ_NAME *b)
+ {
+     int ret;
+ 
+diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
+index 88e6494f07..93489b2520 100644
+--- a/crypto/objects/obj_dat.c
++++ b/crypto/objects/obj_dat.c
+@@ -85,7 +85,7 @@ static unsigned long added_obj_hash(const ADDED_OBJ *ca)
+     return ret;
+ }
+ 
+-static int added_obj_cmp(const ADDED_OBJ *ca, const ADDED_OBJ *cb)
++static int __cdecl added_obj_cmp(const ADDED_OBJ *ca, const ADDED_OBJ *cb)
+ {
+     ASN1_OBJECT *a, *b;
+     int i;
+diff --git a/crypto/store/store_register.c b/crypto/store/store_register.c
+index e68cb3c568..e141dc8bd6 100644
+--- a/crypto/store/store_register.c
++++ b/crypto/store/store_register.c
+@@ -134,7 +134,7 @@ static unsigned long store_loader_hash(const OSSL_STORE_LOADER *v)
+     return OPENSSL_LH_strhash(v->scheme);
+ }
+ 
+-static int store_loader_cmp(const OSSL_STORE_LOADER *a,
++static int __cdecl store_loader_cmp(const OSSL_STORE_LOADER *a,
+                             const OSSL_STORE_LOADER *b)
+ {
+     assert(a->scheme != NULL && b->scheme != NULL);
+diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
+index 7acea74004..467e6a640f 100644
+--- a/crypto/ui/ui_openssl.c
++++ b/crypto/ui/ui_openssl.c
+@@ -184,8 +184,8 @@ static int is_a_tty;
+ # if !defined(OPENSSL_SYS_WINCE)
+ static int read_till_nl(FILE *);
+ static void __cdecl recsig(int);
+-static void pushsig(void);
+-static void popsig(void);
++static void __cdecl pushsig(void);
++static void __cdecl popsig(void);
+ # endif
+ # if defined(OPENSSL_SYS_MSDOS) && !defined(_WIN32)
+ static int noecho_fgets(char *buf, int size, FILE *tty);
+@@ -584,7 +584,7 @@ static int close_console(UI *ui)
+ 
+ # if !defined(OPENSSL_SYS_WINCE)
+ /* Internal functions to handle signals and act on them */
+-static void pushsig(void)
++static void __cdecl pushsig(void)
+ {
+ #  ifndef OPENSSL_SYS_WIN32
+     int i;
+@@ -630,7 +630,7 @@ static void pushsig(void)
+ #  endif
+ }
+ 
+-static void popsig(void)
++static void __cdecl popsig(void)
+ {
+ #  ifdef OPENSSL_SYS_WIN32
+     signal(SIGABRT, savsig[SIGABRT]);
+diff --git a/include/openssl/lhash.h b/include/openssl/lhash.h
+index 47b99d17fb..b172624ed3 100644
+--- a/include/openssl/lhash.h
++++ b/include/openssl/lhash.h
+@@ -122,7 +122,7 @@ void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
+     LHASH_OF(type) { union lh_##type##_dummy { void* d1; unsigned long d2; int d3; } dummy; }; \
+     static ossl_inline LHASH_OF(type) * \
+         lh_##type##_new(unsigned long (*hfn)(const type *), \
+-                        int (*cfn)(const type *, const type *)) \
++                        int (__cdecl *cfn)(const type *, const type *)) \
+     { \
+         return (LHASH_OF(type) *) \
+             OPENSSL_LH_new((OPENSSL_LH_HASHFUNC)hfn, (OPENSSL_LH_COMPFUNC)cfn); \
+diff --git a/ms/applink.c b/ms/applink.c
+index 238dbff35b..52cb19477b 100644
+--- a/ms/applink.c
++++ b/ms/applink.c
+@@ -38,42 +38,42 @@
+ # include <io.h>
+ # include <fcntl.h>
+ 
+-static void *app_stdin(void)
++static void * __cdecl app_stdin(void)
+ {
+     return stdin;
+ }
+ 
+-static void *app_stdout(void)
++static void * __cdecl app_stdout(void)
+ {
+     return stdout;
+ }
+ 
+-static void *app_stderr(void)
++static void * __cdecl app_stderr(void)
+ {
+     return stderr;
+ }
+ 
+-static int app_feof(FILE *fp)
++static int __cdecl app_feof(FILE *fp)
+ {
+     return feof(fp);
+ }
+ 
+-static int app_ferror(FILE *fp)
++static int __cdecl app_ferror(FILE *fp)
+ {
+     return ferror(fp);
+ }
+ 
+-static void app_clearerr(FILE *fp)
++static void __cdecl app_clearerr(FILE *fp)
+ {
+     clearerr(fp);
+ }
+ 
+-static int app_fileno(FILE *fp)
++static int __cdecl app_fileno(FILE *fp)
+ {
+     return _fileno(fp);
+ }
+ 
+-static int app_fsetmod(FILE *fp, char mod)
++static int __cdecl app_fsetmod(FILE *fp, char mod)
+ {
+     return _setmode(_fileno(fp), mod == 'b' ? _O_BINARY : _O_TEXT);
+ }
+diff --git a/ms/uplink.c b/ms/uplink.c
+index cd4e96b780..8156952d93 100644
+--- a/ms/uplink.c
++++ b/ms/uplink.c
+@@ -31,7 +31,7 @@ static void unimplemented(void)
+     TerminateProcess(GetCurrentProcess(), 1);
+ }
+ 
+-void OPENSSL_Uplink(volatile void **table, int index)
++void __cdecl OPENSSL_Uplink(volatile void **table, int index)
+ {
+     static HMODULE volatile apphandle = NULL;
+     static void **volatile applinktable = NULL;
+diff --git a/ms/uplink.h b/ms/uplink.h
+index f6cd0380ae..1f0d75cc55 100644
+--- a/ms/uplink.h
++++ b/ms/uplink.h
+@@ -12,27 +12,27 @@
+ 
+ extern void *OPENSSL_UplinkTable[];
+ 
+-#define UP_stdin  (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
+-#define UP_stdout (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
+-#define UP_stderr (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
+-#define UP_fprintf (*(int (*)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
+-#define UP_fgets  (*(char *(*)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
+-#define UP_fread  (*(size_t (*)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
+-#define UP_fwrite (*(size_t (*)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
+-#define UP_fsetmod (*(int (*)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
+-#define UP_feof   (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
+-#define UP_fclose (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
++#define UP_stdin  (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
++#define UP_stdout (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
++#define UP_stderr (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
++#define UP_fprintf (*(int (__cdecl *)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
++#define UP_fgets  (*(char *(__cdecl *)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
++#define UP_fread  (*(size_t (__cdecl *)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
++#define UP_fwrite (*(size_t (__cdecl *)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
++#define UP_fsetmod (*(int (__cdecl *)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
++#define UP_feof   (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
++#define UP_fclose (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
+ 
+-#define UP_fopen  (*(void *(*)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
+-#define UP_fseek  (*(int (*)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
+-#define UP_ftell  (*(long (*)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
+-#define UP_fflush (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
+-#define UP_ferror (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
+-#define UP_clearerr (*(void (*)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
+-#define UP_fileno (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
++#define UP_fopen  (*(void *(__cdecl *)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
++#define UP_fseek  (*(int (__cdecl *)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
++#define UP_ftell  (*(long (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
++#define UP_fflush (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
++#define UP_ferror (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
++#define UP_clearerr (*(void (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
++#define UP_fileno (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
+ 
+-#define UP_open   (*(int (*)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
+-#define UP_read   (*(ossl_ssize_t (*)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
+-#define UP_write  (*(ossl_ssize_t (*)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
+-#define UP_lseek  (*(long (*)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
+-#define UP_close  (*(int (*)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
++#define UP_open   (*(int (__cdecl *)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
++#define UP_read   (*(ossl_ssize_t (__cdecl *)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
++#define UP_write  (*(ossl_ssize_t (__cdecl *)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
++#define UP_lseek  (*(long (__cdecl *)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
++#define UP_close  (*(int (__cdecl *)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
+diff --git a/ssl/ssl_cert.c b/ssl/ssl_cert.c
+index 2fecb9753b..a704f5ed41 100644
+--- a/ssl/ssl_cert.c
++++ b/ssl/ssl_cert.c
+@@ -567,7 +567,7 @@ int SSL_CTX_add_client_CA(SSL_CTX *ctx, X509 *x)
+     return add_ca_name(&ctx->client_ca_names, x);
+ }
+ 
+-static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
++static int __cdecl xname_cmp(const X509_NAME *a, const X509_NAME *b)
+ {
+     unsigned char *abuf = NULL, *bbuf = NULL;
+     int alen, blen, ret;
+diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
+index 070130a1fb..a5d417fc31 100644
+--- a/ssl/ssl_lib.c
++++ b/ssl/ssl_lib.c
+@@ -2411,7 +2411,7 @@ long SSL_CTX_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
+     }
+ }
+ 
+-int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
++int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+ {
+     if (a->id > b->id)
+         return 1;
+@@ -2888,7 +2888,7 @@ static unsigned long ssl_session_hash(const SSL_SESSION *a)
+  * being able to construct an SSL_SESSION that will collide with any existing
+  * session with a matching session ID.
+  */
+-static int ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
++static int __cdecl ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
+ {
+     if (a->ssl_version != b->ssl_version)
+         return 1;
+diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
+index 516b00c786..d49523aee1 100644
+--- a/ssl/ssl_locl.h
++++ b/ssl/ssl_locl.h
+@@ -2263,7 +2263,7 @@ __owur SSL_SESSION *lookup_sess_in_cache(SSL *s, const unsigned char *sess_id,
+                                          size_t sess_id_len);
+ __owur int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello);
+ __owur SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket);
+-__owur int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
++__owur int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
+ DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
+ __owur int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                                  const SSL_CIPHER *const *bp);
+diff --git a/test/lhash_test.c b/test/lhash_test.c
+index 162286b7cd..3740062220 100644
+--- a/test/lhash_test.c
++++ b/test/lhash_test.c
+@@ -39,7 +39,7 @@ static unsigned long int int_hash(const int *p)
+     return 3 & *p;      /* To force collisions */
+ }
+ 
+-static int int_cmp(const int *p, const int *q)
++static int __cdecl int_cmp(const int *p, const int *q)
+ {
+     return *p != *q;
+ }
