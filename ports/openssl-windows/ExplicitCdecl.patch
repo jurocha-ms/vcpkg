@@ -424,7 +424,7 @@ index ac4b02fc12..cc46bdb969 100644
      return a->nid - b->nid;
  }
 diff --git a/crypto/err/err.c b/crypto/err/err.c
-index 3a58ccb958..228eb33f3b 100644
+index 3a58ccb958..cec0cfdc3a 100644
 --- a/crypto/err/err.c
 +++ b/crypto/err/err.c
 @@ -164,7 +164,7 @@ static unsigned long err_string_data_hash(const ERR_STRING_DATA *a)
@@ -445,6 +445,33 @@ index 3a58ccb958..228eb33f3b 100644
  {
  #ifndef OPENSSL_NO_ERR
      if (!RUN_ONCE(&err_string_init, do_err_strings_init))
+@@ -357,7 +357,7 @@ int ERR_load_ERR_strings(void)
+     return 1;
+ }
+ 
+-int ERR_load_strings(int lib, ERR_STRING_DATA *str)
++int __cdecl ERR_load_strings(int lib, ERR_STRING_DATA *str)
+ {
+     if (ERR_load_ERR_strings() == 0)
+         return 0;
+@@ -367,7 +367,7 @@ int ERR_load_strings(int lib, ERR_STRING_DATA *str)
+     return 1;
+ }
+ 
+-int ERR_load_strings_const(const ERR_STRING_DATA *str)
++int __cdecl ERR_load_strings_const(const ERR_STRING_DATA *str)
+ {
+     if (ERR_load_ERR_strings() == 0)
+         return 0;
+@@ -375,7 +375,7 @@ int ERR_load_strings_const(const ERR_STRING_DATA *str)
+     return 1;
+ }
+ 
+-int ERR_unload_strings(int lib, ERR_STRING_DATA *str)
++int __cdecl ERR_unload_strings(int lib, ERR_STRING_DATA *str)
+ {
+     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
+         return 0;
 @@ -392,7 +392,7 @@ int ERR_unload_strings(int lib, ERR_STRING_DATA *str)
      return 1;
  }
@@ -463,6 +490,51 @@ index 3a58ccb958..228eb33f3b 100644
  {
      int i;
      ERR_STATE *es;
+@@ -582,7 +582,7 @@ static unsigned long get_error_values(int inc, int top, const char **file,
+     return ret;
+ }
+ 
+-void ERR_error_string_n(unsigned long e, char *buf, size_t len)
++void __cdecl ERR_error_string_n(unsigned long e, char *buf, size_t len)
+ {
+     char lsbuf[64], fsbuf[64], rsbuf[64];
+     const char *ls, *fs, *rs;
+@@ -623,7 +623,7 @@ void ERR_error_string_n(unsigned long e, char *buf, size_t len)
+  * ERR_error_string_n should be used instead for ret != NULL as
+  * ERR_error_string cannot know how large the buffer is
+  */
+-char *ERR_error_string(unsigned long e, char *ret)
++char * __cdecl ERR_error_string(unsigned long e, char *ret)
+ {
+     static char buf[256];
+ 
+@@ -633,7 +633,7 @@ char *ERR_error_string(unsigned long e, char *ret)
+     return ret;
+ }
+ 
+-const char *ERR_lib_error_string(unsigned long e)
++const char * __cdecl ERR_lib_error_string(unsigned long e)
+ {
+     ERR_STRING_DATA d, *p;
+     unsigned long l;
+@@ -648,7 +648,7 @@ const char *ERR_lib_error_string(unsigned long e)
+     return ((p == NULL) ? NULL : p->string);
+ }
+ 
+-const char *ERR_func_error_string(unsigned long e)
++const char * __cdecl ERR_func_error_string(unsigned long e)
+ {
+     ERR_STRING_DATA d, *p;
+     unsigned long l, f;
+@@ -664,7 +664,7 @@ const char *ERR_func_error_string(unsigned long e)
+     return ((p == NULL) ? NULL : p->string);
+ }
+ 
+-const char *ERR_reason_error_string(unsigned long e)
++const char * __cdecl ERR_reason_error_string(unsigned long e)
+ {
+     ERR_STRING_DATA d, *p = NULL;
+     unsigned long l, r;
 @@ -712,7 +712,7 @@ DEFINE_RUN_ONCE_STATIC(err_do_init)
      return CRYPTO_THREAD_init_local(&err_thread_local, NULL);
  }
@@ -472,6 +544,24 @@ index 3a58ccb958..228eb33f3b 100644
  {
      ERR_STATE *state;
      int saveerrno = get_last_sys_error();
+@@ -835,7 +835,7 @@ void ERR_set_error_data(char *data, int flags)
+     err_set_error_data_int(data, flags);
+ }
+ 
+-void ERR_add_error_data(int num, ...)
++void __cdecl ERR_add_error_data(int num, ...)
+ {
+     va_list args;
+     va_start(args, num);
+@@ -843,7 +843,7 @@ void ERR_add_error_data(int num, ...)
+     va_end(args);
+ }
+ 
+-void ERR_add_error_vdata(int num, va_list args)
++void __cdecl ERR_add_error_vdata(int num, va_list args)
+ {
+     int i, n, s;
+     char *str, *p, *a;
 diff --git a/crypto/err/err_all.c b/crypto/err/err_all.c
 index d9ec04b606..ad86eaab70 100644
 --- a/crypto/err/err_all.c
@@ -485,6 +575,35 @@ index d9ec04b606..ad86eaab70 100644
  {
      if (
  #ifndef OPENSSL_NO_ERR
+diff --git a/crypto/err/err_prn.c b/crypto/err/err_prn.c
+index c82e62947e..0691fec995 100644
+--- a/crypto/err/err_prn.c
++++ b/crypto/err/err_prn.c
+@@ -13,7 +13,7 @@
+ #include <openssl/buffer.h>
+ #include <openssl/err.h>
+ 
+-void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
++void __cdecl ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
+                          void *u)
+ {
+     unsigned long l;
+@@ -47,13 +47,13 @@ static int print_bio(const char *str, size_t len, void *bp)
+     return BIO_write((BIO *)bp, str, len);
+ }
+ 
+-void ERR_print_errors(BIO *bp)
++void __cdecl ERR_print_errors(BIO *bp)
+ {
+     ERR_print_errors_cb(print_bio, bp);
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-void ERR_print_errors_fp(FILE *fp)
++void __cdecl ERR_print_errors_fp(FILE *fp)
+ {
+     BIO *bio = BIO_new_fp(fp, BIO_NOCLOSE);
+     if (bio == NULL)
 diff --git a/crypto/evp/evp_pbe.c b/crypto/evp/evp_pbe.c
 index 5a88817b4a..5cd9d07bf7 100644
 --- a/crypto/evp/evp_pbe.c
@@ -1006,6 +1125,19 @@ index 1774a2b2ac..5556ec3c5b 100644
  {
      if (pthread_once(once, init) != 0)
          return 0;
+diff --git a/crypto/threads_win.c b/crypto/threads_win.c
+index 44a360fcab..932beb0f39 100644
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -74,7 +74,7 @@ void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
+  * We don't use InitOnceExecuteOnce because that isn't available in WinXP which
+  * we still have to support.
+  */
+-int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
++int __cdecl CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
+ {
+     LONG volatile *lock = (LONG *)once;
+     LONG result;
 diff --git a/crypto/ui/ui_lib.c b/crypto/ui/ui_lib.c
 index f550972d3e..a30b5d2ebe 100644
 --- a/crypto/ui/ui_lib.c
@@ -2261,23 +2393,45 @@ index 0780f0fb5f..226277635a 100644
      dyn_MEM_malloc_fn malloc_fn;
      dyn_MEM_realloc_fn realloc_fn;
 diff --git a/include/openssl/err.h b/include/openssl/err.h
-index b49f88129e..7ef7994ef7 100644
+index b49f88129e..d4eec4ffcf 100644
 --- a/include/openssl/err.h
 +++ b/include/openssl/err.h
-@@ -232,7 +232,7 @@ unsigned long ERR_peek_last_error(void);
+@@ -232,24 +232,24 @@ unsigned long ERR_peek_last_error(void);
  unsigned long ERR_peek_last_error_line(const char **file, int *line);
  unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
                                              const char **data, int *flags);
 -void ERR_clear_error(void);
+-char *ERR_error_string(unsigned long e, char *buf);
+-void ERR_error_string_n(unsigned long e, char *buf, size_t len);
+-const char *ERR_lib_error_string(unsigned long e);
+-const char *ERR_func_error_string(unsigned long e);
+-const char *ERR_reason_error_string(unsigned long e);
+-void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
 +void __cdecl ERR_clear_error(void);
- char *ERR_error_string(unsigned long e, char *buf);
- void ERR_error_string_n(unsigned long e, char *buf, size_t len);
- const char *ERR_lib_error_string(unsigned long e);
-@@ -249,7 +249,7 @@ void ERR_add_error_vdata(int num, va_list args);
- int ERR_load_strings(int lib, ERR_STRING_DATA *str);
- int ERR_load_strings_const(const ERR_STRING_DATA *str);
- int ERR_unload_strings(int lib, ERR_STRING_DATA *str);
++char *__cdecl ERR_error_string(unsigned long e, char *buf);
++void __cdecl ERR_error_string_n(unsigned long e, char *buf, size_t len);
++const char * __cdecl ERR_lib_error_string(unsigned long e);
++const char * __cdecl ERR_func_error_string(unsigned long e);
++const char * __cdecl ERR_reason_error_string(unsigned long e);
++void __cdecl ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
+                          void *u);
+ # ifndef OPENSSL_NO_STDIO
+-void ERR_print_errors_fp(FILE *fp);
++void __cdecl ERR_print_errors_fp(FILE *fp);
+ # endif
+-void ERR_print_errors(BIO *bp);
+-void ERR_add_error_data(int num, ...);
+-void ERR_add_error_vdata(int num, va_list args);
+-int ERR_load_strings(int lib, ERR_STRING_DATA *str);
+-int ERR_load_strings_const(const ERR_STRING_DATA *str);
+-int ERR_unload_strings(int lib, ERR_STRING_DATA *str);
 -int ERR_load_ERR_strings(void);
++void __cdecl ERR_print_errors(BIO *bp);
++void __cdecl ERR_add_error_data(int num, ...);
++void __cdecl ERR_add_error_vdata(int num, va_list args);
++int __cdecl ERR_load_strings(int lib, ERR_STRING_DATA *str);
++int __cdecl ERR_load_strings_const(const ERR_STRING_DATA *str);
++int __cdecl ERR_unload_strings(int lib, ERR_STRING_DATA *str);
 +int __cdecl ERR_load_ERR_strings(void);
  
  #if OPENSSL_API_COMPAT < 0x10100000L
@@ -3180,179 +3334,41 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/err/err.c b/crypto/err/err.c
-index 228eb33f3b..cec0cfdc3a 100644
---- a/crypto/err/err.c
-+++ b/crypto/err/err.c
-@@ -357,7 +357,7 @@ int __cdecl ERR_load_ERR_strings(void)
+diff --git a/crypto/init.c b/crypto/init.c
+index 4386b22025..6bdb538618 100644
+--- a/crypto/init.c
++++ b/crypto/init.c
+@@ -494,7 +494,7 @@ int ossl_init_thread_start(uint64_t opts)
      return 1;
  }
  
--int ERR_load_strings(int lib, ERR_STRING_DATA *str)
-+int __cdecl ERR_load_strings(int lib, ERR_STRING_DATA *str)
+-void OPENSSL_cleanup(void)
++void __cdecl OPENSSL_cleanup(void)
  {
-     if (ERR_load_ERR_strings() == 0)
-         return 0;
-@@ -367,7 +367,7 @@ int ERR_load_strings(int lib, ERR_STRING_DATA *str)
+     OPENSSL_INIT_STOP *currhandler, *lasthandler;
+     CRYPTO_THREAD_LOCAL key;
+@@ -759,7 +759,7 @@ int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *sett
      return 1;
  }
  
--int ERR_load_strings_const(const ERR_STRING_DATA *str)
-+int __cdecl ERR_load_strings_const(const ERR_STRING_DATA *str)
+-int OPENSSL_atexit(void (*handler)(void))
++int __cdecl OPENSSL_atexit(void (*handler)(void))
  {
-     if (ERR_load_ERR_strings() == 0)
-         return 0;
-@@ -375,7 +375,7 @@ int ERR_load_strings_const(const ERR_STRING_DATA *str)
-     return 1;
- }
+     OPENSSL_INIT_STOP *newhand;
  
--int ERR_unload_strings(int lib, ERR_STRING_DATA *str)
-+int __cdecl ERR_unload_strings(int lib, ERR_STRING_DATA *str)
- {
-     if (!RUN_ONCE(&err_string_init, do_err_strings_init))
-         return 0;
-@@ -582,7 +582,7 @@ static unsigned long get_error_values(int inc, int top, const char **file,
-     return ret;
- }
+diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
+index 6b34ad26b9..90aa5e4acc 100644
+--- a/include/openssl/crypto.h
++++ b/include/openssl/crypto.h
+@@ -384,9 +384,9 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
  
--void ERR_error_string_n(unsigned long e, char *buf, size_t len)
-+void __cdecl ERR_error_string_n(unsigned long e, char *buf, size_t len)
- {
-     char lsbuf[64], fsbuf[64], rsbuf[64];
-     const char *ls, *fs, *rs;
-@@ -623,7 +623,7 @@ void ERR_error_string_n(unsigned long e, char *buf, size_t len)
-  * ERR_error_string_n should be used instead for ret != NULL as
-  * ERR_error_string cannot know how large the buffer is
-  */
--char *ERR_error_string(unsigned long e, char *ret)
-+char * __cdecl ERR_error_string(unsigned long e, char *ret)
- {
-     static char buf[256];
  
-@@ -633,7 +633,7 @@ char *ERR_error_string(unsigned long e, char *ret)
-     return ret;
- }
+ /* Library initialisation functions */
+-void OPENSSL_cleanup(void);
++void __cdecl OPENSSL_cleanup(void);
+ int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
+-int OPENSSL_atexit(void (*handler)(void));
++int __cdecl OPENSSL_atexit(void (*handler)(void));
+ void __cdecl OPENSSL_thread_stop(void);
  
--const char *ERR_lib_error_string(unsigned long e)
-+const char * __cdecl ERR_lib_error_string(unsigned long e)
- {
-     ERR_STRING_DATA d, *p;
-     unsigned long l;
-@@ -648,7 +648,7 @@ const char *ERR_lib_error_string(unsigned long e)
-     return ((p == NULL) ? NULL : p->string);
- }
- 
--const char *ERR_func_error_string(unsigned long e)
-+const char * __cdecl ERR_func_error_string(unsigned long e)
- {
-     ERR_STRING_DATA d, *p;
-     unsigned long l, f;
-@@ -664,7 +664,7 @@ const char *ERR_func_error_string(unsigned long e)
-     return ((p == NULL) ? NULL : p->string);
- }
- 
--const char *ERR_reason_error_string(unsigned long e)
-+const char * __cdecl ERR_reason_error_string(unsigned long e)
- {
-     ERR_STRING_DATA d, *p = NULL;
-     unsigned long l, r;
-@@ -835,7 +835,7 @@ void ERR_set_error_data(char *data, int flags)
-     err_set_error_data_int(data, flags);
- }
- 
--void ERR_add_error_data(int num, ...)
-+void __cdecl ERR_add_error_data(int num, ...)
- {
-     va_list args;
-     va_start(args, num);
-@@ -843,7 +843,7 @@ void ERR_add_error_data(int num, ...)
-     va_end(args);
- }
- 
--void ERR_add_error_vdata(int num, va_list args)
-+void __cdecl ERR_add_error_vdata(int num, va_list args)
- {
-     int i, n, s;
-     char *str, *p, *a;
-diff --git a/crypto/err/err_prn.c b/crypto/err/err_prn.c
-index c82e62947e..0691fec995 100644
---- a/crypto/err/err_prn.c
-+++ b/crypto/err/err_prn.c
-@@ -13,7 +13,7 @@
- #include <openssl/buffer.h>
- #include <openssl/err.h>
- 
--void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
-+void __cdecl ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
-                          void *u)
- {
-     unsigned long l;
-@@ -47,13 +47,13 @@ static int print_bio(const char *str, size_t len, void *bp)
-     return BIO_write((BIO *)bp, str, len);
- }
- 
--void ERR_print_errors(BIO *bp)
-+void __cdecl ERR_print_errors(BIO *bp)
- {
-     ERR_print_errors_cb(print_bio, bp);
- }
- 
- #ifndef OPENSSL_NO_STDIO
--void ERR_print_errors_fp(FILE *fp)
-+void __cdecl ERR_print_errors_fp(FILE *fp)
- {
-     BIO *bio = BIO_new_fp(fp, BIO_NOCLOSE);
-     if (bio == NULL)
-diff --git a/crypto/threads_win.c b/crypto/threads_win.c
-index 44a360fcab..932beb0f39 100644
---- a/crypto/threads_win.c
-+++ b/crypto/threads_win.c
-@@ -74,7 +74,7 @@ void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
-  * We don't use InitOnceExecuteOnce because that isn't available in WinXP which
-  * we still have to support.
-  */
--int CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
-+int __cdecl CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
- {
-     LONG volatile *lock = (LONG *)once;
-     LONG result;
-diff --git a/include/openssl/err.h b/include/openssl/err.h
-index 7ef7994ef7..d4eec4ffcf 100644
---- a/include/openssl/err.h
-+++ b/include/openssl/err.h
-@@ -233,22 +233,22 @@ unsigned long ERR_peek_last_error_line(const char **file, int *line);
- unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
-                                             const char **data, int *flags);
- void __cdecl ERR_clear_error(void);
--char *ERR_error_string(unsigned long e, char *buf);
--void ERR_error_string_n(unsigned long e, char *buf, size_t len);
--const char *ERR_lib_error_string(unsigned long e);
--const char *ERR_func_error_string(unsigned long e);
--const char *ERR_reason_error_string(unsigned long e);
--void ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
-+char *__cdecl ERR_error_string(unsigned long e, char *buf);
-+void __cdecl ERR_error_string_n(unsigned long e, char *buf, size_t len);
-+const char * __cdecl ERR_lib_error_string(unsigned long e);
-+const char * __cdecl ERR_func_error_string(unsigned long e);
-+const char * __cdecl ERR_reason_error_string(unsigned long e);
-+void __cdecl ERR_print_errors_cb(int (*cb) (const char *str, size_t len, void *u),
-                          void *u);
- # ifndef OPENSSL_NO_STDIO
--void ERR_print_errors_fp(FILE *fp);
-+void __cdecl ERR_print_errors_fp(FILE *fp);
- # endif
--void ERR_print_errors(BIO *bp);
--void ERR_add_error_data(int num, ...);
--void ERR_add_error_vdata(int num, va_list args);
--int ERR_load_strings(int lib, ERR_STRING_DATA *str);
--int ERR_load_strings_const(const ERR_STRING_DATA *str);
--int ERR_unload_strings(int lib, ERR_STRING_DATA *str);
-+void __cdecl ERR_print_errors(BIO *bp);
-+void __cdecl ERR_add_error_data(int num, ...);
-+void __cdecl ERR_add_error_vdata(int num, va_list args);
-+int __cdecl ERR_load_strings(int lib, ERR_STRING_DATA *str);
-+int __cdecl ERR_load_strings_const(const ERR_STRING_DATA *str);
-+int __cdecl ERR_unload_strings(int lib, ERR_STRING_DATA *str);
- int __cdecl ERR_load_ERR_strings(void);
- 
- #if OPENSSL_API_COMPAT < 0x10100000L
+ /* Low-level control of initialization */
