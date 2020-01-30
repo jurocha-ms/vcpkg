@@ -2255,6 +2255,95 @@ index b23e43e8c8..0ded29b180 100644
  {
      struct fd_lookup_st *curr, *prev;
  
+diff --git a/crypto/bf/bf_cfb64.c b/crypto/bf/bf_cfb64.c
+index ce6e13b5a4..0779520ce2 100644
+--- a/crypto/bf/bf_cfb64.c
++++ b/crypto/bf/bf_cfb64.c
+@@ -16,7 +16,7 @@
+  * used is contained in *num;
+  */
+ 
+-void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, const BF_KEY *schedule,
+                       unsigned char *ivec, int *num, int encrypt)
+ {
+diff --git a/crypto/bf/bf_ecb.c b/crypto/bf/bf_ecb.c
+index dc1becdbe4..c6800ddf33 100644
+--- a/crypto/bf/bf_ecb.c
++++ b/crypto/bf/bf_ecb.c
+@@ -17,12 +17,12 @@
+  * SECURITY WORKSHOP, CAMBRIDGE, U.K., DECEMBER 9-11, 1993)
+  */
+ 
+-const char *BF_options(void)
++const char * __cdecl BF_options(void)
+ {
+     return "blowfish(ptr)";
+ }
+ 
+-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                     const BF_KEY *key, int encrypt)
+ {
+     BF_LONG l, d[2];
+diff --git a/crypto/bf/bf_enc.c b/crypto/bf/bf_enc.c
+index 67c0d78aec..020ede1d18 100644
+--- a/crypto/bf/bf_enc.c
++++ b/crypto/bf/bf_enc.c
+@@ -21,7 +21,7 @@
+ to modify the code.
+ #endif
+ 
+-void BF_encrypt(BF_LONG *data, const BF_KEY *key)
++void __cdecl BF_encrypt(BF_LONG *data, const BF_KEY *key)
+ {
+     register BF_LONG l, r;
+     register const BF_LONG *p, *s;
+@@ -60,7 +60,7 @@ void BF_encrypt(BF_LONG *data, const BF_KEY *key)
+     data[0] = r & 0xffffffffU;
+ }
+ 
+-void BF_decrypt(BF_LONG *data, const BF_KEY *key)
++void __cdecl BF_decrypt(BF_LONG *data, const BF_KEY *key)
+ {
+     register BF_LONG l, r;
+     register const BF_LONG *p, *s;
+@@ -99,7 +99,7 @@ void BF_decrypt(BF_LONG *data, const BF_KEY *key)
+     data[0] = r & 0xffffffffU;
+ }
+ 
+-void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
++void __cdecl BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+                     const BF_KEY *schedule, unsigned char *ivec, int encrypt)
+ {
+     register BF_LONG tin0, tin1;
+diff --git a/crypto/bf/bf_ofb64.c b/crypto/bf/bf_ofb64.c
+index 6418217b30..36c49a5464 100644
+--- a/crypto/bf/bf_ofb64.c
++++ b/crypto/bf/bf_ofb64.c
+@@ -15,7 +15,7 @@
+  * The extra state information to record how much of the 64bit block we have
+  * used is contained in *num;
+  */
+-void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, const BF_KEY *schedule,
+                       unsigned char *ivec, int *num)
+ {
+diff --git a/crypto/bf/bf_skey.c b/crypto/bf/bf_skey.c
+index a4903a2a71..9855b47e0e 100644
+--- a/crypto/bf/bf_skey.c
++++ b/crypto/bf/bf_skey.c
+@@ -13,7 +13,7 @@
+ #include "bf_locl.h"
+ #include "bf_pi.h"
+ 
+-void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
++void __cdecl BF_set_key(BF_KEY *key, int len, const unsigned char *data)
+ {
+     int i;
+     BF_LONG *p, ri, in[2];
 diff --git a/crypto/bio/b_addr.c b/crypto/bio/b_addr.c
 index dd5008e636..68a654319c 100644
 --- a/crypto/bio/b_addr.c
@@ -6757,6 +6846,41 @@ index 46e2c96ee3..4c738bbb02 100644
  
  /*
   * BIO function codes.
+diff --git a/include/openssl/blowfish.h b/include/openssl/blowfish.h
+index cd3e460e98..a749b13ade 100644
+--- a/include/openssl/blowfish.h
++++ b/include/openssl/blowfish.h
+@@ -36,22 +36,22 @@ typedef struct bf_key_st {
+     BF_LONG S[4 * 256];
+ } BF_KEY;
+ 
+-void BF_set_key(BF_KEY *key, int len, const unsigned char *data);
++void __cdecl BF_set_key(BF_KEY *key, int len, const unsigned char *data);
+ 
+-void BF_encrypt(BF_LONG *data, const BF_KEY *key);
+-void BF_decrypt(BF_LONG *data, const BF_KEY *key);
++void __cdecl BF_encrypt(BF_LONG *data, const BF_KEY *key);
++void __cdecl BF_decrypt(BF_LONG *data, const BF_KEY *key);
+ 
+-void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                     const BF_KEY *key, int enc);
+-void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
++void __cdecl BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+                     const BF_KEY *schedule, unsigned char *ivec, int enc);
+-void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, const BF_KEY *schedule,
+                       unsigned char *ivec, int *num, int enc);
+-void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, const BF_KEY *schedule,
+                       unsigned char *ivec, int *num);
+-const char *BF_options(void);
++const char * __cdecl BF_options(void);
+ 
+ # ifdef  __cplusplus
+ }
 diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
 index 7d0b526236..90aa5e4acc 100644
 --- a/include/openssl/crypto.h
@@ -7894,127 +8018,2749 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/bf/bf_cfb64.c b/crypto/bf/bf_cfb64.c
-index ce6e13b5a4..0779520ce2 100644
---- a/crypto/bf/bf_cfb64.c
-+++ b/crypto/bf/bf_cfb64.c
-@@ -16,7 +16,7 @@
-  * used is contained in *num;
-  */
+diff --git a/crypto/bn/bn_add.c b/crypto/bn/bn_add.c
+index f2736b8f6d..ed3d53ddd6 100644
+--- a/crypto/bn/bn_add.c
++++ b/crypto/bn/bn_add.c
+@@ -11,7 +11,7 @@
+ #include "bn_lcl.h"
  
--void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, const BF_KEY *schedule,
-                       unsigned char *ivec, int *num, int encrypt)
+ /* signed add of b to a. */
+-int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  {
-diff --git a/crypto/bf/bf_ecb.c b/crypto/bf/bf_ecb.c
-index dc1becdbe4..c6800ddf33 100644
---- a/crypto/bf/bf_ecb.c
-+++ b/crypto/bf/bf_ecb.c
-@@ -17,12 +17,12 @@
-  * SECURITY WORKSHOP, CAMBRIDGE, U.K., DECEMBER 9-11, 1993)
-  */
+     int ret, r_neg, cmp_res;
  
--const char *BF_options(void)
-+const char * __cdecl BF_options(void)
- {
-     return "blowfish(ptr)";
+@@ -42,7 +42,7 @@ int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  }
  
--void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                     const BF_KEY *key, int encrypt)
+ /* signed sub of b from a. */
+-int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  {
-     BF_LONG l, d[2];
-diff --git a/crypto/bf/bf_enc.c b/crypto/bf/bf_enc.c
-index 67c0d78aec..020ede1d18 100644
---- a/crypto/bf/bf_enc.c
-+++ b/crypto/bf/bf_enc.c
-@@ -21,7 +21,7 @@
- to modify the code.
+     int ret, r_neg, cmp_res;
+ 
+@@ -73,7 +73,7 @@ int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+ }
+ 
+ /* unsigned add of b to a, r can be equal to a or b. */
+-int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+ {
+     int max, min, dif;
+     const BN_ULONG *ap, *bp;
+@@ -122,7 +122,7 @@ int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+ }
+ 
+ /* unsigned subtraction of b from a, a must be larger than b. */
+-int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+ {
+     int max, min, dif;
+     BN_ULONG t1, t2, borrow, *rp;
+diff --git a/crypto/bn/bn_blind.c b/crypto/bn/bn_blind.c
+index 450cdfb348..78def6d9ef 100644
+--- a/crypto/bn/bn_blind.c
++++ b/crypto/bn/bn_blind.c
+@@ -22,12 +22,12 @@ struct bn_blinding_st {
+     int counter;
+     unsigned long flags;
+     BN_MONT_CTX *m_ctx;
+-    int (*bn_mod_exp) (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++    int (__cdecl *bn_mod_exp) (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                        const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+     CRYPTO_RWLOCK *lock;
+ };
+ 
+-BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
++BN_BLINDING * __cdecl BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
+ {
+     BN_BLINDING *ret = NULL;
+ 
+@@ -78,7 +78,7 @@ BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod)
+     return NULL;
+ }
+ 
+-void BN_BLINDING_free(BN_BLINDING *r)
++void __cdecl BN_BLINDING_free(BN_BLINDING *r)
+ {
+     if (r == NULL)
+         return;
+@@ -90,7 +90,7 @@ void BN_BLINDING_free(BN_BLINDING *r)
+     OPENSSL_free(r);
+ }
+ 
+-int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
++int __cdecl BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
+ {
+     int ret = 0;
+ 
+@@ -126,12 +126,12 @@ int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx)
+     return ret;
+ }
+ 
+-int BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
++int __cdecl BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
+ {
+     return BN_BLINDING_convert_ex(n, NULL, b, ctx);
+ }
+ 
+-int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
++int __cdecl BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
+ {
+     int ret = 1;
+ 
+@@ -159,12 +159,12 @@ int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *ctx)
+     return ret;
+ }
+ 
+-int BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
++int __cdecl BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx)
+ {
+     return BN_BLINDING_invert_ex(n, NULL, b, ctx);
+ }
+ 
+-int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
++int __cdecl BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
+                           BN_CTX *ctx)
+ {
+     int ret;
+@@ -200,39 +200,39 @@ int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
+     return ret;
+ }
+ 
+-int BN_BLINDING_is_current_thread(BN_BLINDING *b)
++int __cdecl BN_BLINDING_is_current_thread(BN_BLINDING *b)
+ {
+     return CRYPTO_THREAD_compare_id(CRYPTO_THREAD_get_current_id(), b->tid);
+ }
+ 
+-void BN_BLINDING_set_current_thread(BN_BLINDING *b)
++void __cdecl BN_BLINDING_set_current_thread(BN_BLINDING *b)
+ {
+     b->tid = CRYPTO_THREAD_get_current_id();
+ }
+ 
+-int BN_BLINDING_lock(BN_BLINDING *b)
++int __cdecl BN_BLINDING_lock(BN_BLINDING *b)
+ {
+     return CRYPTO_THREAD_write_lock(b->lock);
+ }
+ 
+-int BN_BLINDING_unlock(BN_BLINDING *b)
++int __cdecl BN_BLINDING_unlock(BN_BLINDING *b)
+ {
+     return CRYPTO_THREAD_unlock(b->lock);
+ }
+ 
+-unsigned long BN_BLINDING_get_flags(const BN_BLINDING *b)
++unsigned long __cdecl BN_BLINDING_get_flags(const BN_BLINDING *b)
+ {
+     return b->flags;
+ }
+ 
+-void BN_BLINDING_set_flags(BN_BLINDING *b, unsigned long flags)
++void __cdecl BN_BLINDING_set_flags(BN_BLINDING *b, unsigned long flags)
+ {
+     b->flags = flags;
+ }
+ 
+-BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
++BN_BLINDING * __cdecl BN_BLINDING_create_param(BN_BLINDING *b,
+                                       const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
+-                                      int (*bn_mod_exp) (BIGNUM *r,
++                                      int (__cdecl *bn_mod_exp) (BIGNUM *r,
+                                                          const BIGNUM *a,
+                                                          const BIGNUM *p,
+                                                          const BIGNUM *m,
+diff --git a/crypto/bn/bn_const.c b/crypto/bn/bn_const.c
+index 39dd61202a..584f77f91d 100644
+--- a/crypto/bn/bn_const.c
++++ b/crypto/bn/bn_const.c
+@@ -18,7 +18,7 @@
+  * RFC2412 specifies a generator of of 22.
+  */
+ 
+-BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc2409_prime_768(BIGNUM *bn)
+ {
+     static const unsigned char RFC2409_PRIME_768[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -46,7 +46,7 @@ BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn)
+  * RFC2412 specifies a generator of 22.
+  */
+ 
+-BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc2409_prime_1024(BIGNUM *bn)
+ {
+     static const unsigned char RFC2409_PRIME_1024[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -78,7 +78,7 @@ BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn)
+  * RFC2312 specifies a generator of 22.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_1536(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_1536[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -117,7 +117,7 @@ BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn)
+  * RFC3526 specifies a generator of 2.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_2048(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_2048[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -164,7 +164,7 @@ BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn)
+  * RFC3526 specifies a generator of 2.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_3072(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_3072[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -227,7 +227,7 @@ BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn)
+  * RFC3526 specifies a generator of 2.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_4096(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_4096[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -306,7 +306,7 @@ BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn)
+  * RFC3526 specifies a generator of 2.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_6144(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_6144[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+@@ -417,7 +417,7 @@ BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn)
+  * RFC3526 specifies a generator of 2.
+  */
+ 
+-BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *bn)
++BIGNUM * __cdecl BN_get_rfc3526_prime_8192(BIGNUM *bn)
+ {
+     static const unsigned char RFC3526_PRIME_8192[] = {
+         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+diff --git a/crypto/bn/bn_ctx.c b/crypto/bn/bn_ctx.c
+index 90cecea2aa..30c25af63e 100644
+--- a/crypto/bn/bn_ctx.c
++++ b/crypto/bn/bn_ctx.c
+@@ -131,7 +131,7 @@ static void ctxdbg(BN_CTX *ctx)
  #endif
  
--void BF_encrypt(BF_LONG *data, const BF_KEY *key)
-+void __cdecl BF_encrypt(BF_LONG *data, const BF_KEY *key)
+ 
+-BN_CTX *BN_CTX_new(void)
++BN_CTX * __cdecl BN_CTX_new(void)
  {
-     register BF_LONG l, r;
-     register const BF_LONG *p, *s;
-@@ -60,7 +60,7 @@ void BF_encrypt(BF_LONG *data, const BF_KEY *key)
-     data[0] = r & 0xffffffffU;
+     BN_CTX *ret;
+ 
+@@ -145,7 +145,7 @@ BN_CTX *BN_CTX_new(void)
+     return ret;
  }
  
--void BF_decrypt(BF_LONG *data, const BF_KEY *key)
-+void __cdecl BF_decrypt(BF_LONG *data, const BF_KEY *key)
+-BN_CTX *BN_CTX_secure_new(void)
++BN_CTX * __cdecl BN_CTX_secure_new(void)
  {
-     register BF_LONG l, r;
-     register const BF_LONG *p, *s;
-@@ -99,7 +99,7 @@ void BF_decrypt(BF_LONG *data, const BF_KEY *key)
-     data[0] = r & 0xffffffffU;
+     BN_CTX *ret = BN_CTX_new();
+ 
+@@ -154,7 +154,7 @@ BN_CTX *BN_CTX_secure_new(void)
+     return ret;
  }
  
--void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-+void __cdecl BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-                     const BF_KEY *schedule, unsigned char *ivec, int encrypt)
+-void BN_CTX_free(BN_CTX *ctx)
++void __cdecl BN_CTX_free(BN_CTX *ctx)
  {
-     register BF_LONG tin0, tin1;
-diff --git a/crypto/bf/bf_ofb64.c b/crypto/bf/bf_ofb64.c
-index 6418217b30..36c49a5464 100644
---- a/crypto/bf/bf_ofb64.c
-+++ b/crypto/bf/bf_ofb64.c
-@@ -15,7 +15,7 @@
-  * The extra state information to record how much of the 64bit block we have
-  * used is contained in *num;
+     if (ctx == NULL)
+         return;
+@@ -178,7 +178,7 @@ void BN_CTX_free(BN_CTX *ctx)
+     OPENSSL_free(ctx);
+ }
+ 
+-void BN_CTX_start(BN_CTX *ctx)
++void __cdecl BN_CTX_start(BN_CTX *ctx)
+ {
+     CTXDBG_ENTRY("BN_CTX_start", ctx);
+     /* If we're already overflowing ... */
+@@ -192,7 +192,7 @@ void BN_CTX_start(BN_CTX *ctx)
+     CTXDBG_EXIT(ctx);
+ }
+ 
+-void BN_CTX_end(BN_CTX *ctx)
++void __cdecl BN_CTX_end(BN_CTX *ctx)
+ {
+     if (ctx == NULL)
+         return;
+@@ -211,7 +211,7 @@ void BN_CTX_end(BN_CTX *ctx)
+     CTXDBG_EXIT(ctx);
+ }
+ 
+-BIGNUM *BN_CTX_get(BN_CTX *ctx)
++BIGNUM * __cdecl BN_CTX_get(BN_CTX *ctx)
+ {
+     BIGNUM *ret;
+ 
+diff --git a/crypto/bn/bn_div.c b/crypto/bn/bn_div.c
+index 7fc0132830..2b50a5b322 100644
+--- a/crypto/bn/bn_div.c
++++ b/crypto/bn/bn_div.c
+@@ -14,7 +14,7 @@
+ 
+ /* The old slow way */
+ #if 0
+-int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
++int __cdecl BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
+            BN_CTX *ctx)
+ {
+     int i, nm, nd;
+@@ -206,7 +206,7 @@ static int bn_left_align(BIGNUM *num)
+  *     rm->neg == num->neg                 (unless the remainder is zero)
+  * If 'dv' or 'rm' is NULL, the respective value is not returned.
   */
--void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, const BF_KEY *schedule,
-                       unsigned char *ivec, int *num)
+-int BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
++int __cdecl BN_div(BIGNUM *dv, BIGNUM *rm, const BIGNUM *num, const BIGNUM *divisor,
+            BN_CTX *ctx)
  {
-diff --git a/crypto/bf/bf_skey.c b/crypto/bf/bf_skey.c
-index a4903a2a71..9855b47e0e 100644
---- a/crypto/bf/bf_skey.c
-+++ b/crypto/bf/bf_skey.c
-@@ -13,7 +13,7 @@
- #include "bf_locl.h"
- #include "bf_pi.h"
+     int ret;
+diff --git a/crypto/bn/bn_exp.c b/crypto/bn/bn_exp.c
+index 88f2baf0e5..5eb8d7986b 100644
+--- a/crypto/bn/bn_exp.c
++++ b/crypto/bn/bn_exp.c
+@@ -38,7 +38,7 @@ extern unsigned int OPENSSL_sparcv9cap_P[];
+ #define TABLE_SIZE      32
  
--void BF_set_key(BF_KEY *key, int len, const unsigned char *data)
-+void __cdecl BF_set_key(BF_KEY *key, int len, const unsigned char *data)
+ /* this one works - simple but works */
+-int BN_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
++int __cdecl BN_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+ {
+     int i, bits, ret = 0;
+     BIGNUM *v, *rr;
+@@ -86,7 +86,7 @@ int BN_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+     return ret;
+ }
+ 
+-int BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, const BIGNUM *m,
++int __cdecl BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, const BIGNUM *m,
+                BN_CTX *ctx)
+ {
+     int ret;
+@@ -158,7 +158,7 @@ int BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, const BIGNUM *m,
+     return ret;
+ }
+ 
+-int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                     const BIGNUM *m, BN_CTX *ctx)
+ {
+     int i, j, bits, ret = 0, wstart, wend, window, wvalue;
+@@ -293,7 +293,7 @@ int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+     return ret;
+ }
+ 
+-int BN_mod_exp_mont(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
+                     const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *in_mont)
+ {
+     int i, j, bits, ret = 0, wstart, wend, window, wvalue;
+@@ -589,7 +589,7 @@ static int MOD_EXP_CTIME_COPY_FROM_PREBUF(BIGNUM *b, int top,
+  * out by Colin Percival,
+  * http://www.daemonology.net/hyperthreading-considered-harmful/)
+  */
+-int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
+                               const BIGNUM *m, BN_CTX *ctx,
+                               BN_MONT_CTX *in_mont)
+ {
+@@ -1126,7 +1126,7 @@ int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
+     return ret;
+ }
+ 
+-int BN_mod_exp_mont_word(BIGNUM *rr, BN_ULONG a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont_word(BIGNUM *rr, BN_ULONG a, const BIGNUM *p,
+                          const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *in_mont)
+ {
+     BN_MONT_CTX *mont = NULL;
+@@ -1274,7 +1274,7 @@ int BN_mod_exp_mont_word(BIGNUM *rr, BN_ULONG a, const BIGNUM *p,
+ }
+ 
+ /* The old fallback, simple version :-) */
+-int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                       const BIGNUM *m, BN_CTX *ctx)
+ {
+     int i, j, bits, ret = 0, wstart, wend, window, wvalue;
+diff --git a/crypto/bn/bn_exp2.c b/crypto/bn/bn_exp2.c
+index 082c9286a0..6f0b1766e3 100644
+--- a/crypto/bn/bn_exp2.c
++++ b/crypto/bn/bn_exp2.c
+@@ -13,7 +13,7 @@
+ 
+ #define TABLE_SIZE      32
+ 
+-int BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
++int __cdecl BN_mod_exp2_mont(BIGNUM *rr, const BIGNUM *a1, const BIGNUM *p1,
+                      const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
+                      BN_CTX *ctx, BN_MONT_CTX *in_mont)
+ {
+diff --git a/crypto/bn/bn_gcd.c b/crypto/bn/bn_gcd.c
+index 0091ea4e08..e1a17257cf 100644
+--- a/crypto/bn/bn_gcd.c
++++ b/crypto/bn/bn_gcd.c
+@@ -12,7 +12,7 @@
+ 
+ static BIGNUM *euclid(BIGNUM *a, BIGNUM *b);
+ 
+-int BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
++int __cdecl BN_gcd(BIGNUM *r, const BIGNUM *in_a, const BIGNUM *in_b, BN_CTX *ctx)
+ {
+     BIGNUM *a, *b, *t;
+     int ret = 0;
+@@ -121,7 +121,7 @@ static BIGNUM *BN_mod_inverse_no_branch(BIGNUM *in,
+                                         const BIGNUM *a, const BIGNUM *n,
+                                         BN_CTX *ctx);
+ 
+-BIGNUM *BN_mod_inverse(BIGNUM *in,
++BIGNUM * __cdecl BN_mod_inverse(BIGNUM *in,
+                        const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx)
+ {
+     BIGNUM *rv;
+diff --git a/crypto/bn/bn_gf2m.c b/crypto/bn/bn_gf2m.c
+index 34d8b69c1e..e91d7f61f2 100644
+--- a/crypto/bn/bn_gf2m.c
++++ b/crypto/bn/bn_gf2m.c
+@@ -249,7 +249,7 @@ void bn_GF2m_mul_2x2(BN_ULONG *r, BN_ULONG a1, BN_ULONG a0, BN_ULONG b1,
+  * Add polynomials a and b and store result in r; r could be a or b, a and b
+  * could be equal; r is the bitwise XOR of a and b.
+  */
+-int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
  {
      int i;
-     BF_LONG *p, ri, in[2];
-diff --git a/include/openssl/blowfish.h b/include/openssl/blowfish.h
-index cd3e460e98..a749b13ade 100644
---- a/include/openssl/blowfish.h
-+++ b/include/openssl/blowfish.h
-@@ -36,22 +36,22 @@ typedef struct bf_key_st {
-     BF_LONG S[4 * 256];
- } BF_KEY;
+     const BIGNUM *at, *bt;
+@@ -289,7 +289,7 @@ int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b)
+  */
  
--void BF_set_key(BF_KEY *key, int len, const unsigned char *data);
-+void __cdecl BF_set_key(BF_KEY *key, int len, const unsigned char *data);
+ /* Performs modular reduction of a and store result in r.  r could be a. */
+-int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
++int __cdecl BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
+ {
+     int j, k;
+     int n, dN, d0, d1;
+@@ -387,7 +387,7 @@ int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[])
+  * function is only provided for convenience; for best performance, use the
+  * BN_GF2m_mod_arr function.
+  */
+-int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
++int __cdecl BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
+ {
+     int ret = 0;
+     int arr[6];
+@@ -407,7 +407,7 @@ int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p)
+  * Compute the product of two polynomials a and b, reduce modulo p, and store
+  * the result in r.  r could be a or b; a could be b.
+  */
+-int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                         const int p[], BN_CTX *ctx)
+ {
+     int zlen, i, j, k, ret = 0;
+@@ -462,7 +462,7 @@ int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+  * only provided for convenience; for best performance, use the
+  * BN_GF2m_mod_mul_arr function.
+  */
+-int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                     const BIGNUM *p, BN_CTX *ctx)
+ {
+     int ret = 0;
+@@ -486,7 +486,7 @@ int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+ }
  
--void BF_encrypt(BF_LONG *data, const BF_KEY *key);
--void BF_decrypt(BF_LONG *data, const BF_KEY *key);
-+void __cdecl BF_encrypt(BF_LONG *data, const BF_KEY *key);
-+void __cdecl BF_decrypt(BF_LONG *data, const BF_KEY *key);
+ /* Square a, reduce the result mod p, and store it in a.  r could be a. */
+-int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
++int __cdecl BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+                         BN_CTX *ctx)
+ {
+     int i, ret = 0;
+@@ -521,7 +521,7 @@ int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+  * wrapper function is only provided for convenience; for best performance,
+  * use the BN_GF2m_mod_sqr_arr function.
+  */
+-int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
++int __cdecl BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+ {
+     int ret = 0;
+     const int max = BN_num_bits(p) + 1;
+@@ -721,7 +721,7 @@ static int BN_GF2m_mod_inv_vartime(BIGNUM *r, const BIGNUM *a,
+  * This is not constant time.
+  * But it does eliminate first order deduction on the input.
+  */
+-int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
++int __cdecl BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+ {
+     BIGNUM *b = NULL;
+     int ret = 0;
+@@ -762,7 +762,7 @@ int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+  * wrapper function is only provided for convenience; for best performance,
+  * use the BN_GF2m_mod_inv function.
+  */
+-int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
++int __cdecl BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
+                         BN_CTX *ctx)
+ {
+     BIGNUM *field;
+@@ -787,7 +787,7 @@ int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *xx, const int p[],
+  * Divide y by x, reduce modulo p, and store the result in r. r could be x
+  * or y, x could equal y.
+  */
+-int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
++int __cdecl BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+                     const BIGNUM *p, BN_CTX *ctx)
+ {
+     BIGNUM *xinv = NULL;
+@@ -820,7 +820,7 @@ int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *y, const BIGNUM *x,
+  * BN_GF2m_mod_div implementation; this wrapper function is only provided for
+  * convenience; for best performance, use the BN_GF2m_mod_div function.
+  */
+-int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
++int __cdecl BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
+                         const int p[], BN_CTX *ctx)
+ {
+     BIGNUM *field;
+@@ -848,7 +848,7 @@ int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *yy, const BIGNUM *xx,
+  * could be a. Uses simple square-and-multiply algorithm A.5.1 from IEEE
+  * P1363.
+  */
+-int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                         const int p[], BN_CTX *ctx)
+ {
+     int ret = 0, i, n;
+@@ -894,7 +894,7 @@ int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+  * implementation; this wrapper function is only provided for convenience;
+  * for best performance, use the BN_GF2m_mod_exp_arr function.
+  */
+-int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                     const BIGNUM *p, BN_CTX *ctx)
+ {
+     int ret = 0;
+@@ -921,7 +921,7 @@ int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+  * Compute the square root of a, reduce modulo p, and store the result in r.
+  * r could be a. Uses exponentiation as in algorithm A.4.1 from IEEE P1363.
+  */
+-int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
++int __cdecl BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+                          BN_CTX *ctx)
+ {
+     int ret = 0;
+@@ -955,7 +955,7 @@ int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+  * implementation; this wrapper function is only provided for convenience;
+  * for best performance, use the BN_GF2m_mod_sqrt_arr function.
+  */
+-int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
++int __cdecl BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+ {
+     int ret = 0;
+     const int max = BN_num_bits(p) + 1;
+@@ -980,7 +980,7 @@ int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+  * Find r such that r^2 + r = a mod p.  r could be a. If no r exists returns
+  * 0. Uses algorithms A.4.7 and A.4.6 from IEEE P1363.
+  */
+-int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
++int __cdecl BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+                                BN_CTX *ctx)
+ {
+     int ret = 0, count = 0, j;
+@@ -1084,7 +1084,7 @@ int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a_, const int p[],
+  * implementation; this wrapper function is only provided for convenience;
+  * for best performance, use the BN_GF2m_mod_solve_quad_arr function.
+  */
+-int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                            BN_CTX *ctx)
+ {
+     int ret = 0;
+@@ -1113,7 +1113,7 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+  * will be filled.  Return value is total number of array elements that would
+  * be filled if array was large enough.
+  */
+-int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
++int __cdecl BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
+ {
+     int i, j, k = 0;
+     BN_ULONG mask;
+@@ -1148,7 +1148,7 @@ int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max)
+  * Convert the coefficient array representation of a polynomial to a
+  * bit-string.  The array must be terminated by -1.
+  */
+-int BN_GF2m_arr2poly(const int p[], BIGNUM *a)
++int __cdecl BN_GF2m_arr2poly(const int p[], BIGNUM *a)
+ {
+     int i;
  
--void BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                     const BF_KEY *key, int enc);
--void BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-+void __cdecl BF_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
-                     const BF_KEY *schedule, unsigned char *ivec, int enc);
--void BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, const BF_KEY *schedule,
-                       unsigned char *ivec, int *num, int enc);
--void BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl BF_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, const BF_KEY *schedule,
-                       unsigned char *ivec, int *num);
--const char *BF_options(void);
-+const char * __cdecl BF_options(void);
+diff --git a/crypto/bn/bn_kron.c b/crypto/bn/bn_kron.c
+index b9bc6cca27..b32009b2aa 100644
+--- a/crypto/bn/bn_kron.c
++++ b/crypto/bn/bn_kron.c
+@@ -14,7 +14,7 @@
+ #define BN_lsw(n) (((n)->top == 0) ? (BN_ULONG) 0 : (n)->d[0])
+ 
+ /* Returns -2 for errors because both -1 and 0 are valid results. */
+-int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
++int __cdecl BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
+ {
+     int i;
+     int ret = -2;               /* avoid 'uninitialized' warning */
+diff --git a/crypto/bn/bn_lib.c b/crypto/bn/bn_lib.c
+index 254069ff38..9a56fb44fe 100644
+--- a/crypto/bn/bn_lib.c
++++ b/crypto/bn/bn_lib.c
+@@ -78,7 +78,7 @@ int BN_get_params(int which)
+ }
+ #endif
+ 
+-const BIGNUM *BN_value_one(void)
++const BIGNUM * __cdecl BN_value_one(void)
+ {
+     static const BN_ULONG data_one = 1L;
+     static const BIGNUM const_one =
+@@ -87,7 +87,7 @@ const BIGNUM *BN_value_one(void)
+     return &const_one;
+ }
+ 
+-int BN_num_bits_word(BN_ULONG l)
++int __cdecl BN_num_bits_word(BN_ULONG l)
+ {
+     BN_ULONG x, mask;
+     int bits = (l != 0);
+@@ -162,7 +162,7 @@ int bn_num_bits_consttime(const BIGNUM *a)
+     return ret & mask;
+ }
+ 
+-int BN_num_bits(const BIGNUM *a)
++int __cdecl BN_num_bits(const BIGNUM *a)
+ {
+     int i = a->top - 1;
+     bn_check_top(a);
+@@ -197,7 +197,7 @@ static void bn_free_d(BIGNUM *a, int clear)
+ }
+ 
+ 
+-void BN_clear_free(BIGNUM *a)
++void __cdecl BN_clear_free(BIGNUM *a)
+ {
+     if (a == NULL)
+         return;
+@@ -209,7 +209,7 @@ void BN_clear_free(BIGNUM *a)
+     }
+ }
+ 
+-void BN_free(BIGNUM *a)
++void __cdecl BN_free(BIGNUM *a)
+ {
+     if (a == NULL)
+         return;
+@@ -227,7 +227,7 @@ void bn_init(BIGNUM *a)
+     bn_check_top(a);
+ }
+ 
+-BIGNUM *BN_new(void)
++BIGNUM * __cdecl BN_new(void)
+ {
+     BIGNUM *ret;
+ 
+@@ -240,7 +240,7 @@ BIGNUM *BN_new(void)
+     return ret;
+ }
+ 
+- BIGNUM *BN_secure_new(void)
++ BIGNUM * __cdecl BN_secure_new(void)
+  {
+      BIGNUM *ret = BN_new();
+      if (ret != NULL)
+@@ -301,7 +301,7 @@ BIGNUM *bn_expand2(BIGNUM *b, int words)
+     return b;
+ }
+ 
+-BIGNUM *BN_dup(const BIGNUM *a)
++BIGNUM * __cdecl BN_dup(const BIGNUM *a)
+ {
+     BIGNUM *t;
+ 
+@@ -320,7 +320,7 @@ BIGNUM *BN_dup(const BIGNUM *a)
+     return t;
+ }
+ 
+-BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b)
++BIGNUM * __cdecl BN_copy(BIGNUM *a, const BIGNUM *b)
+ {
+     bn_check_top(b);
+ 
+@@ -345,7 +345,7 @@ BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b)
+                                     | BN_FLG_FIXED_TOP))
+ #define FLAGS_STRUCT(flags) ((flags) & (BN_FLG_MALLOCED))
+ 
+-void BN_swap(BIGNUM *a, BIGNUM *b)
++void __cdecl BN_swap(BIGNUM *a, BIGNUM *b)
+ {
+     int flags_old_a, flags_old_b;
+     BN_ULONG *tmp_d;
+@@ -378,7 +378,7 @@ void BN_swap(BIGNUM *a, BIGNUM *b)
+     bn_check_top(b);
+ }
+ 
+-void BN_clear(BIGNUM *a)
++void __cdecl BN_clear(BIGNUM *a)
+ {
+     if (a == NULL)
+         return;
+@@ -390,7 +390,7 @@ void BN_clear(BIGNUM *a)
+     a->flags &= ~BN_FLG_FIXED_TOP;
+ }
+ 
+-BN_ULONG BN_get_word(const BIGNUM *a)
++BN_ULONG __cdecl BN_get_word(const BIGNUM *a)
+ {
+     if (a->top > 1)
+         return BN_MASK2;
+@@ -400,7 +400,7 @@ BN_ULONG BN_get_word(const BIGNUM *a)
+     return 0;
+ }
+ 
+-int BN_set_word(BIGNUM *a, BN_ULONG w)
++int __cdecl BN_set_word(BIGNUM *a, BN_ULONG w)
+ {
+     bn_check_top(a);
+     if (bn_expand(a, (int)sizeof(BN_ULONG) * 8) == NULL)
+@@ -413,7 +413,7 @@ int BN_set_word(BIGNUM *a, BN_ULONG w)
+     return 1;
+ }
+ 
+-BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
++BIGNUM * __cdecl BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret)
+ {
+     unsigned int i, m;
+     unsigned int n;
+@@ -511,19 +511,19 @@ int bn2binpad(const BIGNUM *a, unsigned char *to, int tolen, endianess_t endiane
+     return tolen;
+ }
+ 
+-int BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
++int __cdecl BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen)
+ {
+     if (tolen < 0)
+         return -1;
+     return bn2binpad(a, to, tolen, big);
+ }
+ 
+-int BN_bn2bin(const BIGNUM *a, unsigned char *to)
++int __cdecl BN_bn2bin(const BIGNUM *a, unsigned char *to)
+ {
+     return bn2binpad(a, to, -1, big);
+ }
+ 
+-BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
++BIGNUM * __cdecl BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
+ {
+     unsigned int i, m;
+     unsigned int n;
+@@ -570,14 +570,14 @@ BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret)
+     return ret;
+ }
+ 
+-int BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
++int __cdecl BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen)
+ {
+     if (tolen < 0)
+         return -1;
+     return bn2binpad(a, to, tolen, little);
+ }
+ 
+-int BN_ucmp(const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_ucmp(const BIGNUM *a, const BIGNUM *b)
+ {
+     int i;
+     BN_ULONG t1, t2, *ap, *bp;
+@@ -599,7 +599,7 @@ int BN_ucmp(const BIGNUM *a, const BIGNUM *b)
+     return 0;
+ }
+ 
+-int BN_cmp(const BIGNUM *a, const BIGNUM *b)
++int __cdecl BN_cmp(const BIGNUM *a, const BIGNUM *b)
+ {
+     int i;
+     int gt, lt;
+@@ -646,7 +646,7 @@ int BN_cmp(const BIGNUM *a, const BIGNUM *b)
+     return 0;
+ }
+ 
+-int BN_set_bit(BIGNUM *a, int n)
++int __cdecl BN_set_bit(BIGNUM *a, int n)
+ {
+     int i, j, k;
+ 
+@@ -669,7 +669,7 @@ int BN_set_bit(BIGNUM *a, int n)
+     return 1;
+ }
+ 
+-int BN_clear_bit(BIGNUM *a, int n)
++int __cdecl BN_clear_bit(BIGNUM *a, int n)
+ {
+     int i, j;
+ 
+@@ -687,7 +687,7 @@ int BN_clear_bit(BIGNUM *a, int n)
+     return 1;
+ }
+ 
+-int BN_is_bit_set(const BIGNUM *a, int n)
++int __cdecl BN_is_bit_set(const BIGNUM *a, int n)
+ {
+     int i, j;
+ 
+@@ -701,7 +701,7 @@ int BN_is_bit_set(const BIGNUM *a, int n)
+     return (int)(((a->d[i]) >> j) & ((BN_ULONG)1));
+ }
+ 
+-int BN_mask_bits(BIGNUM *a, int n)
++int __cdecl BN_mask_bits(BIGNUM *a, int n)
+ {
+     int b, w;
+ 
+@@ -723,7 +723,7 @@ int BN_mask_bits(BIGNUM *a, int n)
+     return 1;
+ }
+ 
+-void BN_set_negative(BIGNUM *a, int b)
++void __cdecl BN_set_negative(BIGNUM *a, int b)
+ {
+     if (b && !BN_is_zero(a))
+         a->neg = 1;
+@@ -788,7 +788,7 @@ int bn_cmp_part_words(const BN_ULONG *a, const BN_ULONG *b, int cl, int dl)
+  * Assumes that at least nwords are allocated in both a and b.
+  * Assumes that no more than nwords are used by either a or b.
+  */
+-void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
++void __cdecl BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
+ {
+     BN_ULONG t;
+     int i;
+@@ -849,7 +849,7 @@ void BN_consttime_swap(BN_ULONG condition, BIGNUM *a, BIGNUM *b, int nwords)
+ 
+ /* Bits of security, see SP800-57 */
+ 
+-int BN_security_bits(int L, int N)
++int __cdecl BN_security_bits(int L, int N)
+ {
+     int secbits, bits;
+     if (L >= 15360)
+@@ -872,50 +872,50 @@ int BN_security_bits(int L, int N)
+     return bits >= secbits ? secbits : bits;
+ }
+ 
+-void BN_zero_ex(BIGNUM *a)
++void __cdecl BN_zero_ex(BIGNUM *a)
+ {
+     a->neg = 0;
+     a->top = 0;
+     a->flags &= ~BN_FLG_FIXED_TOP;
+ }
+ 
+-int BN_abs_is_word(const BIGNUM *a, const BN_ULONG w)
++int __cdecl BN_abs_is_word(const BIGNUM *a, const BN_ULONG w)
+ {
+     return ((a->top == 1) && (a->d[0] == w)) || ((w == 0) && (a->top == 0));
+ }
+ 
+-int BN_is_zero(const BIGNUM *a)
++int __cdecl BN_is_zero(const BIGNUM *a)
+ {
+     return a->top == 0;
+ }
+ 
+-int BN_is_one(const BIGNUM *a)
++int __cdecl BN_is_one(const BIGNUM *a)
+ {
+     return BN_abs_is_word(a, 1) && !a->neg;
+ }
+ 
+-int BN_is_word(const BIGNUM *a, const BN_ULONG w)
++int __cdecl BN_is_word(const BIGNUM *a, const BN_ULONG w)
+ {
+     return BN_abs_is_word(a, w) && (!w || !a->neg);
+ }
+ 
+-int BN_is_odd(const BIGNUM *a)
++int __cdecl BN_is_odd(const BIGNUM *a)
+ {
+     return (a->top > 0) && (a->d[0] & 1);
+ }
+ 
+-int BN_is_negative(const BIGNUM *a)
++int __cdecl BN_is_negative(const BIGNUM *a)
+ {
+     return (a->neg != 0);
+ }
+ 
+-int BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
++int __cdecl BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
+                      BN_CTX *ctx)
+ {
+     return BN_mod_mul_montgomery(r, a, &(mont->RR), mont, ctx);
+ }
+ 
+-void BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
++void __cdecl BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
+ {
+     dest->d = b->d;
+     dest->top = b->top;
+@@ -926,7 +926,7 @@ void BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags)
+                    | BN_FLG_STATIC_DATA | flags);
+ }
+ 
+-BN_GENCB *BN_GENCB_new(void)
++BN_GENCB * __cdecl BN_GENCB_new(void)
+ {
+     BN_GENCB *ret;
+ 
+@@ -938,25 +938,25 @@ BN_GENCB *BN_GENCB_new(void)
+     return ret;
+ }
+ 
+-void BN_GENCB_free(BN_GENCB *cb)
++void __cdecl BN_GENCB_free(BN_GENCB *cb)
+ {
+     if (cb == NULL)
+         return;
+     OPENSSL_free(cb);
+ }
+ 
+-void BN_set_flags(BIGNUM *b, int n)
++void __cdecl BN_set_flags(BIGNUM *b, int n)
+ {
+     b->flags |= n;
+ }
+ 
+-int BN_get_flags(const BIGNUM *b, int n)
++int __cdecl BN_get_flags(const BIGNUM *b, int n)
+ {
+     return b->flags & n;
+ }
+ 
+ /* Populate a BN_GENCB structure with an "old"-style callback */
+-void BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
++void __cdecl BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
+                       void *cb_arg)
+ {
+     BN_GENCB *tmp_gencb = gencb;
+@@ -966,7 +966,7 @@ void BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
+ }
+ 
+ /* Populate a BN_GENCB structure with a "new"-style callback */
+-void BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
++void __cdecl BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
+                   void *cb_arg)
+ {
+     BN_GENCB *tmp_gencb = gencb;
+@@ -975,7 +975,7 @@ void BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
+     tmp_gencb->cb.cb_2 = callback;
+ }
+ 
+-void *BN_GENCB_get_arg(BN_GENCB *cb)
++void * __cdecl BN_GENCB_get_arg(BN_GENCB *cb)
+ {
+     return cb->arg;
+ }
+diff --git a/crypto/bn/bn_mod.c b/crypto/bn/bn_mod.c
+index 712fc8ac14..74f692d527 100644
+--- a/crypto/bn/bn_mod.c
++++ b/crypto/bn/bn_mod.c
+@@ -10,7 +10,7 @@
+ #include "internal/cryptlib.h"
+ #include "bn_lcl.h"
+ 
+-int BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
++int __cdecl BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
+ {
+     /*
+      * like BN_mod, but returns non-negative remainder (i.e., 0 <= r < |d|
+@@ -25,7 +25,7 @@ int BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx)
+     return (d->neg ? BN_sub : BN_add) (r, r, d);
+ }
+ 
+-int BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx)
+ {
+     if (!BN_add(r, a, b))
+@@ -92,7 +92,7 @@ int bn_mod_add_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+     return 1;
+ }
+ 
+-int BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                      const BIGNUM *m)
+ {
+     int ret = bn_mod_add_fixed_top(r, a, b, m);
+@@ -103,7 +103,7 @@ int BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+     return ret;
+ }
+ 
+-int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx)
+ {
+     if (!BN_sub(r, a, b))
+@@ -179,7 +179,7 @@ int bn_mod_sub_fixed_top(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+  * BN_mod_sub variant that may be used if both a and b are non-negative and
+  * less than m
+  */
+-int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                      const BIGNUM *m)
+ {
+     if (!BN_sub(r, a, b))
+@@ -190,7 +190,7 @@ int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+ }
+ 
+ /* slow but works */
+-int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx)
+ {
+     BIGNUM *t;
+@@ -219,7 +219,7 @@ int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+     return ret;
+ }
+ 
+-int BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
++int __cdecl BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+ {
+     if (!BN_sqr(r, a, ctx))
+         return 0;
+@@ -227,7 +227,7 @@ int BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+     return BN_mod(r, r, m, ctx);
+ }
+ 
+-int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
++int __cdecl BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+ {
+     if (!BN_lshift1(r, a))
+         return 0;
+@@ -239,7 +239,7 @@ int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx)
+  * BN_mod_lshift1 variant that may be used if a is non-negative and less than
+  * m
+  */
+-int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
++int __cdecl BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
+ {
+     if (!BN_lshift1(r, a))
+         return 0;
+@@ -249,7 +249,7 @@ int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m)
+     return 1;
+ }
+ 
+-int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
++int __cdecl BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
+                   BN_CTX *ctx)
+ {
+     BIGNUM *abs_m = NULL;
+@@ -276,7 +276,7 @@ int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
+  * BN_mod_lshift variant that may be used if a is non-negative and less than
+  * m
+  */
+-int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
++int __cdecl BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m)
+ {
+     if (r != a) {
+         if (BN_copy(r, a) == NULL)
+diff --git a/crypto/bn/bn_mont.c b/crypto/bn/bn_mont.c
+index 393d27c392..e7866176bb 100644
+--- a/crypto/bn/bn_mont.c
++++ b/crypto/bn/bn_mont.c
+@@ -23,7 +23,7 @@
+ static int bn_from_montgomery_word(BIGNUM *ret, BIGNUM *r, BN_MONT_CTX *mont);
+ #endif
+ 
+-int BN_mod_mul_montgomery(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_mod_mul_montgomery(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                           BN_MONT_CTX *mont, BN_CTX *ctx)
+ {
+     int ret = bn_mul_mont_fixed_top(r, a, b, mont, ctx);
+@@ -159,7 +159,7 @@ static int bn_from_montgomery_word(BIGNUM *ret, BIGNUM *r, BN_MONT_CTX *mont)
+ }
+ #endif                          /* MONT_WORD */
+ 
+-int BN_from_montgomery(BIGNUM *ret, const BIGNUM *a, BN_MONT_CTX *mont,
++int __cdecl BN_from_montgomery(BIGNUM *ret, const BIGNUM *a, BN_MONT_CTX *mont,
+                        BN_CTX *ctx)
+ {
+     int retn;
+@@ -225,7 +225,7 @@ int bn_to_mont_fixed_top(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
+     return bn_mul_mont_fixed_top(r, a, &(mont->RR), mont, ctx);
+ }
+ 
+-BN_MONT_CTX *BN_MONT_CTX_new(void)
++BN_MONT_CTX * __cdecl BN_MONT_CTX_new(void)
+ {
+     BN_MONT_CTX *ret;
+ 
+@@ -249,7 +249,7 @@ void BN_MONT_CTX_init(BN_MONT_CTX *ctx)
+     ctx->flags = 0;
+ }
+ 
+-void BN_MONT_CTX_free(BN_MONT_CTX *mont)
++void __cdecl BN_MONT_CTX_free(BN_MONT_CTX *mont)
+ {
+     if (mont == NULL)
+         return;
+@@ -260,7 +260,7 @@ void BN_MONT_CTX_free(BN_MONT_CTX *mont)
+         OPENSSL_free(mont);
+ }
+ 
+-int BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx)
++int __cdecl BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx)
+ {
+     int i, ret = 0;
+     BIGNUM *Ri, *R;
+@@ -408,7 +408,7 @@ int BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx)
+     return ret;
+ }
+ 
+-BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from)
++BN_MONT_CTX * __cdecl BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from)
+ {
+     if (to == from)
+         return to;
+@@ -425,7 +425,7 @@ BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from)
+     return to;
+ }
+ 
+-BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
++BN_MONT_CTX * __cdecl BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+                                     const BIGNUM *mod, BN_CTX *ctx)
+ {
+     BN_MONT_CTX *ret;
+diff --git a/crypto/bn/bn_mpi.c b/crypto/bn/bn_mpi.c
+index 043e21d26a..335e9ff56a 100644
+--- a/crypto/bn/bn_mpi.c
++++ b/crypto/bn/bn_mpi.c
+@@ -11,7 +11,7 @@
+ #include "internal/cryptlib.h"
+ #include "bn_lcl.h"
+ 
+-int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
++int __cdecl BN_bn2mpi(const BIGNUM *a, unsigned char *d)
+ {
+     int bits;
+     int num = 0;
+@@ -39,7 +39,7 @@ int BN_bn2mpi(const BIGNUM *a, unsigned char *d)
+     return (num + 4 + ext);
+ }
+ 
+-BIGNUM *BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
++BIGNUM * __cdecl BN_mpi2bn(const unsigned char *d, int n, BIGNUM *ain)
+ {
+     long len;
+     int neg = 0;
+diff --git a/crypto/bn/bn_mul.c b/crypto/bn/bn_mul.c
+index 5eda65cfbb..fb9c4345cb 100644
+--- a/crypto/bn/bn_mul.c
++++ b/crypto/bn/bn_mul.c
+@@ -494,7 +494,7 @@ void bn_mul_low_recursive(BN_ULONG *r, BN_ULONG *a, BN_ULONG *b, int n2,
+ }
+ #endif                          /* BN_RECURSION */
+ 
+-int BN_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
++int __cdecl BN_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx)
+ {
+     int ret = bn_mul_fixed_top(r, a, b, ctx);
+ 
+diff --git a/crypto/bn/bn_nist.c b/crypto/bn/bn_nist.c
+index dcdd321c66..ad94535001 100644
+--- a/crypto/bn/bn_nist.c
++++ b/crypto/bn/bn_nist.c
+@@ -224,27 +224,27 @@ static const BIGNUM _bignum_nist_p_521 = {
+     BN_FLG_STATIC_DATA
+ };
+ 
+-const BIGNUM *BN_get0_nist_prime_192(void)
++const BIGNUM * __cdecl BN_get0_nist_prime_192(void)
+ {
+     return &_bignum_nist_p_192;
+ }
+ 
+-const BIGNUM *BN_get0_nist_prime_224(void)
++const BIGNUM * __cdecl BN_get0_nist_prime_224(void)
+ {
+     return &_bignum_nist_p_224;
+ }
+ 
+-const BIGNUM *BN_get0_nist_prime_256(void)
++const BIGNUM * __cdecl BN_get0_nist_prime_256(void)
+ {
+     return &_bignum_nist_p_256;
+ }
+ 
+-const BIGNUM *BN_get0_nist_prime_384(void)
++const BIGNUM * __cdecl BN_get0_nist_prime_384(void)
+ {
+     return &_bignum_nist_p_384;
+ }
+ 
+-const BIGNUM *BN_get0_nist_prime_521(void)
++const BIGNUM * __cdecl BN_get0_nist_prime_521(void)
+ {
+     return &_bignum_nist_p_521;
+ }
+@@ -315,7 +315,7 @@ static void nist_cp_bn(BN_ULONG *dst, const BN_ULONG *src, int top)
+         bn_cp_64(to, 2, from, (a1) - 3) \
+         }
+ 
+-int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
++int __cdecl BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+                     BN_CTX *ctx)
+ {
+     int top = a->top, i;
+@@ -456,7 +456,7 @@ typedef BN_ULONG (*bn_addsub_f) (BN_ULONG *, const BN_ULONG *,
+         bn_cp_32(to, 6, from, (a1) - 7) \
+         }
+ 
+-int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
++int __cdecl BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+                     BN_CTX *ctx)
+ {
+     int top = a->top, i;
+@@ -637,7 +637,7 @@ int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+         bn_cp_32(to, 7, from, (a1) - 8) \
+         }
+ 
+-int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
++int __cdecl BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+                     BN_CTX *ctx)
+ {
+     int i, top = a->top;
+@@ -883,7 +883,7 @@ int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+         bn_cp_32(to, 11, from, (a1) - 12)  \
+         }
+ 
+-int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
++int __cdecl BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+                     BN_CTX *ctx)
+ {
+     int i, top = a->top;
+@@ -1152,7 +1152,7 @@ int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+ #define BN_NIST_521_LSHIFT      (BN_BITS2-BN_NIST_521_RSHIFT)
+ #define BN_NIST_521_TOP_MASK    ((BN_ULONG)BN_MASK2>>BN_NIST_521_LSHIFT)
+ 
+-int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
++int __cdecl BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+                     BN_CTX *ctx)
+ {
+     int top = a->top, i;
+@@ -1223,7 +1223,7 @@ int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *field,
+     return 1;
+ }
+ 
+-int (*BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
++int (__cdecl *BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
+                                           const BIGNUM *field, BN_CTX *ctx) {
+     if (BN_ucmp(&_bignum_nist_p_192, p) == 0)
+         return BN_nist_mod_192;
+diff --git a/crypto/bn/bn_prime.c b/crypto/bn/bn_prime.c
+index 19b081f38e..860112b30c 100644
+--- a/crypto/bn/bn_prime.c
++++ b/crypto/bn/bn_prime.c
+@@ -27,7 +27,7 @@ static int probable_prime_dh_safe(BIGNUM *rnd, int bits,
+                                   const BIGNUM *add, const BIGNUM *rem,
+                                   BN_CTX *ctx);
+ 
+-int BN_GENCB_call(BN_GENCB *cb, int a, int b)
++int __cdecl BN_GENCB_call(BN_GENCB *cb, int a, int b)
+ {
+     /* No callback means continue */
+     if (!cb)
+@@ -49,7 +49,7 @@ int BN_GENCB_call(BN_GENCB *cb, int a, int b)
+     return 0;
+ }
+ 
+-int BN_generate_prime_ex(BIGNUM *ret, int bits, int safe,
++int __cdecl BN_generate_prime_ex(BIGNUM *ret, int bits, int safe,
+                          const BIGNUM *add, const BIGNUM *rem, BN_GENCB *cb)
+ {
+     BIGNUM *t;
+@@ -145,13 +145,13 @@ int BN_generate_prime_ex(BIGNUM *ret, int bits, int safe,
+     return found;
+ }
+ 
+-int BN_is_prime_ex(const BIGNUM *a, int checks, BN_CTX *ctx_passed,
++int __cdecl BN_is_prime_ex(const BIGNUM *a, int checks, BN_CTX *ctx_passed,
+                    BN_GENCB *cb)
+ {
+     return BN_is_prime_fasttest_ex(a, checks, ctx_passed, 0, cb);
+ }
+ 
+-int BN_is_prime_fasttest_ex(const BIGNUM *a, int checks, BN_CTX *ctx_passed,
++int __cdecl BN_is_prime_fasttest_ex(const BIGNUM *a, int checks, BN_CTX *ctx_passed,
+                             int do_trial_division, BN_GENCB *cb)
+ {
+     int i, j, ret = -1;
+diff --git a/crypto/bn/bn_print.c b/crypto/bn/bn_print.c
+index 1853269d90..62ac640cca 100644
+--- a/crypto/bn/bn_print.c
++++ b/crypto/bn/bn_print.c
+@@ -17,7 +17,7 @@
+ static const char Hex[] = "0123456789ABCDEF";
+ 
+ /* Must 'OPENSSL_free' the returned data */
+-char *BN_bn2hex(const BIGNUM *a)
++char * __cdecl BN_bn2hex(const BIGNUM *a)
+ {
+     int i, j, v, z = 0;
+     char *buf;
+@@ -50,7 +50,7 @@ char *BN_bn2hex(const BIGNUM *a)
+ }
+ 
+ /* Must 'OPENSSL_free' the returned data */
+-char *BN_bn2dec(const BIGNUM *a)
++char * __cdecl BN_bn2dec(const BIGNUM *a)
+ {
+     int i = 0, num, ok = 0, n, tbytes;
+     char *buf = NULL;
+@@ -123,7 +123,7 @@ char *BN_bn2dec(const BIGNUM *a)
+     return NULL;
+ }
+ 
+-int BN_hex2bn(BIGNUM **bn, const char *a)
++int __cdecl BN_hex2bn(BIGNUM **bn, const char *a)
+ {
+     BIGNUM *ret = NULL;
+     BN_ULONG l = 0;
+@@ -196,7 +196,7 @@ int BN_hex2bn(BIGNUM **bn, const char *a)
+     return 0;
+ }
+ 
+-int BN_dec2bn(BIGNUM **bn, const char *a)
++int __cdecl BN_dec2bn(BIGNUM **bn, const char *a)
+ {
+     BIGNUM *ret = NULL;
+     BN_ULONG l = 0;
+@@ -266,7 +266,7 @@ int BN_dec2bn(BIGNUM **bn, const char *a)
+     return 0;
+ }
+ 
+-int BN_asc2bn(BIGNUM **bn, const char *a)
++int __cdecl BN_asc2bn(BIGNUM **bn, const char *a)
+ {
+     const char *p = a;
+ 
+@@ -287,7 +287,7 @@ int BN_asc2bn(BIGNUM **bn, const char *a)
+ }
+ 
+ # ifndef OPENSSL_NO_STDIO
+-int BN_print_fp(FILE *fp, const BIGNUM *a)
++int __cdecl BN_print_fp(FILE *fp, const BIGNUM *a)
+ {
+     BIO *b;
+     int ret;
+@@ -301,7 +301,7 @@ int BN_print_fp(FILE *fp, const BIGNUM *a)
+ }
+ # endif
+ 
+-int BN_print(BIO *bp, const BIGNUM *a)
++int __cdecl BN_print(BIO *bp, const BIGNUM *a)
+ {
+     int i, j, v, z = 0;
+     int ret = 0;
+@@ -326,7 +326,7 @@ int BN_print(BIO *bp, const BIGNUM *a)
+     return ret;
+ }
+ 
+-char *BN_options(void)
++char * __cdecl BN_options(void)
+ {
+     static int init = 0;
+     static char data[16];
+diff --git a/crypto/bn/bn_rand.c b/crypto/bn/bn_rand.c
+index 051f29e343..e43a405cb9 100644
+--- a/crypto/bn/bn_rand.c
++++ b/crypto/bn/bn_rand.c
+@@ -94,17 +94,17 @@ toosmall:
+     return 0;
+ }
+ 
+-int BN_rand(BIGNUM *rnd, int bits, int top, int bottom)
++int __cdecl BN_rand(BIGNUM *rnd, int bits, int top, int bottom)
+ {
+     return bnrand(NORMAL, rnd, bits, top, bottom);
+ }
+ 
+-int BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom)
++int __cdecl BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom)
+ {
+     return bnrand(TESTING, rnd, bits, top, bottom);
+ }
+ 
+-int BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom)
++int __cdecl BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom)
+ {
+     return bnrand(PRIVATE, rnd, bits, top, bottom);
+ }
+@@ -174,22 +174,22 @@ static int bnrand_range(BNRAND_FLAG flag, BIGNUM *r, const BIGNUM *range)
+     return 1;
+ }
+ 
+-int BN_rand_range(BIGNUM *r, const BIGNUM *range)
++int __cdecl BN_rand_range(BIGNUM *r, const BIGNUM *range)
+ {
+     return bnrand_range(NORMAL, r, range);
+ }
+ 
+-int BN_priv_rand_range(BIGNUM *r, const BIGNUM *range)
++int __cdecl BN_priv_rand_range(BIGNUM *r, const BIGNUM *range)
+ {
+     return bnrand_range(PRIVATE, r, range);
+ }
+ 
+-int BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom)
++int __cdecl BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom)
+ {
+     return BN_rand(rnd, bits, top, bottom);
+ }
+ 
+-int BN_pseudo_rand_range(BIGNUM *r, const BIGNUM *range)
++int __cdecl BN_pseudo_rand_range(BIGNUM *r, const BIGNUM *range)
+ {
+     return BN_rand_range(r, range);
+ }
+@@ -202,7 +202,7 @@ int BN_pseudo_rand_range(BIGNUM *r, const BIGNUM *range)
+  * weakness leads directly to private key exposure unless this function is
+  * used.
+  */
+-int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
++int __cdecl BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
+                           const BIGNUM *priv, const unsigned char *message,
+                           size_t message_len, BN_CTX *ctx)
+ {
+diff --git a/crypto/bn/bn_recp.c b/crypto/bn/bn_recp.c
+index 9ab767f42f..a2110af2c5 100644
+--- a/crypto/bn/bn_recp.c
++++ b/crypto/bn/bn_recp.c
+@@ -17,7 +17,7 @@ void BN_RECP_CTX_init(BN_RECP_CTX *recp)
+     bn_init(&(recp->Nr));
+ }
+ 
+-BN_RECP_CTX *BN_RECP_CTX_new(void)
++BN_RECP_CTX * __cdecl BN_RECP_CTX_new(void)
+ {
+     BN_RECP_CTX *ret;
+ 
+@@ -32,7 +32,7 @@ BN_RECP_CTX *BN_RECP_CTX_new(void)
+     return ret;
+ }
+ 
+-void BN_RECP_CTX_free(BN_RECP_CTX *recp)
++void __cdecl BN_RECP_CTX_free(BN_RECP_CTX *recp)
+ {
+     if (recp == NULL)
+         return;
+@@ -42,7 +42,7 @@ void BN_RECP_CTX_free(BN_RECP_CTX *recp)
+         OPENSSL_free(recp);
+ }
+ 
+-int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
++int __cdecl BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
+ {
+     if (!BN_copy(&(recp->N), d))
+         return 0;
+@@ -52,7 +52,7 @@ int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *d, BN_CTX *ctx)
+     return 1;
+ }
+ 
+-int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
++int __cdecl BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+                           BN_RECP_CTX *recp, BN_CTX *ctx)
+ {
+     int ret = 0;
+@@ -81,7 +81,7 @@ int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+     return ret;
+ }
+ 
+-int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
++int __cdecl BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+                 BN_RECP_CTX *recp, BN_CTX *ctx)
+ {
+     int i, j, ret = 0;
+@@ -171,7 +171,7 @@ int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+  * required.
+  */
+ /* r := 2^len / m */
+-int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx)
++int __cdecl BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx)
+ {
+     int ret = -1;
+     BIGNUM *t;
+diff --git a/crypto/bn/bn_shift.c b/crypto/bn/bn_shift.c
+index b7a1e0ff9a..4276529583 100644
+--- a/crypto/bn/bn_shift.c
++++ b/crypto/bn/bn_shift.c
+@@ -11,7 +11,7 @@
+ #include "internal/cryptlib.h"
+ #include "bn_lcl.h"
+ 
+-int BN_lshift1(BIGNUM *r, const BIGNUM *a)
++int __cdecl BN_lshift1(BIGNUM *r, const BIGNUM *a)
+ {
+     register BN_ULONG *ap, *rp, t, c;
+     int i;
+@@ -44,7 +44,7 @@ int BN_lshift1(BIGNUM *r, const BIGNUM *a)
+     return 1;
+ }
+ 
+-int BN_rshift1(BIGNUM *r, const BIGNUM *a)
++int __cdecl BN_rshift1(BIGNUM *r, const BIGNUM *a)
+ {
+     BN_ULONG *ap, *rp, t, c;
+     int i, j;
+@@ -81,7 +81,7 @@ int BN_rshift1(BIGNUM *r, const BIGNUM *a)
+     return 1;
+ }
+ 
+-int BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
++int __cdecl BN_lshift(BIGNUM *r, const BIGNUM *a, int n)
+ {
+     int ret;
+ 
+@@ -150,7 +150,7 @@ int bn_lshift_fixed_top(BIGNUM *r, const BIGNUM *a, int n)
+     return 1;
+ }
+ 
+-int BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
++int __cdecl BN_rshift(BIGNUM *r, const BIGNUM *a, int n)
+ {
+     int i, j, nw, lb, rb;
+     BN_ULONG *t, *f;
+diff --git a/crypto/bn/bn_sqr.c b/crypto/bn/bn_sqr.c
+index 0c0a590f0c..01acfc0a46 100644
+--- a/crypto/bn/bn_sqr.c
++++ b/crypto/bn/bn_sqr.c
+@@ -14,7 +14,7 @@
+ /*
+  * I've just gone over this and it is now %20 faster on x86 - eay - 27 Jun 96
+  */
+-int BN_sqr(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
++int __cdecl BN_sqr(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx)
+ {
+     int ret = bn_sqr_fixed_top(r, a, ctx);
+ 
+diff --git a/crypto/bn/bn_sqrt.c b/crypto/bn/bn_sqrt.c
+index c3e66b033b..67b8c2e9bc 100644
+--- a/crypto/bn/bn_sqrt.c
++++ b/crypto/bn/bn_sqrt.c
+@@ -10,7 +10,7 @@
+ #include "internal/cryptlib.h"
+ #include "bn_lcl.h"
+ 
+-BIGNUM *BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
++BIGNUM * __cdecl BN_mod_sqrt(BIGNUM *in, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx)
+ /*
+  * Returns 'ret' such that ret^2 == a (mod p), using the Tonelli/Shanks
+  * algorithm (cf. Henri Cohen, "A Course in Algebraic Computational Number
+diff --git a/crypto/bn/bn_word.c b/crypto/bn/bn_word.c
+index 262d7668fc..5a69b23337 100644
+--- a/crypto/bn/bn_word.c
++++ b/crypto/bn/bn_word.c
+@@ -10,7 +10,7 @@
+ #include "internal/cryptlib.h"
+ #include "bn_lcl.h"
+ 
+-BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
++BN_ULONG __cdecl BN_mod_word(const BIGNUM *a, BN_ULONG w)
+ {
+ #ifndef BN_LLONG
+     BN_ULONG ret = 0;
+@@ -58,7 +58,7 @@ BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w)
+     return (BN_ULONG)ret;
+ }
+ 
+-BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
++BN_ULONG __cdecl BN_div_word(BIGNUM *a, BN_ULONG w)
+ {
+     BN_ULONG ret = 0;
+     int i, j;
+@@ -95,7 +95,7 @@ BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w)
+     return ret;
+ }
+ 
+-int BN_add_word(BIGNUM *a, BN_ULONG w)
++int __cdecl BN_add_word(BIGNUM *a, BN_ULONG w)
+ {
+     BN_ULONG l;
+     int i;
+@@ -131,7 +131,7 @@ int BN_add_word(BIGNUM *a, BN_ULONG w)
+     return 1;
+ }
+ 
+-int BN_sub_word(BIGNUM *a, BN_ULONG w)
++int __cdecl BN_sub_word(BIGNUM *a, BN_ULONG w)
+ {
+     int i;
+ 
+@@ -178,7 +178,7 @@ int BN_sub_word(BIGNUM *a, BN_ULONG w)
+     return 1;
+ }
+ 
+-int BN_mul_word(BIGNUM *a, BN_ULONG w)
++int __cdecl BN_mul_word(BIGNUM *a, BN_ULONG w)
+ {
+     BN_ULONG ll;
+ 
+diff --git a/crypto/bn/bn_x931p.c b/crypto/bn/bn_x931p.c
+index 9eb8384fde..1f909079bf 100644
+--- a/crypto/bn/bn_x931p.c
++++ b/crypto/bn/bn_x931p.c
+@@ -48,7 +48,7 @@ static int bn_x931_derive_pi(BIGNUM *pi, const BIGNUM *Xpi, BN_CTX *ctx,
+  * will be returned too: this is needed for testing.
+  */
+ 
+-int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
++int __cdecl BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
+                             const BIGNUM *Xp, const BIGNUM *Xp1,
+                             const BIGNUM *Xp2, const BIGNUM *e, BN_CTX *ctx,
+                             BN_GENCB *cb)
+@@ -157,7 +157,7 @@ int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
+  * parameter is sum of number of bits in both.
+  */
+ 
+-int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
++int __cdecl BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
+ {
+     BIGNUM *t;
+     int i;
+@@ -212,7 +212,7 @@ int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx)
+  * previous function and supplied as input.
+  */
+ 
+-int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
++int __cdecl BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
+                               BIGNUM *Xp1, BIGNUM *Xp2,
+                               const BIGNUM *Xp,
+                               const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb)
+diff --git a/crypto/ec/ec_lcl.h b/crypto/ec/ec_lcl.h
+index fbdb04ea3a..c979ee994f 100644
+--- a/crypto/ec/ec_lcl.h
++++ b/crypto/ec/ec_lcl.h
+@@ -246,7 +246,7 @@ struct ec_group_st {
+     /* method-specific */
+     void *field_data2;
+     /* method-specific */
+-    int (*field_mod_func) (BIGNUM *, const BIGNUM *, const BIGNUM *,
++    int (__cdecl *field_mod_func) (BIGNUM *, const BIGNUM *, const BIGNUM *,
+                            BN_CTX *);
+     /* data for ECDSA inverse */
+     BN_MONT_CTX *mont_data;
+diff --git a/crypto/rsa/rsa_locl.h b/crypto/rsa/rsa_locl.h
+index 42c0219bec..6cedbac835 100644
+--- a/crypto/rsa/rsa_locl.h
++++ b/crypto/rsa/rsa_locl.h
+@@ -67,23 +67,23 @@ struct rsa_st {
+ 
+ struct rsa_meth_st {
+     char *name;
+-    int (*rsa_pub_enc) (int flen, const unsigned char *from,
++    int (__cdecl *rsa_pub_enc) (int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding);
+-    int (*rsa_pub_dec) (int flen, const unsigned char *from,
++    int (__cdecl *rsa_pub_dec) (int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding);
+-    int (*rsa_priv_enc) (int flen, const unsigned char *from,
++    int (__cdecl *rsa_priv_enc) (int flen, const unsigned char *from,
+                          unsigned char *to, RSA *rsa, int padding);
+-    int (*rsa_priv_dec) (int flen, const unsigned char *from,
++    int (__cdecl *rsa_priv_dec) (int flen, const unsigned char *from,
+                          unsigned char *to, RSA *rsa, int padding);
+     /* Can be null */
+-    int (*rsa_mod_exp) (BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx);
++    int (__cdecl *rsa_mod_exp) (BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx);
+     /* Can be null */
+-    int (*bn_mod_exp) (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++    int (__cdecl *bn_mod_exp) (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                        const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+     /* called at new */
+-    int (*init) (RSA *rsa);
++    int (__cdecl *init) (RSA *rsa);
+     /* called at free */
+-    int (*finish) (RSA *rsa);
++    int (__cdecl *finish) (RSA *rsa);
+     /* RSA_METHOD_FLAG_* things */
+     int flags;
+     /* may be needed! */
+@@ -94,11 +94,11 @@ struct rsa_meth_st {
+      * this to work the RSA_public_decrypt() and RSA_private_encrypt() should
+      * *NOT* be used RSA_sign(), RSA_verify() should be used instead.
+      */
+-    int (*rsa_sign) (int type,
++    int (__cdecl *rsa_sign) (int type,
+                      const unsigned char *m, unsigned int m_length,
+                      unsigned char *sigret, unsigned int *siglen,
+                      const RSA *rsa);
+-    int (*rsa_verify) (int dtype, const unsigned char *m,
++    int (__cdecl *rsa_verify) (int dtype, const unsigned char *m,
+                        unsigned int m_length, const unsigned char *sigbuf,
+                        unsigned int siglen, const RSA *rsa);
+     /*
+@@ -107,8 +107,8 @@ struct rsa_meth_st {
+      * rewired, but one day it would be nice to assume there are no such
+      * things as "builtin software" implementations.
+      */
+-    int (*rsa_keygen) (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
+-    int (*rsa_multi_prime_keygen) (RSA *rsa, int bits, int primes,
++    int (__cdecl *rsa_keygen) (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
++    int (__cdecl *rsa_multi_prime_keygen) (RSA *rsa, int bits, int primes,
+                                    BIGNUM *e, BN_GENCB *cb);
+ };
+ 
+diff --git a/crypto/rsa/rsa_meth.c b/crypto/rsa/rsa_meth.c
+index def19f375f..d8687a289e 100644
+--- a/crypto/rsa/rsa_meth.c
++++ b/crypto/rsa/rsa_meth.c
+@@ -97,15 +97,15 @@ int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_pub_enc(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_pub_enc(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding)
+ {
+     return meth->rsa_pub_enc;
+ }
+ 
+-int RSA_meth_set_pub_enc(RSA_METHOD *meth,
+-                         int (*pub_enc) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_pub_enc(RSA_METHOD *meth,
++                         int (__cdecl *pub_enc) (int flen, const unsigned char *from,
+                                          unsigned char *to, RSA *rsa,
+                                          int padding))
+ {
+@@ -113,15 +113,15 @@ int RSA_meth_set_pub_enc(RSA_METHOD *meth,
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_pub_dec(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_pub_dec(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding)
+ {
+     return meth->rsa_pub_dec;
+ }
+ 
+-int RSA_meth_set_pub_dec(RSA_METHOD *meth,
+-                         int (*pub_dec) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_pub_dec(RSA_METHOD *meth,
++                         int (__cdecl *pub_dec) (int flen, const unsigned char *from,
+                                          unsigned char *to, RSA *rsa,
+                                          int padding))
+ {
+@@ -129,15 +129,15 @@ int RSA_meth_set_pub_dec(RSA_METHOD *meth,
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_priv_enc(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_priv_enc(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding)
+ {
+     return meth->rsa_priv_enc;
+ }
+ 
+-int RSA_meth_set_priv_enc(RSA_METHOD *meth,
+-                          int (*priv_enc) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_priv_enc(RSA_METHOD *meth,
++                          int (__cdecl *priv_enc) (int flen, const unsigned char *from,
+                                            unsigned char *to, RSA *rsa,
+                                            int padding))
+ {
+@@ -145,15 +145,15 @@ int RSA_meth_set_priv_enc(RSA_METHOD *meth,
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_priv_dec(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_priv_dec(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding)
+ {
+     return meth->rsa_priv_dec;
+ }
+ 
+-int RSA_meth_set_priv_dec(RSA_METHOD *meth,
+-                          int (*priv_dec) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_priv_dec(RSA_METHOD *meth,
++                          int (__cdecl *priv_dec) (int flen, const unsigned char *from,
+                                            unsigned char *to, RSA *rsa,
+                                            int padding))
+ {
+@@ -162,14 +162,14 @@ int RSA_meth_set_priv_dec(RSA_METHOD *meth,
+ }
+ 
+     /* Can be null */
+-int (*RSA_meth_get_mod_exp(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_mod_exp(const RSA_METHOD *meth))
+     (BIGNUM *r0, const BIGNUM *i, RSA *rsa, BN_CTX *ctx)
+ {
+     return meth->rsa_mod_exp;
+ }
+ 
+-int RSA_meth_set_mod_exp(RSA_METHOD *meth,
+-                         int (*mod_exp) (BIGNUM *r0, const BIGNUM *i, RSA *rsa,
++int __cdecl RSA_meth_set_mod_exp(RSA_METHOD *meth,
++                         int (__cdecl *mod_exp) (BIGNUM *r0, const BIGNUM *i, RSA *rsa,
+                                          BN_CTX *ctx))
+ {
+     meth->rsa_mod_exp = mod_exp;
+@@ -177,15 +177,15 @@ int RSA_meth_set_mod_exp(RSA_METHOD *meth,
+ }
+ 
+     /* Can be null */
+-int (*RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
+     (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+      const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx)
+ {
+     return meth->bn_mod_exp;
+ }
+ 
+-int RSA_meth_set_bn_mod_exp(RSA_METHOD *meth,
+-                            int (*bn_mod_exp) (BIGNUM *r,
++int __cdecl RSA_meth_set_bn_mod_exp(RSA_METHOD *meth,
++                            int (__cdecl *bn_mod_exp) (BIGNUM *r,
+                                                const BIGNUM *a,
+                                                const BIGNUM *p,
+                                                const BIGNUM *m,
+@@ -197,30 +197,30 @@ int RSA_meth_set_bn_mod_exp(RSA_METHOD *meth,
+ }
+ 
+     /* called at new */
+-int (*RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa)
++int (__cdecl *RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa)
+ {
+     return meth->init;
+ }
+ 
+-int RSA_meth_set_init(RSA_METHOD *meth, int (*init) (RSA *rsa))
++int __cdecl RSA_meth_set_init(RSA_METHOD *meth, int (__cdecl *init) (RSA *rsa))
+ {
+     meth->init = init;
+     return 1;
+ }
+ 
+     /* called at free */
+-int (*RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa)
++int (__cdecl *RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa)
+ {
+     return meth->finish;
+ }
+ 
+-int RSA_meth_set_finish(RSA_METHOD *meth, int (*finish) (RSA *rsa))
++int __cdecl RSA_meth_set_finish(RSA_METHOD *meth, int (__cdecl *finish) (RSA *rsa))
+ {
+     meth->finish = finish;
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_sign(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_sign(const RSA_METHOD *meth))
+     (int type,
+      const unsigned char *m, unsigned int m_length,
+      unsigned char *sigret, unsigned int *siglen,
+@@ -229,8 +229,8 @@ int (*RSA_meth_get_sign(const RSA_METHOD *meth))
+     return meth->rsa_sign;
+ }
+ 
+-int RSA_meth_set_sign(RSA_METHOD *meth,
+-                      int (*sign) (int type, const unsigned char *m,
++int __cdecl RSA_meth_set_sign(RSA_METHOD *meth,
++                      int (__cdecl *sign) (int type, const unsigned char *m,
+                                    unsigned int m_length,
+                                    unsigned char *sigret, unsigned int *siglen,
+                                    const RSA *rsa))
+@@ -239,7 +239,7 @@ int RSA_meth_set_sign(RSA_METHOD *meth,
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_verify(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_verify(const RSA_METHOD *meth))
+     (int dtype, const unsigned char *m,
+      unsigned int m_length, const unsigned char *sigbuf,
+      unsigned int siglen, const RSA *rsa)
+@@ -247,8 +247,8 @@ int (*RSA_meth_get_verify(const RSA_METHOD *meth))
+     return meth->rsa_verify;
+ }
+ 
+-int RSA_meth_set_verify(RSA_METHOD *meth,
+-                        int (*verify) (int dtype, const unsigned char *m,
++int __cdecl RSA_meth_set_verify(RSA_METHOD *meth,
++                        int (__cdecl *verify) (int dtype, const unsigned char *m,
+                                        unsigned int m_length,
+                                        const unsigned char *sigbuf,
+                                        unsigned int siglen, const RSA *rsa))
+@@ -257,28 +257,28 @@ int RSA_meth_set_verify(RSA_METHOD *meth,
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_keygen(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_keygen(const RSA_METHOD *meth))
+     (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb)
+ {
+     return meth->rsa_keygen;
+ }
+ 
+-int RSA_meth_set_keygen(RSA_METHOD *meth,
+-                        int (*keygen) (RSA *rsa, int bits, BIGNUM *e,
++int __cdecl RSA_meth_set_keygen(RSA_METHOD *meth,
++                        int (__cdecl *keygen) (RSA *rsa, int bits, BIGNUM *e,
+                                        BN_GENCB *cb))
+ {
+     meth->rsa_keygen = keygen;
+     return 1;
+ }
+ 
+-int (*RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
+     (RSA *rsa, int bits, int primes, BIGNUM *e, BN_GENCB *cb)
+ {
+     return meth->rsa_multi_prime_keygen;
+ }
+ 
+-int RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
+-                                    int (*keygen) (RSA *rsa, int bits,
++int __cdecl RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
++                                    int (__cdecl *keygen) (RSA *rsa, int bits,
+                                                    int primes, BIGNUM *e,
+                                                    BN_GENCB *cb))
+ {
+diff --git a/crypto/rsa/rsa_ossl.c b/crypto/rsa/rsa_ossl.c
+index c8c3b7886a..9e022c1381 100644
+--- a/crypto/rsa/rsa_ossl.c
++++ b/crypto/rsa/rsa_ossl.c
+@@ -12,18 +12,18 @@
+ #include "rsa_locl.h"
+ #include "internal/constant_time_locl.h"
+ 
+-static int rsa_ossl_public_encrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_public_encrypt(int flen, const unsigned char *from,
+                                   unsigned char *to, RSA *rsa, int padding);
+-static int rsa_ossl_private_encrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_private_encrypt(int flen, const unsigned char *from,
+                                    unsigned char *to, RSA *rsa, int padding);
+-static int rsa_ossl_public_decrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_public_decrypt(int flen, const unsigned char *from,
+                                   unsigned char *to, RSA *rsa, int padding);
+-static int rsa_ossl_private_decrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_private_decrypt(int flen, const unsigned char *from,
+                                    unsigned char *to, RSA *rsa, int padding);
+-static int rsa_ossl_mod_exp(BIGNUM *r0, const BIGNUM *i, RSA *rsa,
++static int __cdecl rsa_ossl_mod_exp(BIGNUM *r0, const BIGNUM *i, RSA *rsa,
+                            BN_CTX *ctx);
+-static int rsa_ossl_init(RSA *rsa);
+-static int rsa_ossl_finish(RSA *rsa);
++static int __cdecl rsa_ossl_init(RSA *rsa);
++static int __cdecl rsa_ossl_finish(RSA *rsa);
+ static RSA_METHOD rsa_pkcs1_ossl_meth = {
+     "OpenSSL PKCS#1 RSA",
+     rsa_ossl_public_encrypt,
+@@ -65,7 +65,7 @@ const RSA_METHOD *RSA_null_method(void)
+     return NULL;
+ }
+ 
+-static int rsa_ossl_public_encrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_public_encrypt(int flen, const unsigned char *from,
+                                   unsigned char *to, RSA *rsa, int padding)
+ {
+     BIGNUM *f, *ret;
+@@ -230,7 +230,7 @@ static int rsa_blinding_invert(BN_BLINDING *b, BIGNUM *f, BIGNUM *unblind,
+ }
+ 
+ /* signing */
+-static int rsa_ossl_private_encrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_private_encrypt(int flen, const unsigned char *from,
+                                    unsigned char *to, RSA *rsa, int padding)
+ {
+     BIGNUM *f, *ret, *res;
+@@ -364,7 +364,7 @@ static int rsa_ossl_private_encrypt(int flen, const unsigned char *from,
+     return r;
+ }
+ 
+-static int rsa_ossl_private_decrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_private_decrypt(int flen, const unsigned char *from,
+                                    unsigned char *to, RSA *rsa, int padding)
+ {
+     BIGNUM *f, *ret;
+@@ -499,7 +499,7 @@ static int rsa_ossl_private_decrypt(int flen, const unsigned char *from,
+ }
+ 
+ /* signature verification */
+-static int rsa_ossl_public_decrypt(int flen, const unsigned char *from,
++static int __cdecl rsa_ossl_public_decrypt(int flen, const unsigned char *from,
+                                   unsigned char *to, RSA *rsa, int padding)
+ {
+     BIGNUM *f, *ret;
+@@ -594,7 +594,7 @@ static int rsa_ossl_public_decrypt(int flen, const unsigned char *from,
+     return r;
+ }
+ 
+-static int rsa_ossl_mod_exp(BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx)
++static int __cdecl rsa_ossl_mod_exp(BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx)
+ {
+     BIGNUM *r1, *m1, *vrfy, *r2, *m[RSA_MAX_PRIME_NUM - 2];
+     int ret = 0, i, ex_primes = 0, smooth = 0;
+@@ -954,13 +954,13 @@ static int rsa_ossl_mod_exp(BIGNUM *r0, const BIGNUM *I, RSA *rsa, BN_CTX *ctx)
+     return ret;
+ }
+ 
+-static int rsa_ossl_init(RSA *rsa)
++static int __cdecl rsa_ossl_init(RSA *rsa)
+ {
+     rsa->flags |= RSA_FLAG_CACHE_PUBLIC | RSA_FLAG_CACHE_PRIVATE;
+     return 1;
+ }
+ 
+-static int rsa_ossl_finish(RSA *rsa)
++static int __cdecl rsa_ossl_finish(RSA *rsa)
+ {
+     int i;
+     RSA_PRIME_INFO *pinfo;
+diff --git a/engines/e_capi.c b/engines/e_capi.c
+index 37202b81f3..7e466dc279 100644
+--- a/engines/e_capi.c
++++ b/engines/e_capi.c
+@@ -122,14 +122,14 @@ CAPI_KEY *capi_find_key(CAPI_CTX *ctx, const char *id);
+ 
+ static EVP_PKEY *capi_load_privkey(ENGINE *eng, const char *key_id,
+                                    UI_METHOD *ui_method, void *callback_data);
+-static int capi_rsa_sign(int dtype, const unsigned char *m,
++static int __cdecl capi_rsa_sign(int dtype, const unsigned char *m,
+                          unsigned int m_len, unsigned char *sigret,
+                          unsigned int *siglen, const RSA *rsa);
+-static int capi_rsa_priv_enc(int flen, const unsigned char *from,
++static int __cdecl capi_rsa_priv_enc(int flen, const unsigned char *from,
+                              unsigned char *to, RSA *rsa, int padding);
+-static int capi_rsa_priv_dec(int flen, const unsigned char *from,
++static int __cdecl capi_rsa_priv_dec(int flen, const unsigned char *from,
+                              unsigned char *to, RSA *rsa, int padding);
+-static int capi_rsa_free(RSA *rsa);
++static int __cdecl capi_rsa_free(RSA *rsa);
+ 
+ # ifndef OPENSSL_NO_DSA
+ static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
+@@ -808,14 +808,14 @@ static EVP_PKEY *capi_load_privkey(ENGINE *eng, const char *key_id,
+ 
+ /* CryptoAPI RSA operations */
+ 
+-int capi_rsa_priv_enc(int flen, const unsigned char *from,
++int __cdecl capi_rsa_priv_enc(int flen, const unsigned char *from,
+                       unsigned char *to, RSA *rsa, int padding)
+ {
+     CAPIerr(CAPI_F_CAPI_RSA_PRIV_ENC, CAPI_R_FUNCTION_NOT_SUPPORTED);
+     return -1;
+ }
+ 
+-int capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
++int __cdecl capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
+                   unsigned char *sigret, unsigned int *siglen, const RSA *rsa)
+ {
+     ALG_ID alg;
+@@ -910,7 +910,7 @@ int capi_rsa_sign(int dtype, const unsigned char *m, unsigned int m_len,
+     return ret;
+ }
+ 
+-int capi_rsa_priv_dec(int flen, const unsigned char *from,
++int __cdecl capi_rsa_priv_dec(int flen, const unsigned char *from,
+                       unsigned char *to, RSA *rsa, int padding)
+ {
+     int i;
+@@ -977,7 +977,7 @@ int capi_rsa_priv_dec(int flen, const unsigned char *from,
+     return flen;
+ }
+ 
+-static int capi_rsa_free(RSA *rsa)
++static int __cdecl capi_rsa_free(RSA *rsa)
+ {
+     CAPI_KEY *capi_key;
+     capi_key = RSA_get_ex_data(rsa, rsa_capi_idx);
+diff --git a/include/openssl/bn.h b/include/openssl/bn.h
+index 8af05d00e5..def342fd3a 100644
+--- a/include/openssl/bn.h
++++ b/include/openssl/bn.h
+@@ -67,8 +67,8 @@ extern "C" {
+ #  define BN_FLG_FREE            0x8000 /* used for debugging */
+ # endif
+ 
+-void BN_set_flags(BIGNUM *b, int n);
+-int BN_get_flags(const BIGNUM *b, int n);
++void __cdecl BN_set_flags(BIGNUM *b, int n);
++int __cdecl BN_get_flags(const BIGNUM *b, int n);
+ 
+ /* Values for |top| in BN_rand() */
+ #define BN_RAND_TOP_ANY    -1
+@@ -85,23 +85,23 @@ int BN_get_flags(const BIGNUM *b, int n);
+  * value |dest| should be a newly allocated BIGNUM obtained via BN_new() that
+  * has not been otherwise initialised or used.
+  */
+-void BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags);
++void __cdecl BN_with_flags(BIGNUM *dest, const BIGNUM *b, int flags);
+ 
+ /* Wrapper function to make using BN_GENCB easier */
+-int BN_GENCB_call(BN_GENCB *cb, int a, int b);
++int __cdecl BN_GENCB_call(BN_GENCB *cb, int a, int b);
+ 
+-BN_GENCB *BN_GENCB_new(void);
+-void BN_GENCB_free(BN_GENCB *cb);
++BN_GENCB * __cdecl BN_GENCB_new(void);
++void __cdecl BN_GENCB_free(BN_GENCB *cb);
+ 
+ /* Populate a BN_GENCB structure with an "old"-style callback */
+-void BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
++void __cdecl BN_GENCB_set_old(BN_GENCB *gencb, void (*callback) (int, int, void *),
+                       void *cb_arg);
+ 
+ /* Populate a BN_GENCB structure with a "new"-style callback */
+-void BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
++void __cdecl BN_GENCB_set(BN_GENCB *gencb, int (*callback) (int, int, BN_GENCB *),
+                   void *cb_arg);
+ 
+-void *BN_GENCB_get_arg(BN_GENCB *cb);
++void * __cdecl BN_GENCB_get_arg(BN_GENCB *cb);
+ 
+ # define BN_prime_checks 0      /* default: select number of iterations based
+                                  * on the size of the number */
+@@ -180,15 +180,15 @@ void *BN_GENCB_get_arg(BN_GENCB *cb);
+ 
+ # define BN_num_bytes(a) ((BN_num_bits(a)+7)/8)
+ 
+-int BN_abs_is_word(const BIGNUM *a, const BN_ULONG w);
+-int BN_is_zero(const BIGNUM *a);
+-int BN_is_one(const BIGNUM *a);
+-int BN_is_word(const BIGNUM *a, const BN_ULONG w);
+-int BN_is_odd(const BIGNUM *a);
++int __cdecl BN_abs_is_word(const BIGNUM *a, const BN_ULONG w);
++int __cdecl BN_is_zero(const BIGNUM *a);
++int __cdecl BN_is_one(const BIGNUM *a);
++int __cdecl BN_is_word(const BIGNUM *a, const BN_ULONG w);
++int __cdecl BN_is_odd(const BIGNUM *a);
+ 
+ # define BN_one(a)       (BN_set_word((a),1))
+ 
+-void BN_zero_ex(BIGNUM *a);
++void __cdecl BN_zero_ex(BIGNUM *a);
+ 
+ # if OPENSSL_API_COMPAT >= 0x00908000L
+ #  define BN_zero(a)      BN_zero_ex(a)
+@@ -196,131 +196,131 @@ void BN_zero_ex(BIGNUM *a);
+ #  define BN_zero(a)      (BN_set_word((a),0))
+ # endif
+ 
+-const BIGNUM *BN_value_one(void);
+-char *BN_options(void);
+-BN_CTX *BN_CTX_new(void);
+-BN_CTX *BN_CTX_secure_new(void);
+-void BN_CTX_free(BN_CTX *c);
+-void BN_CTX_start(BN_CTX *ctx);
+-BIGNUM *BN_CTX_get(BN_CTX *ctx);
+-void BN_CTX_end(BN_CTX *ctx);
+-int BN_rand(BIGNUM *rnd, int bits, int top, int bottom);
+-int BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom);
+-int BN_rand_range(BIGNUM *rnd, const BIGNUM *range);
+-int BN_priv_rand_range(BIGNUM *rnd, const BIGNUM *range);
+-int BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom);
+-int BN_pseudo_rand_range(BIGNUM *rnd, const BIGNUM *range);
+-int BN_num_bits(const BIGNUM *a);
+-int BN_num_bits_word(BN_ULONG l);
+-int BN_security_bits(int L, int N);
+-BIGNUM *BN_new(void);
+-BIGNUM *BN_secure_new(void);
+-void BN_clear_free(BIGNUM *a);
+-BIGNUM *BN_copy(BIGNUM *a, const BIGNUM *b);
+-void BN_swap(BIGNUM *a, BIGNUM *b);
+-BIGNUM *BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
+-int BN_bn2bin(const BIGNUM *a, unsigned char *to);
+-int BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen);
+-BIGNUM *BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret);
+-int BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen);
+-BIGNUM *BN_mpi2bn(const unsigned char *s, int len, BIGNUM *ret);
+-int BN_bn2mpi(const BIGNUM *a, unsigned char *to);
+-int BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+-int BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+-int BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+-int BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+-int BN_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
+-int BN_sqr(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx);
++const BIGNUM * __cdecl BN_value_one(void);
++char * __cdecl BN_options(void);
++BN_CTX * __cdecl BN_CTX_new(void);
++BN_CTX * __cdecl BN_CTX_secure_new(void);
++void __cdecl BN_CTX_free(BN_CTX *c);
++void __cdecl BN_CTX_start(BN_CTX *ctx);
++BIGNUM * __cdecl BN_CTX_get(BN_CTX *ctx);
++void __cdecl BN_CTX_end(BN_CTX *ctx);
++int __cdecl BN_rand(BIGNUM *rnd, int bits, int top, int bottom);
++int __cdecl BN_priv_rand(BIGNUM *rnd, int bits, int top, int bottom);
++int __cdecl BN_rand_range(BIGNUM *rnd, const BIGNUM *range);
++int __cdecl BN_priv_rand_range(BIGNUM *rnd, const BIGNUM *range);
++int __cdecl BN_pseudo_rand(BIGNUM *rnd, int bits, int top, int bottom);
++int __cdecl BN_pseudo_rand_range(BIGNUM *rnd, const BIGNUM *range);
++int __cdecl BN_num_bits(const BIGNUM *a);
++int __cdecl BN_num_bits_word(BN_ULONG l);
++int __cdecl BN_security_bits(int L, int N);
++BIGNUM * __cdecl BN_new(void);
++BIGNUM * __cdecl BN_secure_new(void);
++void __cdecl BN_clear_free(BIGNUM *a);
++BIGNUM * __cdecl BN_copy(BIGNUM *a, const BIGNUM *b);
++void __cdecl BN_swap(BIGNUM *a, BIGNUM *b);
++BIGNUM * __cdecl BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret);
++int __cdecl BN_bn2bin(const BIGNUM *a, unsigned char *to);
++int __cdecl BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen);
++BIGNUM * __cdecl BN_lebin2bn(const unsigned char *s, int len, BIGNUM *ret);
++int __cdecl BN_bn2lebinpad(const BIGNUM *a, unsigned char *to, int tolen);
++BIGNUM * __cdecl BN_mpi2bn(const unsigned char *s, int len, BIGNUM *ret);
++int __cdecl BN_bn2mpi(const BIGNUM *a, unsigned char *to);
++int __cdecl BN_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_usub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_uadd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
++int __cdecl BN_sqr(BIGNUM *r, const BIGNUM *a, BN_CTX *ctx);
+ /** BN_set_negative sets sign of a BIGNUM
+  * \param  b  pointer to the BIGNUM object
+  * \param  n  0 if the BIGNUM b should be positive and a value != 0 otherwise
+  */
+-void BN_set_negative(BIGNUM *b, int n);
++void __cdecl BN_set_negative(BIGNUM *b, int n);
+ /** BN_is_negative returns 1 if the BIGNUM is negative
+  * \param  b  pointer to the BIGNUM object
+  * \return 1 if a < 0 and 0 otherwise
+  */
+-int BN_is_negative(const BIGNUM *b);
++int __cdecl BN_is_negative(const BIGNUM *b);
+ 
+-int BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
++int __cdecl BN_div(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m, const BIGNUM *d,
+            BN_CTX *ctx);
+ # define BN_mod(rem,m,d,ctx) BN_div(NULL,(rem),(m),(d),(ctx))
+-int BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx);
+-int BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_nnmod(BIGNUM *r, const BIGNUM *m, const BIGNUM *d, BN_CTX *ctx);
++int __cdecl BN_mod_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx);
+-int BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_mod_add_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                      const BIGNUM *m);
+-int BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_mod_sub(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx);
+-int BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_mod_sub_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                      const BIGNUM *m);
+-int BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
++int __cdecl BN_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, const BIGNUM *m,
+                BN_CTX *ctx);
+-int BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
+-int BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
+-int BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m);
+-int BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
++int __cdecl BN_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
++int __cdecl BN_mod_lshift1(BIGNUM *r, const BIGNUM *a, const BIGNUM *m, BN_CTX *ctx);
++int __cdecl BN_mod_lshift1_quick(BIGNUM *r, const BIGNUM *a, const BIGNUM *m);
++int __cdecl BN_mod_lshift(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m,
+                   BN_CTX *ctx);
+-int BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m);
+-
+-BN_ULONG BN_mod_word(const BIGNUM *a, BN_ULONG w);
+-BN_ULONG BN_div_word(BIGNUM *a, BN_ULONG w);
+-int BN_mul_word(BIGNUM *a, BN_ULONG w);
+-int BN_add_word(BIGNUM *a, BN_ULONG w);
+-int BN_sub_word(BIGNUM *a, BN_ULONG w);
+-int BN_set_word(BIGNUM *a, BN_ULONG w);
+-BN_ULONG BN_get_word(const BIGNUM *a);
+-
+-int BN_cmp(const BIGNUM *a, const BIGNUM *b);
+-void BN_free(BIGNUM *a);
+-int BN_is_bit_set(const BIGNUM *a, int n);
+-int BN_lshift(BIGNUM *r, const BIGNUM *a, int n);
+-int BN_lshift1(BIGNUM *r, const BIGNUM *a);
+-int BN_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-
+-int BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_lshift_quick(BIGNUM *r, const BIGNUM *a, int n, const BIGNUM *m);
++
++BN_ULONG __cdecl BN_mod_word(const BIGNUM *a, BN_ULONG w);
++BN_ULONG __cdecl BN_div_word(BIGNUM *a, BN_ULONG w);
++int __cdecl BN_mul_word(BIGNUM *a, BN_ULONG w);
++int __cdecl BN_add_word(BIGNUM *a, BN_ULONG w);
++int __cdecl BN_sub_word(BIGNUM *a, BN_ULONG w);
++int __cdecl BN_set_word(BIGNUM *a, BN_ULONG w);
++BN_ULONG __cdecl BN_get_word(const BIGNUM *a);
++
++int __cdecl BN_cmp(const BIGNUM *a, const BIGNUM *b);
++void __cdecl BN_free(BIGNUM *a);
++int __cdecl BN_is_bit_set(const BIGNUM *a, int n);
++int __cdecl BN_lshift(BIGNUM *r, const BIGNUM *a, int n);
++int __cdecl BN_lshift1(BIGNUM *r, const BIGNUM *a);
++int __cdecl BN_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++
++int __cdecl BN_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                const BIGNUM *m, BN_CTX *ctx);
+-int BN_mod_exp_mont(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                     const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+-int BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont_consttime(BIGNUM *rr, const BIGNUM *a, const BIGNUM *p,
+                               const BIGNUM *m, BN_CTX *ctx,
+                               BN_MONT_CTX *in_mont);
+-int BN_mod_exp_mont_word(BIGNUM *r, BN_ULONG a, const BIGNUM *p,
++int __cdecl BN_mod_exp_mont_word(BIGNUM *r, BN_ULONG a, const BIGNUM *p,
+                          const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+-int BN_mod_exp2_mont(BIGNUM *r, const BIGNUM *a1, const BIGNUM *p1,
++int __cdecl BN_mod_exp2_mont(BIGNUM *r, const BIGNUM *a1, const BIGNUM *p1,
+                      const BIGNUM *a2, const BIGNUM *p2, const BIGNUM *m,
+                      BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+-int BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_simple(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                       const BIGNUM *m, BN_CTX *ctx);
+ 
+-int BN_mask_bits(BIGNUM *a, int n);
++int __cdecl BN_mask_bits(BIGNUM *a, int n);
+ # ifndef OPENSSL_NO_STDIO
+-int BN_print_fp(FILE *fp, const BIGNUM *a);
++int __cdecl BN_print_fp(FILE *fp, const BIGNUM *a);
+ # endif
+-int BN_print(BIO *bio, const BIGNUM *a);
+-int BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx);
+-int BN_rshift(BIGNUM *r, const BIGNUM *a, int n);
+-int BN_rshift1(BIGNUM *r, const BIGNUM *a);
+-void BN_clear(BIGNUM *a);
+-BIGNUM *BN_dup(const BIGNUM *a);
+-int BN_ucmp(const BIGNUM *a, const BIGNUM *b);
+-int BN_set_bit(BIGNUM *a, int n);
+-int BN_clear_bit(BIGNUM *a, int n);
+-char *BN_bn2hex(const BIGNUM *a);
+-char *BN_bn2dec(const BIGNUM *a);
+-int BN_hex2bn(BIGNUM **a, const char *str);
+-int BN_dec2bn(BIGNUM **a, const char *str);
+-int BN_asc2bn(BIGNUM **a, const char *str);
+-int BN_gcd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
+-int BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx); /* returns
++int __cdecl BN_print(BIO *bio, const BIGNUM *a);
++int __cdecl BN_reciprocal(BIGNUM *r, const BIGNUM *m, int len, BN_CTX *ctx);
++int __cdecl BN_rshift(BIGNUM *r, const BIGNUM *a, int n);
++int __cdecl BN_rshift1(BIGNUM *r, const BIGNUM *a);
++void __cdecl BN_clear(BIGNUM *a);
++BIGNUM * __cdecl BN_dup(const BIGNUM *a);
++int __cdecl BN_ucmp(const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_set_bit(BIGNUM *a, int n);
++int __cdecl BN_clear_bit(BIGNUM *a, int n);
++char * __cdecl BN_bn2hex(const BIGNUM *a);
++char * __cdecl BN_bn2dec(const BIGNUM *a);
++int __cdecl BN_hex2bn(BIGNUM **a, const char *str);
++int __cdecl BN_dec2bn(BIGNUM **a, const char *str);
++int __cdecl BN_asc2bn(BIGNUM **a, const char *str);
++int __cdecl BN_gcd(BIGNUM *r, const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx);
++int __cdecl BN_kronecker(const BIGNUM *a, const BIGNUM *b, BN_CTX *ctx); /* returns
+                                                                   * -2 for
+                                                                   * error */
+-BIGNUM *BN_mod_inverse(BIGNUM *ret,
++BIGNUM * __cdecl BN_mod_inverse(BIGNUM *ret,
+                        const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx);
+-BIGNUM *BN_mod_sqrt(BIGNUM *ret,
++BIGNUM * __cdecl BN_mod_sqrt(BIGNUM *ret,
+                     const BIGNUM *a, const BIGNUM *n, BN_CTX *ctx);
+ 
+-void BN_consttime_swap(BN_ULONG swap, BIGNUM *a, BIGNUM *b, int nwords);
++void __cdecl BN_consttime_swap(BN_ULONG swap, BIGNUM *a, BIGNUM *b, int nwords);
+ 
+ /* Deprecated versions */
+ DEPRECATEDIN_0_9_8(BIGNUM *BN_generate_prime(BIGNUM *ret, int bits, int safe,
+@@ -340,58 +340,58 @@ DEPRECATEDIN_0_9_8(int
+                                         int do_trial_division))
+ 
+ /* Newer versions */
+-int BN_generate_prime_ex(BIGNUM *ret, int bits, int safe, const BIGNUM *add,
++int __cdecl BN_generate_prime_ex(BIGNUM *ret, int bits, int safe, const BIGNUM *add,
+                          const BIGNUM *rem, BN_GENCB *cb);
+-int BN_is_prime_ex(const BIGNUM *p, int nchecks, BN_CTX *ctx, BN_GENCB *cb);
+-int BN_is_prime_fasttest_ex(const BIGNUM *p, int nchecks, BN_CTX *ctx,
++int __cdecl BN_is_prime_ex(const BIGNUM *p, int nchecks, BN_CTX *ctx, BN_GENCB *cb);
++int __cdecl BN_is_prime_fasttest_ex(const BIGNUM *p, int nchecks, BN_CTX *ctx,
+                             int do_trial_division, BN_GENCB *cb);
+ 
+-int BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx);
++int __cdecl BN_X931_generate_Xpq(BIGNUM *Xp, BIGNUM *Xq, int nbits, BN_CTX *ctx);
+ 
+-int BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
++int __cdecl BN_X931_derive_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2,
+                             const BIGNUM *Xp, const BIGNUM *Xp1,
+                             const BIGNUM *Xp2, const BIGNUM *e, BN_CTX *ctx,
+                             BN_GENCB *cb);
+-int BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2, BIGNUM *Xp1,
++int __cdecl BN_X931_generate_prime_ex(BIGNUM *p, BIGNUM *p1, BIGNUM *p2, BIGNUM *Xp1,
+                               BIGNUM *Xp2, const BIGNUM *Xp, const BIGNUM *e,
+                               BN_CTX *ctx, BN_GENCB *cb);
+ 
+-BN_MONT_CTX *BN_MONT_CTX_new(void);
+-int BN_mod_mul_montgomery(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++BN_MONT_CTX * __cdecl BN_MONT_CTX_new(void);
++int __cdecl BN_mod_mul_montgomery(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                           BN_MONT_CTX *mont, BN_CTX *ctx);
+-int BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
++int __cdecl BN_to_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
+                      BN_CTX *ctx);
+-int BN_from_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
++int __cdecl BN_from_montgomery(BIGNUM *r, const BIGNUM *a, BN_MONT_CTX *mont,
+                        BN_CTX *ctx);
+-void BN_MONT_CTX_free(BN_MONT_CTX *mont);
+-int BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx);
+-BN_MONT_CTX *BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from);
+-BN_MONT_CTX *BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
++void __cdecl BN_MONT_CTX_free(BN_MONT_CTX *mont);
++int __cdecl BN_MONT_CTX_set(BN_MONT_CTX *mont, const BIGNUM *mod, BN_CTX *ctx);
++BN_MONT_CTX * __cdecl BN_MONT_CTX_copy(BN_MONT_CTX *to, BN_MONT_CTX *from);
++BN_MONT_CTX * __cdecl BN_MONT_CTX_set_locked(BN_MONT_CTX **pmont, CRYPTO_RWLOCK *lock,
+                                     const BIGNUM *mod, BN_CTX *ctx);
+ 
+ /* BN_BLINDING flags */
+ # define BN_BLINDING_NO_UPDATE   0x00000001
+ # define BN_BLINDING_NO_RECREATE 0x00000002
+ 
+-BN_BLINDING *BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod);
+-void BN_BLINDING_free(BN_BLINDING *b);
+-int BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx);
+-int BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
+-int BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
+-int BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *);
+-int BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
++BN_BLINDING * __cdecl BN_BLINDING_new(const BIGNUM *A, const BIGNUM *Ai, BIGNUM *mod);
++void __cdecl BN_BLINDING_free(BN_BLINDING *b);
++int __cdecl BN_BLINDING_update(BN_BLINDING *b, BN_CTX *ctx);
++int __cdecl BN_BLINDING_convert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
++int __cdecl BN_BLINDING_invert(BIGNUM *n, BN_BLINDING *b, BN_CTX *ctx);
++int __cdecl BN_BLINDING_convert_ex(BIGNUM *n, BIGNUM *r, BN_BLINDING *b, BN_CTX *);
++int __cdecl BN_BLINDING_invert_ex(BIGNUM *n, const BIGNUM *r, BN_BLINDING *b,
+                           BN_CTX *);
+ 
+-int BN_BLINDING_is_current_thread(BN_BLINDING *b);
+-void BN_BLINDING_set_current_thread(BN_BLINDING *b);
+-int BN_BLINDING_lock(BN_BLINDING *b);
+-int BN_BLINDING_unlock(BN_BLINDING *b);
++int __cdecl BN_BLINDING_is_current_thread(BN_BLINDING *b);
++void __cdecl BN_BLINDING_set_current_thread(BN_BLINDING *b);
++int __cdecl BN_BLINDING_lock(BN_BLINDING *b);
++int __cdecl BN_BLINDING_unlock(BN_BLINDING *b);
+ 
+-unsigned long BN_BLINDING_get_flags(const BN_BLINDING *);
+-void BN_BLINDING_set_flags(BN_BLINDING *, unsigned long);
+-BN_BLINDING *BN_BLINDING_create_param(BN_BLINDING *b,
++unsigned long __cdecl BN_BLINDING_get_flags(const BN_BLINDING *);
++void __cdecl BN_BLINDING_set_flags(BN_BLINDING *, unsigned long);
++BN_BLINDING * __cdecl BN_BLINDING_create_param(BN_BLINDING *b,
+                                       const BIGNUM *e, BIGNUM *m, BN_CTX *ctx,
+-                                      int (*bn_mod_exp) (BIGNUM *r,
++                                      int (__cdecl *bn_mod_exp) (BIGNUM *r,
+                                                          const BIGNUM *a,
+                                                          const BIGNUM *p,
+                                                          const BIGNUM *m,
+@@ -403,14 +403,14 @@ DEPRECATEDIN_0_9_8(void BN_set_params(int mul, int high, int low, int mont))
+ DEPRECATEDIN_0_9_8(int BN_get_params(int which)) /* 0, mul, 1 high, 2 low, 3
+                                                   * mont */
+ 
+-BN_RECP_CTX *BN_RECP_CTX_new(void);
+-void BN_RECP_CTX_free(BN_RECP_CTX *recp);
+-int BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *rdiv, BN_CTX *ctx);
+-int BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
++BN_RECP_CTX * __cdecl BN_RECP_CTX_new(void);
++void __cdecl BN_RECP_CTX_free(BN_RECP_CTX *recp);
++int __cdecl BN_RECP_CTX_set(BN_RECP_CTX *recp, const BIGNUM *rdiv, BN_CTX *ctx);
++int __cdecl BN_mod_mul_reciprocal(BIGNUM *r, const BIGNUM *x, const BIGNUM *y,
+                           BN_RECP_CTX *recp, BN_CTX *ctx);
+-int BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_mod_exp_recp(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                     const BIGNUM *m, BN_CTX *ctx);
+-int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
++int __cdecl BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+                 BN_RECP_CTX *recp, BN_CTX *ctx);
+ 
+ # ifndef OPENSSL_NO_EC2M
+@@ -425,30 +425,30 @@ int BN_div_recp(BIGNUM *dv, BIGNUM *rem, const BIGNUM *m,
+ /*
+  * r = a + b
+  */
+-int BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
++int __cdecl BN_GF2m_add(BIGNUM *r, const BIGNUM *a, const BIGNUM *b);
+ #  define BN_GF2m_sub(r, a, b) BN_GF2m_add(r, a, b)
+ /*
+  * r=a mod p
+  */
+-int BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p);
++int __cdecl BN_GF2m_mod(BIGNUM *r, const BIGNUM *a, const BIGNUM *p);
+ /* r = (a * b) mod p */
+-int BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_mul(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                     const BIGNUM *p, BN_CTX *ctx);
+ /* r = (a * a) mod p */
+-int BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_GF2m_mod_sqr(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+ /* r = (1 / b) mod p */
+-int BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *b, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_GF2m_mod_inv(BIGNUM *r, const BIGNUM *b, const BIGNUM *p, BN_CTX *ctx);
+ /* r = (a / b) mod p */
+-int BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_div(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                     const BIGNUM *p, BN_CTX *ctx);
+ /* r = (a ^ b) mod p */
+-int BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_exp(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                     const BIGNUM *p, BN_CTX *ctx);
+ /* r = sqrt(a) mod p */
+-int BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_GF2m_mod_sqrt(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                      BN_CTX *ctx);
+ /* r^2 + r = a mod p */
+-int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
++int __cdecl BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+                            BN_CTX *ctx);
+ #  define BN_GF2m_cmp(a, b) BN_ucmp((a), (b))
+ /*-
+@@ -458,66 +458,66 @@ int BN_GF2m_mod_solve_quad(BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+  * where m = p[0] > p[1] > ... > p[k] = 0.
+  */
+ /* r = a mod p */
+-int BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[]);
++int __cdecl BN_GF2m_mod_arr(BIGNUM *r, const BIGNUM *a, const int p[]);
+ /* r = (a * b) mod p */
+-int BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_mul_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                         const int p[], BN_CTX *ctx);
+ /* r = (a * a) mod p */
+-int BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
++int __cdecl BN_GF2m_mod_sqr_arr(BIGNUM *r, const BIGNUM *a, const int p[],
+                         BN_CTX *ctx);
+ /* r = (1 / b) mod p */
+-int BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *b, const int p[],
++int __cdecl BN_GF2m_mod_inv_arr(BIGNUM *r, const BIGNUM *b, const int p[],
+                         BN_CTX *ctx);
+ /* r = (a / b) mod p */
+-int BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_div_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                         const int p[], BN_CTX *ctx);
+ /* r = (a ^ b) mod p */
+-int BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
++int __cdecl BN_GF2m_mod_exp_arr(BIGNUM *r, const BIGNUM *a, const BIGNUM *b,
+                         const int p[], BN_CTX *ctx);
+ /* r = sqrt(a) mod p */
+-int BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a,
++int __cdecl BN_GF2m_mod_sqrt_arr(BIGNUM *r, const BIGNUM *a,
+                          const int p[], BN_CTX *ctx);
+ /* r^2 + r = a mod p */
+-int BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a,
++int __cdecl BN_GF2m_mod_solve_quad_arr(BIGNUM *r, const BIGNUM *a,
+                                const int p[], BN_CTX *ctx);
+-int BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max);
+-int BN_GF2m_arr2poly(const int p[], BIGNUM *a);
++int __cdecl BN_GF2m_poly2arr(const BIGNUM *a, int p[], int max);
++int __cdecl BN_GF2m_arr2poly(const int p[], BIGNUM *a);
+ 
+ # endif
+ 
+ /*
+  * faster mod functions for the 'NIST primes' 0 <= a < p^2
+  */
+-int BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-int BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-int BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-int BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-int BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
+-
+-const BIGNUM *BN_get0_nist_prime_192(void);
+-const BIGNUM *BN_get0_nist_prime_224(void);
+-const BIGNUM *BN_get0_nist_prime_256(void);
+-const BIGNUM *BN_get0_nist_prime_384(void);
+-const BIGNUM *BN_get0_nist_prime_521(void);
+-
+-int (*BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
++int __cdecl BN_nist_mod_192(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_nist_mod_224(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_nist_mod_256(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_nist_mod_384(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++int __cdecl BN_nist_mod_521(BIGNUM *r, const BIGNUM *a, const BIGNUM *p, BN_CTX *ctx);
++
++const BIGNUM * __cdecl BN_get0_nist_prime_192(void);
++const BIGNUM * __cdecl BN_get0_nist_prime_224(void);
++const BIGNUM * __cdecl BN_get0_nist_prime_256(void);
++const BIGNUM * __cdecl BN_get0_nist_prime_384(void);
++const BIGNUM * __cdecl BN_get0_nist_prime_521(void);
++
++int (__cdecl *BN_nist_mod_func(const BIGNUM *p)) (BIGNUM *r, const BIGNUM *a,
+                                           const BIGNUM *field, BN_CTX *ctx);
+ 
+-int BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
++int __cdecl BN_generate_dsa_nonce(BIGNUM *out, const BIGNUM *range,
+                           const BIGNUM *priv, const unsigned char *message,
+                           size_t message_len, BN_CTX *ctx);
+ 
+ /* Primes from RFC 2409 */
+-BIGNUM *BN_get_rfc2409_prime_768(BIGNUM *bn);
+-BIGNUM *BN_get_rfc2409_prime_1024(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc2409_prime_768(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc2409_prime_1024(BIGNUM *bn);
+ 
+ /* Primes from RFC 3526 */
+-BIGNUM *BN_get_rfc3526_prime_1536(BIGNUM *bn);
+-BIGNUM *BN_get_rfc3526_prime_2048(BIGNUM *bn);
+-BIGNUM *BN_get_rfc3526_prime_3072(BIGNUM *bn);
+-BIGNUM *BN_get_rfc3526_prime_4096(BIGNUM *bn);
+-BIGNUM *BN_get_rfc3526_prime_6144(BIGNUM *bn);
+-BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_1536(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_2048(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_3072(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_4096(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_6144(BIGNUM *bn);
++BIGNUM * __cdecl BN_get_rfc3526_prime_8192(BIGNUM *bn);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define get_rfc2409_prime_768 BN_get_rfc2409_prime_768
+@@ -530,7 +530,7 @@ BIGNUM *BN_get_rfc3526_prime_8192(BIGNUM *bn);
+ #  define get_rfc3526_prime_8192 BN_get_rfc3526_prime_8192
+ # endif
+ 
+-int BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom);
++int __cdecl BN_bntest_rand(BIGNUM *rnd, int bits, int top, int bottom);
+ 
  
  # ifdef  __cplusplus
- }
+diff --git a/include/openssl/rsa.h b/include/openssl/rsa.h
+index cdce1264eb..e7a8b30d12 100644
+--- a/include/openssl/rsa.h
++++ b/include/openssl/rsa.h
+@@ -427,81 +427,81 @@ int RSA_meth_get_flags(const RSA_METHOD *meth);
+ int RSA_meth_set_flags(RSA_METHOD *meth, int flags);
+ void *RSA_meth_get0_app_data(const RSA_METHOD *meth);
+ int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
+-int (*RSA_meth_get_pub_enc(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_pub_enc(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding);
+-int RSA_meth_set_pub_enc(RSA_METHOD *rsa,
+-                         int (*pub_enc) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_pub_enc(RSA_METHOD *rsa,
++                         int (__cdecl *pub_enc) (int flen, const unsigned char *from,
+                                          unsigned char *to, RSA *rsa,
+                                          int padding));
+-int (*RSA_meth_get_pub_dec(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_pub_dec(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding);
+-int RSA_meth_set_pub_dec(RSA_METHOD *rsa,
+-                         int (*pub_dec) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_pub_dec(RSA_METHOD *rsa,
++                         int (__cdecl *pub_dec) (int flen, const unsigned char *from,
+                                          unsigned char *to, RSA *rsa,
+                                          int padding));
+-int (*RSA_meth_get_priv_enc(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_priv_enc(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding);
+-int RSA_meth_set_priv_enc(RSA_METHOD *rsa,
+-                          int (*priv_enc) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_priv_enc(RSA_METHOD *rsa,
++                          int (__cdecl *priv_enc) (int flen, const unsigned char *from,
+                                            unsigned char *to, RSA *rsa,
+                                            int padding));
+-int (*RSA_meth_get_priv_dec(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_priv_dec(const RSA_METHOD *meth))
+     (int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding);
+-int RSA_meth_set_priv_dec(RSA_METHOD *rsa,
+-                          int (*priv_dec) (int flen, const unsigned char *from,
++int __cdecl RSA_meth_set_priv_dec(RSA_METHOD *rsa,
++                          int (__cdecl *priv_dec) (int flen, const unsigned char *from,
+                                            unsigned char *to, RSA *rsa,
+                                            int padding));
+-int (*RSA_meth_get_mod_exp(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_mod_exp(const RSA_METHOD *meth))
+     (BIGNUM *r0, const BIGNUM *i, RSA *rsa, BN_CTX *ctx);
+-int RSA_meth_set_mod_exp(RSA_METHOD *rsa,
+-                         int (*mod_exp) (BIGNUM *r0, const BIGNUM *i, RSA *rsa,
++int __cdecl RSA_meth_set_mod_exp(RSA_METHOD *rsa,
++                         int (__cdecl *mod_exp) (BIGNUM *r0, const BIGNUM *i, RSA *rsa,
+                                          BN_CTX *ctx));
+-int (*RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_bn_mod_exp(const RSA_METHOD *meth))
+     (BIGNUM *r, const BIGNUM *a, const BIGNUM *p,
+      const BIGNUM *m, BN_CTX *ctx, BN_MONT_CTX *m_ctx);
+-int RSA_meth_set_bn_mod_exp(RSA_METHOD *rsa,
+-                            int (*bn_mod_exp) (BIGNUM *r,
++int __cdecl RSA_meth_set_bn_mod_exp(RSA_METHOD *rsa,
++                            int (__cdecl *bn_mod_exp) (BIGNUM *r,
+                                                const BIGNUM *a,
+                                                const BIGNUM *p,
+                                                const BIGNUM *m,
+                                                BN_CTX *ctx,
+                                                BN_MONT_CTX *m_ctx));
+-int (*RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa);
+-int RSA_meth_set_init(RSA_METHOD *rsa, int (*init) (RSA *rsa));
+-int (*RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa);
+-int RSA_meth_set_finish(RSA_METHOD *rsa, int (*finish) (RSA *rsa));
+-int (*RSA_meth_get_sign(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_init(const RSA_METHOD *meth)) (RSA *rsa);
++int __cdecl RSA_meth_set_init(RSA_METHOD *rsa, int (__cdecl *init) (RSA *rsa));
++int (__cdecl *RSA_meth_get_finish(const RSA_METHOD *meth)) (RSA *rsa);
++int __cdecl RSA_meth_set_finish(RSA_METHOD *rsa, int (__cdecl *finish) (RSA *rsa));
++int (__cdecl *RSA_meth_get_sign(const RSA_METHOD *meth))
+     (int type,
+      const unsigned char *m, unsigned int m_length,
+      unsigned char *sigret, unsigned int *siglen,
+      const RSA *rsa);
+-int RSA_meth_set_sign(RSA_METHOD *rsa,
+-                      int (*sign) (int type, const unsigned char *m,
++int __cdecl RSA_meth_set_sign(RSA_METHOD *rsa,
++                      int (__cdecl *sign) (int type, const unsigned char *m,
+                                    unsigned int m_length,
+                                    unsigned char *sigret, unsigned int *siglen,
+                                    const RSA *rsa));
+-int (*RSA_meth_get_verify(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_verify(const RSA_METHOD *meth))
+     (int dtype, const unsigned char *m,
+      unsigned int m_length, const unsigned char *sigbuf,
+      unsigned int siglen, const RSA *rsa);
+-int RSA_meth_set_verify(RSA_METHOD *rsa,
+-                        int (*verify) (int dtype, const unsigned char *m,
++int __cdecl RSA_meth_set_verify(RSA_METHOD *rsa,
++                        int (__cdecl *verify) (int dtype, const unsigned char *m,
+                                        unsigned int m_length,
+                                        const unsigned char *sigbuf,
+                                        unsigned int siglen, const RSA *rsa));
+-int (*RSA_meth_get_keygen(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_keygen(const RSA_METHOD *meth))
+     (RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
+-int RSA_meth_set_keygen(RSA_METHOD *rsa,
+-                        int (*keygen) (RSA *rsa, int bits, BIGNUM *e,
++int __cdecl RSA_meth_set_keygen(RSA_METHOD *rsa,
++                        int (__cdecl *keygen) (RSA *rsa, int bits, BIGNUM *e,
+                                        BN_GENCB *cb));
+-int (*RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
++int (__cdecl *RSA_meth_get_multi_prime_keygen(const RSA_METHOD *meth))
+     (RSA *rsa, int bits, int primes, BIGNUM *e, BN_GENCB *cb);
+-int RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
+-                                    int (*keygen) (RSA *rsa, int bits,
++int __cdecl RSA_meth_set_multi_prime_keygen(RSA_METHOD *meth,
++                                    int (__cdecl *keygen) (RSA *rsa, int bits,
+                                                    int primes, BIGNUM *e,
+                                                    BN_GENCB *cb));
+ 
