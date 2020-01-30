@@ -1732,7 +1732,7 @@ index 3b2c9df891..ab3d27644d 100644
  {
      int n, rv = 0;
 diff --git a/crypto/asn1/tasn_dec.c b/crypto/asn1/tasn_dec.c
-index c2a521ed51..c66e639634 100644
+index c2a521ed51..1cf4f1067d 100644
 --- a/crypto/asn1/tasn_dec.c
 +++ b/crypto/asn1/tasn_dec.c
 @@ -82,7 +82,7 @@ static const unsigned long tag2bit[32] = {
@@ -1753,8 +1753,17 @@ index c2a521ed51..c66e639634 100644
                            const unsigned char **in, long len,
                            const ASN1_ITEM *it)
  {
+@@ -116,7 +116,7 @@ ASN1_VALUE *ASN1_item_d2i(ASN1_VALUE **pval,
+     return NULL;
+ }
+ 
+-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
++int __cdecl ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+                      const ASN1_ITEM *it,
+                      int tag, int aclass, char opt, ASN1_TLC *ctx)
+ {
 diff --git a/crypto/asn1/tasn_enc.c b/crypto/asn1/tasn_enc.c
-index 30be314ff9..c7780482c5 100644
+index 30be314ff9..67028de15d 100644
 --- a/crypto/asn1/tasn_enc.c
 +++ b/crypto/asn1/tasn_enc.c
 @@ -33,13 +33,13 @@ static int asn1_ex_i2c(ASN1_VALUE **pval, unsigned char *cout, int *putype,
@@ -1773,6 +1782,15 @@ index 30be314ff9..c7780482c5 100644
  {
      return asn1_item_flags_i2d(val, out, it, 0);
  }
+@@ -79,7 +79,7 @@ static int asn1_item_flags_i2d(ASN1_VALUE *val, unsigned char **out,
+  * performs the normal item handling: it can be used in external types.
+  */
+ 
+-int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
++int __cdecl ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
+                      const ASN1_ITEM *it, int tag, int aclass)
+ {
+     const ASN1_TEMPLATE *tt = NULL;
 @@ -354,7 +354,7 @@ typedef struct {
      ASN1_VALUE *field;
  } DER_ENC;
@@ -1783,10 +1801,10 @@ index 30be314ff9..c7780482c5 100644
      const DER_ENC *d1 = a, *d2 = b;
      int cmplen, i;
 diff --git a/crypto/asn1/tasn_fre.c b/crypto/asn1/tasn_fre.c
-index bbce489fe0..8781209612 100644
+index bbce489fe0..d59a6519cc 100644
 --- a/crypto/asn1/tasn_fre.c
 +++ b/crypto/asn1/tasn_fre.c
-@@ -15,7 +15,7 @@
+@@ -15,12 +15,12 @@
  
  /* Free up an ASN1 structure */
  
@@ -1795,8 +1813,14 @@ index bbce489fe0..8781209612 100644
  {
      asn1_item_embed_free(&val, it, 0);
  }
+ 
+-void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
++void __cdecl ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+ {
+     asn1_item_embed_free(pval, it, 0);
+ }
 diff --git a/crypto/asn1/tasn_new.c b/crypto/asn1/tasn_new.c
-index 6b8ea8ddd7..acd0b2cf54 100644
+index 6b8ea8ddd7..6c35cb2443 100644
 --- a/crypto/asn1/tasn_new.c
 +++ b/crypto/asn1/tasn_new.c
 @@ -24,7 +24,7 @@ static int asn1_template_new(ASN1_VALUE **pval, const ASN1_TEMPLATE *tt);
@@ -1808,6 +1832,15 @@ index 6b8ea8ddd7..acd0b2cf54 100644
  {
      ASN1_VALUE *ret = NULL;
      if (ASN1_item_ex_new(&ret, it) > 0)
+@@ -34,7 +34,7 @@ ASN1_VALUE *ASN1_item_new(const ASN1_ITEM *it)
+ 
+ /* Allocate an ASN1 structure */
+ 
+-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
++int __cdecl ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+ {
+     return asn1_item_embed_new(pval, it, 0);
+ }
 diff --git a/crypto/asn1/tasn_prn.c b/crypto/asn1/tasn_prn.c
 index 1fb66f1062..ca8babb602 100644
 --- a/crypto/asn1/tasn_prn.c
@@ -4438,7 +4471,7 @@ index faed5a5518..10d838047e 100644
  /*
   * ASN1 function codes.
 diff --git a/include/openssl/asn1t.h b/include/openssl/asn1t.h
-index a450ba0d9d..a81515e882 100644
+index a450ba0d9d..1cd386a9d8 100644
 --- a/include/openssl/asn1t.h
 +++ b/include/openssl/asn1t.h
 @@ -822,7 +822,7 @@ typedef struct ASN1_STREAM_ARG_st {
@@ -4468,6 +4501,25 @@ index a450ba0d9d..a81515e882 100644
          { \
                  return ASN1_item_i2d((ASN1_VALUE *)a, out, ASN1_ITEM_rptr(itname));\
          }
+@@ -929,14 +929,14 @@ DEFINE_STACK_OF(ASN1_VALUE)
+ 
+ /* Functions used internally by the ASN1 code */
+ 
+-int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
+-void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
++int __cdecl ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
++void __cdecl ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+ 
+-int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
++int __cdecl ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
+                      const ASN1_ITEM *it, int tag, int aclass, char opt,
+                      ASN1_TLC *ctx);
+ 
+-int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
++int __cdecl ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
+                      const ASN1_ITEM *it, int tag, int aclass);
+ 
+ #ifdef  __cplusplus
 diff --git a/include/openssl/bio.h b/include/openssl/bio.h
 index e1fddfb796..62f7bc33bb 100644
 --- a/include/openssl/bio.h
@@ -5605,78 +5657,237 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/asn1/tasn_dec.c b/crypto/asn1/tasn_dec.c
-index c66e639634..1cf4f1067d 100644
---- a/crypto/asn1/tasn_dec.c
-+++ b/crypto/asn1/tasn_dec.c
-@@ -116,7 +116,7 @@ ASN1_VALUE * __cdecl ASN1_item_d2i(ASN1_VALUE **pval,
-     return NULL;
+diff --git a/crypto/async/arch/async_null.c b/crypto/async/arch/async_null.c
+index 3eaf170f2e..642fcd3534 100644
+--- a/crypto/async/arch/async_null.c
++++ b/crypto/async/arch/async_null.c
+@@ -11,7 +11,7 @@
+ #include "../async_locl.h"
+ 
+ #ifdef ASYNC_NULL
+-int ASYNC_is_capable(void)
++int __cdecl ASYNC_is_capable(void)
+ {
+     return 0;
+ }
+diff --git a/crypto/async/arch/async_posix.c b/crypto/async/arch/async_posix.c
+index 02c342d3df..b91ee1a13b 100644
+--- a/crypto/async/arch/async_posix.c
++++ b/crypto/async/arch/async_posix.c
+@@ -17,7 +17,7 @@
+ 
+ #define STACKSIZE       32768
+ 
+-int ASYNC_is_capable(void)
++int __cdecl ASYNC_is_capable(void)
+ {
+     ucontext_t ctx;
+ 
+diff --git a/crypto/async/arch/async_win.c b/crypto/async/arch/async_win.c
+index 077d56ced0..d2f30908bd 100644
+--- a/crypto/async/arch/async_win.c
++++ b/crypto/async/arch/async_win.c
+@@ -15,7 +15,7 @@
+ # include <windows.h>
+ # include "internal/cryptlib.h"
+ 
+-int ASYNC_is_capable(void)
++int __cdecl ASYNC_is_capable(void)
+ {
+     return 1;
+ }
+diff --git a/crypto/async/async.c b/crypto/async/async.c
+index 1d83e4576f..92eaa6982c 100644
+--- a/crypto/async/async.c
++++ b/crypto/async/async.c
+@@ -164,7 +164,7 @@ void async_start_func(void)
+     }
  }
  
--int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
-+int __cdecl ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
-                      const ASN1_ITEM *it,
-                      int tag, int aclass, char opt, ASN1_TLC *ctx)
+-int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
++int __cdecl ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *wctx, int *ret,
+                     int (*func)(void *), void *args, size_t size)
  {
-diff --git a/crypto/asn1/tasn_enc.c b/crypto/asn1/tasn_enc.c
-index c7780482c5..67028de15d 100644
---- a/crypto/asn1/tasn_enc.c
-+++ b/crypto/asn1/tasn_enc.c
-@@ -79,7 +79,7 @@ static int asn1_item_flags_i2d(ASN1_VALUE *val, unsigned char **out,
-  * performs the normal item handling: it can be used in external types.
-  */
- 
--int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
-+int __cdecl ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
-                      const ASN1_ITEM *it, int tag, int aclass)
- {
-     const ASN1_TEMPLATE *tt = NULL;
-diff --git a/crypto/asn1/tasn_fre.c b/crypto/asn1/tasn_fre.c
-index 8781209612..d59a6519cc 100644
---- a/crypto/asn1/tasn_fre.c
-+++ b/crypto/asn1/tasn_fre.c
-@@ -20,7 +20,7 @@ void __cdecl ASN1_item_free(ASN1_VALUE *val, const ASN1_ITEM *it)
-     asn1_item_embed_free(&val, it, 0);
+     async_ctx *ctx;
+@@ -252,7 +252,7 @@ err:
+     return ASYNC_ERR;
  }
  
--void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
-+void __cdecl ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it)
+-int ASYNC_pause_job(void)
++int __cdecl ASYNC_pause_job(void)
  {
-     asn1_item_embed_free(pval, it, 0);
+     ASYNC_JOB *job;
+     async_ctx *ctx = async_get_ctx();
+@@ -313,7 +313,7 @@ void async_deinit(void)
+     CRYPTO_THREAD_cleanup_local(&poolkey);
  }
-diff --git a/crypto/asn1/tasn_new.c b/crypto/asn1/tasn_new.c
-index acd0b2cf54..6c35cb2443 100644
---- a/crypto/asn1/tasn_new.c
-+++ b/crypto/asn1/tasn_new.c
-@@ -34,7 +34,7 @@ ASN1_VALUE * __cdecl ASN1_item_new(const ASN1_ITEM *it)
  
- /* Allocate an ASN1 structure */
- 
--int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
-+int __cdecl ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it)
+-int ASYNC_init_thread(size_t max_size, size_t init_size)
++int __cdecl ASYNC_init_thread(size_t max_size, size_t init_size)
  {
-     return asn1_item_embed_new(pval, it, 0);
+     async_pool *pool;
+     size_t curr_size = 0;
+@@ -388,7 +388,7 @@ void async_delete_thread_state(void)
+     async_ctx_free();
  }
-diff --git a/include/openssl/asn1t.h b/include/openssl/asn1t.h
-index a81515e882..1cd386a9d8 100644
---- a/include/openssl/asn1t.h
-+++ b/include/openssl/asn1t.h
-@@ -929,14 +929,14 @@ DEFINE_STACK_OF(ASN1_VALUE)
  
- /* Functions used internally by the ASN1 code */
+-void ASYNC_cleanup_thread(void)
++void __cdecl ASYNC_cleanup_thread(void)
+ {
+     if (!OPENSSL_init_crypto(OPENSSL_INIT_ASYNC, NULL))
+         return;
+@@ -396,7 +396,7 @@ void ASYNC_cleanup_thread(void)
+     async_delete_thread_state();
+ }
  
--int ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
--void ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
-+int __cdecl ASN1_item_ex_new(ASN1_VALUE **pval, const ASN1_ITEM *it);
-+void __cdecl ASN1_item_ex_free(ASN1_VALUE **pval, const ASN1_ITEM *it);
+-ASYNC_JOB *ASYNC_get_current_job(void)
++ASYNC_JOB * __cdecl ASYNC_get_current_job(void)
+ {
+     async_ctx *ctx;
  
--int ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
-+int __cdecl ASN1_item_ex_d2i(ASN1_VALUE **pval, const unsigned char **in, long len,
-                      const ASN1_ITEM *it, int tag, int aclass, char opt,
-                      ASN1_TLC *ctx);
+@@ -410,12 +410,12 @@ ASYNC_JOB *ASYNC_get_current_job(void)
+     return ctx->currjob;
+ }
  
--int ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
-+int __cdecl ASN1_item_ex_i2d(ASN1_VALUE **pval, unsigned char **out,
-                      const ASN1_ITEM *it, int tag, int aclass);
+-ASYNC_WAIT_CTX *ASYNC_get_wait_ctx(ASYNC_JOB *job)
++ASYNC_WAIT_CTX * __cdecl ASYNC_get_wait_ctx(ASYNC_JOB *job)
+ {
+     return job->waitctx;
+ }
  
- #ifdef  __cplusplus
+-void ASYNC_block_pause(void)
++void __cdecl ASYNC_block_pause(void)
+ {
+     async_ctx *ctx;
+ 
+@@ -432,7 +432,7 @@ void ASYNC_block_pause(void)
+     ctx->blocked++;
+ }
+ 
+-void ASYNC_unblock_pause(void)
++void __cdecl ASYNC_unblock_pause(void)
+ {
+     async_ctx *ctx;
+ 
+diff --git a/crypto/async/async_wait.c b/crypto/async/async_wait.c
+index b23e43e8c8..0ded29b180 100644
+--- a/crypto/async/async_wait.c
++++ b/crypto/async/async_wait.c
+@@ -12,12 +12,12 @@
+ 
+ #include <openssl/err.h>
+ 
+-ASYNC_WAIT_CTX *ASYNC_WAIT_CTX_new(void)
++ASYNC_WAIT_CTX * __cdecl ASYNC_WAIT_CTX_new(void)
+ {
+     return OPENSSL_zalloc(sizeof(ASYNC_WAIT_CTX));
+ }
+ 
+-void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
++void __cdecl ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
+ {
+     struct fd_lookup_st *curr;
+     struct fd_lookup_st *next;
+@@ -40,7 +40,7 @@ void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx)
+ 
+     OPENSSL_free(ctx);
+ }
+-int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
++int __cdecl ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+                                OSSL_ASYNC_FD fd, void *custom_data,
+                                void (*cleanup)(ASYNC_WAIT_CTX *, const void *,
+                                                OSSL_ASYNC_FD, void *))
+@@ -63,7 +63,7 @@ int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+     return 1;
+ }
+ 
+-int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
++int __cdecl ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+                           OSSL_ASYNC_FD *fd, void **custom_data)
+ {
+     struct fd_lookup_st *curr;
+@@ -85,7 +85,7 @@ int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+     return 0;
+ }
+ 
+-int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
++int __cdecl ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
+                                size_t *numfds)
+ {
+     struct fd_lookup_st *curr;
+@@ -108,7 +108,7 @@ int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
+     return 1;
+ }
+ 
+-int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
++int __cdecl ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
+                                    size_t *numaddfds, OSSL_ASYNC_FD *delfd,
+                                    size_t *numdelfds)
+ {
+@@ -137,7 +137,7 @@ int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
+     return 1;
+ }
+ 
+-int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
++int __cdecl ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key)
+ {
+     struct fd_lookup_st *curr, *prev;
+ 
+diff --git a/include/openssl/async.h b/include/openssl/async.h
+index 7052b89052..5cb71527ce 100644
+--- a/include/openssl/async.h
++++ b/include/openssl/async.h
+@@ -37,37 +37,37 @@ typedef struct async_wait_ctx_st ASYNC_WAIT_CTX;
+ #define ASYNC_PAUSE    2
+ #define ASYNC_FINISH   3
+ 
+-int ASYNC_init_thread(size_t max_size, size_t init_size);
+-void ASYNC_cleanup_thread(void);
++int __cdecl ASYNC_init_thread(size_t max_size, size_t init_size);
++void __cdecl ASYNC_cleanup_thread(void);
+ 
+ #ifdef OSSL_ASYNC_FD
+-ASYNC_WAIT_CTX *ASYNC_WAIT_CTX_new(void);
+-void ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx);
+-int ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
++ASYNC_WAIT_CTX * __cdecl ASYNC_WAIT_CTX_new(void);
++void __cdecl ASYNC_WAIT_CTX_free(ASYNC_WAIT_CTX *ctx);
++int __cdecl ASYNC_WAIT_CTX_set_wait_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+                                OSSL_ASYNC_FD fd,
+                                void *custom_data,
+                                void (*cleanup)(ASYNC_WAIT_CTX *, const void *,
+                                                OSSL_ASYNC_FD, void *));
+-int ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
++int __cdecl ASYNC_WAIT_CTX_get_fd(ASYNC_WAIT_CTX *ctx, const void *key,
+                         OSSL_ASYNC_FD *fd, void **custom_data);
+-int ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
++int __cdecl ASYNC_WAIT_CTX_get_all_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *fd,
+                                size_t *numfds);
+-int ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
++int __cdecl ASYNC_WAIT_CTX_get_changed_fds(ASYNC_WAIT_CTX *ctx, OSSL_ASYNC_FD *addfd,
+                                    size_t *numaddfds, OSSL_ASYNC_FD *delfd,
+                                    size_t *numdelfds);
+-int ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key);
++int __cdecl ASYNC_WAIT_CTX_clear_fd(ASYNC_WAIT_CTX *ctx, const void *key);
+ #endif
+ 
+-int ASYNC_is_capable(void);
++int __cdecl ASYNC_is_capable(void);
+ 
+-int ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *ctx, int *ret,
++int __cdecl ASYNC_start_job(ASYNC_JOB **job, ASYNC_WAIT_CTX *ctx, int *ret,
+                     int (*func)(void *), void *args, size_t size);
+-int ASYNC_pause_job(void);
++int __cdecl ASYNC_pause_job(void);
+ 
+-ASYNC_JOB *ASYNC_get_current_job(void);
+-ASYNC_WAIT_CTX *ASYNC_get_wait_ctx(ASYNC_JOB *job);
+-void ASYNC_block_pause(void);
+-void ASYNC_unblock_pause(void);
++ASYNC_JOB * __cdecl ASYNC_get_current_job(void);
++ASYNC_WAIT_CTX * __cdecl ASYNC_get_wait_ctx(ASYNC_JOB *job);
++void __cdecl ASYNC_block_pause(void);
++void __cdecl ASYNC_unblock_pause(void);
+ 
+ 
+ # ifdef  __cplusplus
