@@ -693,7 +693,7 @@ index 44ac944627..574d2e780f 100644
  void err_delete_thread_state(void);
  int err_shelve_state(void **);
 diff --git a/crypto/init.c b/crypto/init.c
-index 9fc0e8ef68..4386b22025 100644
+index 9fc0e8ef68..6bdb538618 100644
 --- a/crypto/init.c
 +++ b/crypto/init.c
 @@ -119,7 +119,7 @@ err:
@@ -714,6 +714,15 @@ index 9fc0e8ef68..4386b22025 100644
  {
      if (destructor_key.sane != -1)
          ossl_init_thread_stop(ossl_init_get_thread_local(0));
+@@ -494,7 +494,7 @@ int ossl_init_thread_start(uint64_t opts)
+     return 1;
+ }
+ 
+-void OPENSSL_cleanup(void)
++void __cdecl OPENSSL_cleanup(void)
+ {
+     OPENSSL_INIT_STOP *currhandler, *lasthandler;
+     CRYPTO_THREAD_LOCAL key;
 @@ -617,7 +617,7 @@ void OPENSSL_cleanup(void)
   * called prior to any threads making calls to any OpenSSL functions,
   * i.e. passing a non-null settings value is assumed to be single-threaded.
@@ -723,6 +732,15 @@ index 9fc0e8ef68..4386b22025 100644
  {
      if (stopped) {
          if (!(opts & OPENSSL_INIT_BASE_ONLY))
+@@ -759,7 +759,7 @@ int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings)
+     return 1;
+ }
+ 
+-int OPENSSL_atexit(void (*handler)(void))
++int __cdecl OPENSSL_atexit(void (*handler)(void))
+ {
+     OPENSSL_INIT_STOP *newhand;
+ 
 diff --git a/crypto/lhash/lhash.c b/crypto/lhash/lhash.c
 index 485d4c3fff..e9519e91b6 100644
 --- a/crypto/lhash/lhash.c
@@ -2214,7 +2232,7 @@ index e1fddfb796..62f7bc33bb 100644
  int BIO_read(BIO *b, void *data, int dlen);
  int BIO_read_ex(BIO *b, void *data, size_t dlen, size_t *readbytes);
 diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
-index 7d0b526236..6b34ad26b9 100644
+index 7d0b526236..90aa5e4acc 100644
 --- a/include/openssl/crypto.h
 +++ b/include/openssl/crypto.h
 @@ -254,23 +254,23 @@ typedef struct crypto_threadid_st {
@@ -2250,14 +2268,17 @@ index 7d0b526236..6b34ad26b9 100644
  void *CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
                             const char *file, int line);
  
-@@ -385,9 +385,9 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
+@@ -384,10 +384,10 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
+ 
  
  /* Library initialisation functions */
- void OPENSSL_cleanup(void);
+-void OPENSSL_cleanup(void);
 -int OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
-+int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
- int OPENSSL_atexit(void (*handler)(void));
+-int OPENSSL_atexit(void (*handler)(void));
 -void OPENSSL_thread_stop(void);
++void __cdecl OPENSSL_cleanup(void);
++int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
++int __cdecl OPENSSL_atexit(void (*handler)(void));
 +void __cdecl OPENSSL_thread_stop(void);
  
  /* Low-level control of initialization */
@@ -3334,41 +3355,296 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/init.c b/crypto/init.c
-index 4386b22025..6bdb538618 100644
---- a/crypto/init.c
-+++ b/crypto/init.c
-@@ -494,7 +494,7 @@ int ossl_init_thread_start(uint64_t opts)
-     return 1;
+diff --git a/crypto/aes/aes_cbc.c b/crypto/aes/aes_cbc.c
+index 342841fc4f..01061c06f4 100644
+--- a/crypto/aes/aes_cbc.c
++++ b/crypto/aes/aes_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/aes.h>
+ #include <openssl/modes.h>
+ 
+-void AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                      size_t len, const AES_KEY *key,
+                      unsigned char *ivec, const int enc)
+ {
+diff --git a/crypto/aes/aes_cfb.c b/crypto/aes/aes_cfb.c
+index f010e3c4ea..c0e0fd4f13 100644
+--- a/crypto/aes/aes_cfb.c
++++ b/crypto/aes/aes_cfb.c
+@@ -16,7 +16,7 @@
+  * used is contained in *num;
+  */
+ 
+-void AES_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         unsigned char *ivec, int *num, const int enc)
+ {
+@@ -26,7 +26,7 @@ void AES_cfb128_encrypt(const unsigned char *in, unsigned char *out,
  }
  
--void OPENSSL_cleanup(void)
-+void __cdecl OPENSSL_cleanup(void)
+ /* N.B. This expects the input to be packed, MS bit first */
+-void AES_cfb1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t length, const AES_KEY *key,
+                       unsigned char *ivec, int *num, const int enc)
  {
-     OPENSSL_INIT_STOP *currhandler, *lasthandler;
-     CRYPTO_THREAD_LOCAL key;
-@@ -759,7 +759,7 @@ int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *sett
-     return 1;
+@@ -34,7 +34,7 @@ void AES_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                             (block128_f) AES_encrypt);
  }
  
--int OPENSSL_atexit(void (*handler)(void))
-+int __cdecl OPENSSL_atexit(void (*handler)(void))
+-void AES_cfb8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb8_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t length, const AES_KEY *key,
+                       unsigned char *ivec, int *num, const int enc)
  {
-     OPENSSL_INIT_STOP *newhand;
+diff --git a/crypto/aes/aes_core.c b/crypto/aes/aes_core.c
+index f1f11fd8de..8f7d611751 100644
+--- a/crypto/aes/aes_core.c
++++ b/crypto/aes/aes_core.c
+@@ -629,7 +629,7 @@ static const u32 rcon[] = {
+ /**
+  * Expand the cipher key into the encryption key schedule.
+  */
+-int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
  
-diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
-index 6b34ad26b9..90aa5e4acc 100644
---- a/include/openssl/crypto.h
-+++ b/include/openssl/crypto.h
-@@ -384,9 +384,9 @@ int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
+@@ -731,7 +731,7 @@ int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+ /**
+  * Expand the cipher key into the decryption key schedule.
+  */
+-int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
  
+@@ -784,7 +784,7 @@ int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+  * Encrypt a single block
+  * in and out can overlap
+  */
+-void AES_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_encrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key) {
  
- /* Library initialisation functions */
--void OPENSSL_cleanup(void);
-+void __cdecl OPENSSL_cleanup(void);
- int __cdecl OPENSSL_init_crypto(uint64_t opts, const OPENSSL_INIT_SETTINGS *settings);
--int OPENSSL_atexit(void (*handler)(void));
-+int __cdecl OPENSSL_atexit(void (*handler)(void));
- void __cdecl OPENSSL_thread_stop(void);
+     const u32 *rk;
+@@ -975,7 +975,7 @@ void AES_encrypt(const unsigned char *in, unsigned char *out,
+  * Decrypt a single block
+  * in and out can overlap
+  */
+-void AES_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_decrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key)
+ {
  
- /* Low-level control of initialization */
+@@ -1208,7 +1208,7 @@ static const u32 rcon[] = {
+ /**
+  * Expand the cipher key into the encryption key schedule.
+  */
+-int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
+     u32 *rk;
+@@ -1309,7 +1309,7 @@ int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+ /**
+  * Expand the cipher key into the decryption key schedule.
+  */
+-int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
+ 
+diff --git a/crypto/aes/aes_ecb.c b/crypto/aes/aes_ecb.c
+index 29bfc1ad66..fa432af6d3 100644
+--- a/crypto/aes/aes_ecb.c
++++ b/crypto/aes/aes_ecb.c
+@@ -12,7 +12,7 @@
+ #include <openssl/aes.h>
+ #include "aes_locl.h"
+ 
+-void AES_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                      const AES_KEY *key, const int enc)
+ {
+ 
+diff --git a/crypto/aes/aes_ige.c b/crypto/aes/aes_ige.c
+index 75f796cf3b..f46b21a191 100644
+--- a/crypto/aes/aes_ige.c
++++ b/crypto/aes/aes_ige.c
+@@ -34,7 +34,7 @@ typedef struct {
+ 
+ /* N.B. The IV for this mode is _twice_ the block size */
+ 
+-void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ige_encrypt(const unsigned char *in, unsigned char *out,
+                      size_t length, const AES_KEY *key,
+                      unsigned char *ivec, const int enc)
+ {
+@@ -166,7 +166,7 @@ void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
+ 
+ /* N.B. The IV for this mode is _four times_ the block size */
+ 
+-void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         const AES_KEY *key2, const unsigned char *ivec,
+                         const int enc)
+diff --git a/crypto/aes/aes_misc.c b/crypto/aes/aes_misc.c
+index 7403c84f82..59c4c04e2f 100644
+--- a/crypto/aes/aes_misc.c
++++ b/crypto/aes/aes_misc.c
+@@ -11,7 +11,7 @@
+ #include <openssl/aes.h>
+ #include "aes_locl.h"
+ 
+-const char *AES_options(void)
++const char * __cdecl AES_options(void)
+ {
+ #ifdef FULL_UNROLL
+     return "aes(full)";
+diff --git a/crypto/aes/aes_ofb.c b/crypto/aes/aes_ofb.c
+index 215b53858e..8b0686d37d 100644
+--- a/crypto/aes/aes_ofb.c
++++ b/crypto/aes/aes_ofb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/aes.h>
+ #include <openssl/modes.h>
+ 
+-void AES_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         unsigned char *ivec, int *num)
+ {
+diff --git a/crypto/aes/aes_wrap.c b/crypto/aes/aes_wrap.c
+index cae0b21229..d9932d89d0 100644
+--- a/crypto/aes/aes_wrap.c
++++ b/crypto/aes/aes_wrap.c
+@@ -11,14 +11,14 @@
+ #include <openssl/aes.h>
+ #include <openssl/modes.h>
+ 
+-int AES_wrap_key(AES_KEY *key, const unsigned char *iv,
++int __cdecl AES_wrap_key(AES_KEY *key, const unsigned char *iv,
+                  unsigned char *out,
+                  const unsigned char *in, unsigned int inlen)
+ {
+     return CRYPTO_128_wrap(key, iv, out, in, inlen, (block128_f) AES_encrypt);
+ }
+ 
+-int AES_unwrap_key(AES_KEY *key, const unsigned char *iv,
++int __cdecl AES_unwrap_key(AES_KEY *key, const unsigned char *iv,
+                    unsigned char *out,
+                    const unsigned char *in, unsigned int inlen)
+ {
+diff --git a/crypto/aes/aes_x86core.c b/crypto/aes/aes_x86core.c
+index 1b660d716d..f7b176169a 100644
+--- a/crypto/aes/aes_x86core.c
++++ b/crypto/aes/aes_x86core.c
+@@ -471,7 +471,7 @@ static const u32 rcon[] = {
+ /**
+  * Expand the cipher key into the encryption key schedule.
+  */
+-int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
+ 
+@@ -573,7 +573,7 @@ int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+ /**
+  * Expand the cipher key into the decryption key schedule.
+  */
+-int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key)
+ {
+ 
+@@ -655,7 +655,7 @@ int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+  * Encrypt a single block
+  * in and out can overlap
+  */
+-void AES_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_encrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key)
+ {
+ 
+@@ -869,7 +869,7 @@ void AES_encrypt(const unsigned char *in, unsigned char *out,
+  * Decrypt a single block
+  * in and out can overlap
+  */
+-void AES_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_decrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key)
+ {
+ 
+diff --git a/include/openssl/aes.h b/include/openssl/aes.h
+index 245c552abd..6f78f11053 100644
+--- a/include/openssl/aes.h
++++ b/include/openssl/aes.h
+@@ -38,49 +38,49 @@ struct aes_key_st {
+ };
+ typedef struct aes_key_st AES_KEY;
+ 
+-const char *AES_options(void);
++const char * __cdecl AES_options(void);
+ 
+-int AES_set_encrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_encrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key);
+-int AES_set_decrypt_key(const unsigned char *userKey, const int bits,
++int __cdecl AES_set_decrypt_key(const unsigned char *userKey, const int bits,
+                         AES_KEY *key);
+ 
+-void AES_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_encrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key);
+-void AES_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_decrypt(const unsigned char *in, unsigned char *out,
+                  const AES_KEY *key);
+ 
+-void AES_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                      const AES_KEY *key, const int enc);
+-void AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                      size_t length, const AES_KEY *key,
+                      unsigned char *ivec, const int enc);
+-void AES_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         unsigned char *ivec, int *num, const int enc);
+-void AES_cfb1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t length, const AES_KEY *key,
+                       unsigned char *ivec, int *num, const int enc);
+-void AES_cfb8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_cfb8_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t length, const AES_KEY *key,
+                       unsigned char *ivec, int *num, const int enc);
+-void AES_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         unsigned char *ivec, int *num);
+ /* NB: the IV is _two_ blocks long */
+-void AES_ige_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_ige_encrypt(const unsigned char *in, unsigned char *out,
+                      size_t length, const AES_KEY *key,
+                      unsigned char *ivec, const int enc);
+ /* NB: the IV is _four_ blocks long */
+-void AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl AES_bi_ige_encrypt(const unsigned char *in, unsigned char *out,
+                         size_t length, const AES_KEY *key,
+                         const AES_KEY *key2, const unsigned char *ivec,
+                         const int enc);
+ 
+-int AES_wrap_key(AES_KEY *key, const unsigned char *iv,
++int __cdecl AES_wrap_key(AES_KEY *key, const unsigned char *iv,
+                  unsigned char *out,
+                  const unsigned char *in, unsigned int inlen);
+-int AES_unwrap_key(AES_KEY *key, const unsigned char *iv,
++int __cdecl AES_unwrap_key(AES_KEY *key, const unsigned char *iv,
+                    unsigned char *out,
+                    const unsigned char *in, unsigned int inlen);
+ 
