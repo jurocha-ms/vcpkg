@@ -5424,6 +5424,77 @@ index 9eb8384fde..1f909079bf 100644
                                BIGNUM *Xp1, BIGNUM *Xp2,
                                const BIGNUM *Xp,
                                const BIGNUM *e, BN_CTX *ctx, BN_GENCB *cb)
+diff --git a/crypto/buffer/buf_err.c b/crypto/buffer/buf_err.c
+index 7e6e53226a..7980b60764 100644
+--- a/crypto/buffer/buf_err.c
++++ b/crypto/buffer/buf_err.c
+@@ -26,7 +26,7 @@ static const ERR_STRING_DATA BUF_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_BUF_strings(void)
++int __cdecl ERR_load_BUF_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(BUF_str_functs[0].error) == NULL) {
+diff --git a/crypto/buffer/buffer.c b/crypto/buffer/buffer.c
+index 72258abb9e..d22c318e90 100644
+--- a/crypto/buffer/buffer.c
++++ b/crypto/buffer/buffer.c
+@@ -18,7 +18,7 @@
+  */
+ #define LIMIT_BEFORE_EXPANSION 0x5ffffffc
+ 
+-BUF_MEM *BUF_MEM_new_ex(unsigned long flags)
++BUF_MEM * __cdecl BUF_MEM_new_ex(unsigned long flags)
+ {
+     BUF_MEM *ret;
+ 
+@@ -28,7 +28,7 @@ BUF_MEM *BUF_MEM_new_ex(unsigned long flags)
+     return ret;
+ }
+ 
+-BUF_MEM *BUF_MEM_new(void)
++BUF_MEM * __cdecl BUF_MEM_new(void)
+ {
+     BUF_MEM *ret;
+ 
+@@ -40,7 +40,7 @@ BUF_MEM *BUF_MEM_new(void)
+     return ret;
+ }
+ 
+-void BUF_MEM_free(BUF_MEM *a)
++void __cdecl BUF_MEM_free(BUF_MEM *a)
+ {
+     if (a == NULL)
+         return;
+@@ -70,7 +70,7 @@ static char *sec_alloc_realloc(BUF_MEM *str, size_t len)
+     return ret;
+ }
+ 
+-size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
++size_t __cdecl BUF_MEM_grow(BUF_MEM *str, size_t len)
+ {
+     char *ret;
+     size_t n;
+@@ -107,7 +107,7 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
+     return len;
+ }
+ 
+-size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
++size_t __cdecl BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
+ {
+     char *ret;
+     size_t n;
+@@ -145,7 +145,7 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
+     return len;
+ }
+ 
+-void BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
++void __cdecl BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
+ {
+     size_t i;
+     if (in) {
 diff --git a/crypto/conf/conf_api.c b/crypto/conf/conf_api.c
 index 5e57d749ce..86bbf53e77 100644
 --- a/crypto/conf/conf_api.c
@@ -9529,6 +9600,42 @@ index 9f3c7cfaab..0cd520583b 100644
  
  /*
   * BN function codes.
+diff --git a/include/openssl/buffer.h b/include/openssl/buffer.h
+index d2765766b7..951f045fc3 100644
+--- a/include/openssl/buffer.h
++++ b/include/openssl/buffer.h
+@@ -44,12 +44,12 @@ struct buf_mem_st {
+ 
+ # define BUF_MEM_FLAG_SECURE  0x01
+ 
+-BUF_MEM *BUF_MEM_new(void);
+-BUF_MEM *BUF_MEM_new_ex(unsigned long flags);
+-void BUF_MEM_free(BUF_MEM *a);
+-size_t BUF_MEM_grow(BUF_MEM *str, size_t len);
+-size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len);
+-void BUF_reverse(unsigned char *out, const unsigned char *in, size_t siz);
++BUF_MEM * __cdecl BUF_MEM_new(void);
++BUF_MEM * __cdecl BUF_MEM_new_ex(unsigned long flags);
++void __cdecl BUF_MEM_free(BUF_MEM *a);
++size_t __cdecl BUF_MEM_grow(BUF_MEM *str, size_t len);
++size_t __cdecl BUF_MEM_grow_clean(BUF_MEM *str, size_t len);
++void __cdecl BUF_reverse(unsigned char *out, const unsigned char *in, size_t siz);
+ 
+ 
+ # ifdef  __cplusplus
+diff --git a/include/openssl/buffererr.h b/include/openssl/buffererr.h
+index 04f6ff7a83..0a3c910d10 100644
+--- a/include/openssl/buffererr.h
++++ b/include/openssl/buffererr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_BUF_strings(void);
++int __cdecl ERR_load_BUF_strings(void);
+ 
+ /*
+  * BUF function codes.
 diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
 index 7d0b526236..90aa5e4acc 100644
 --- a/include/openssl/crypto.h
@@ -10786,110 +10893,162 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/buffer/buf_err.c b/crypto/buffer/buf_err.c
-index 7e6e53226a..7980b60764 100644
---- a/crypto/buffer/buf_err.c
-+++ b/crypto/buffer/buf_err.c
-@@ -26,7 +26,7 @@ static const ERR_STRING_DATA BUF_str_reasons[] = {
+diff --git a/crypto/camellia/cmll_cbc.c b/crypto/camellia/cmll_cbc.c
+index b19171ded2..fb26318666 100644
+--- a/crypto/camellia/cmll_cbc.c
++++ b/crypto/camellia/cmll_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/camellia.h>
+ #include <openssl/modes.h>
  
- #endif
- 
--int ERR_load_BUF_strings(void)
-+int __cdecl ERR_load_BUF_strings(void)
+-void Camellia_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                           size_t len, const CAMELLIA_KEY *key,
+                           unsigned char *ivec, const int enc)
  {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(BUF_str_functs[0].error) == NULL) {
-diff --git a/crypto/buffer/buffer.c b/crypto/buffer/buffer.c
-index 72258abb9e..d22c318e90 100644
---- a/crypto/buffer/buffer.c
-+++ b/crypto/buffer/buffer.c
-@@ -18,7 +18,7 @@
+diff --git a/crypto/camellia/cmll_cfb.c b/crypto/camellia/cmll_cfb.c
+index 4f49eaded6..cdc2301048 100644
+--- a/crypto/camellia/cmll_cfb.c
++++ b/crypto/camellia/cmll_cfb.c
+@@ -16,7 +16,7 @@
+  * used is contained in *num;
   */
- #define LIMIT_BEFORE_EXPANSION 0x5ffffffc
  
--BUF_MEM *BUF_MEM_new_ex(unsigned long flags)
-+BUF_MEM * __cdecl BUF_MEM_new_ex(unsigned long flags)
+-void Camellia_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char *ivec, int *num, const int enc)
  {
-     BUF_MEM *ret;
- 
-@@ -28,7 +28,7 @@ BUF_MEM *BUF_MEM_new_ex(unsigned long flags)
-     return ret;
+@@ -26,7 +26,7 @@ void Camellia_cfb128_encrypt(const unsigned char *in, unsigned char *out,
  }
  
--BUF_MEM *BUF_MEM_new(void)
-+BUF_MEM * __cdecl BUF_MEM_new(void)
+ /* N.B. This expects the input to be packed, MS bit first */
+-void Camellia_cfb1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t length, const CAMELLIA_KEY *key,
+                            unsigned char *ivec, int *num, const int enc)
  {
-     BUF_MEM *ret;
- 
-@@ -40,7 +40,7 @@ BUF_MEM *BUF_MEM_new(void)
-     return ret;
+@@ -34,7 +34,7 @@ void Camellia_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                             (block128_f) Camellia_encrypt);
  }
  
--void BUF_MEM_free(BUF_MEM *a)
-+void __cdecl BUF_MEM_free(BUF_MEM *a)
+-void Camellia_cfb8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb8_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t length, const CAMELLIA_KEY *key,
+                            unsigned char *ivec, int *num, const int enc)
  {
-     if (a == NULL)
-         return;
-@@ -70,7 +70,7 @@ static char *sec_alloc_realloc(BUF_MEM *str, size_t len)
-     return ret;
+diff --git a/crypto/camellia/cmll_ctr.c b/crypto/camellia/cmll_ctr.c
+index 161d1e18c1..22d866e810 100644
+--- a/crypto/camellia/cmll_ctr.c
++++ b/crypto/camellia/cmll_ctr.c
+@@ -10,7 +10,7 @@
+ #include <openssl/camellia.h>
+ #include <openssl/modes.h>
+ 
+-void Camellia_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char ivec[CAMELLIA_BLOCK_SIZE],
+                              unsigned char ecount_buf[CAMELLIA_BLOCK_SIZE],
+diff --git a/crypto/camellia/cmll_ecb.c b/crypto/camellia/cmll_ecb.c
+index d932f1b375..e45cf04902 100644
+--- a/crypto/camellia/cmll_ecb.c
++++ b/crypto/camellia/cmll_ecb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/camellia.h>
+ #include "cmll_locl.h"
+ 
+-void Camellia_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                           const CAMELLIA_KEY *key, const int enc)
+ {
+     if (CAMELLIA_ENCRYPT == enc)
+diff --git a/crypto/camellia/cmll_misc.c b/crypto/camellia/cmll_misc.c
+index e5f014b79c..4179aec6b5 100644
+--- a/crypto/camellia/cmll_misc.c
++++ b/crypto/camellia/cmll_misc.c
+@@ -11,7 +11,7 @@
+ #include <openssl/camellia.h>
+ #include "cmll_locl.h"
+ 
+-int Camellia_set_key(const unsigned char *userKey, const int bits,
++int __cdecl Camellia_set_key(const unsigned char *userKey, const int bits,
+                      CAMELLIA_KEY *key)
+ {
+     if (!userKey || !key)
+@@ -22,13 +22,13 @@ int Camellia_set_key(const unsigned char *userKey, const int bits,
+     return 0;
  }
  
--size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
-+size_t __cdecl BUF_MEM_grow(BUF_MEM *str, size_t len)
+-void Camellia_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_encrypt(const unsigned char *in, unsigned char *out,
+                       const CAMELLIA_KEY *key)
  {
-     char *ret;
-     size_t n;
-@@ -107,7 +107,7 @@ size_t BUF_MEM_grow(BUF_MEM *str, size_t len)
-     return len;
+     Camellia_EncryptBlock_Rounds(key->grand_rounds, in, key->u.rd_key, out);
  }
  
--size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
-+size_t __cdecl BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
+-void Camellia_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_decrypt(const unsigned char *in, unsigned char *out,
+                       const CAMELLIA_KEY *key)
  {
-     char *ret;
-     size_t n;
-@@ -145,7 +145,7 @@ size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len)
-     return len;
- }
- 
--void BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
-+void __cdecl BUF_reverse(unsigned char *out, const unsigned char *in, size_t size)
+     Camellia_DecryptBlock_Rounds(key->grand_rounds, in, key->u.rd_key, out);
+diff --git a/crypto/camellia/cmll_ofb.c b/crypto/camellia/cmll_ofb.c
+index b43c685c75..313e0ad165 100644
+--- a/crypto/camellia/cmll_ofb.c
++++ b/crypto/camellia/cmll_ofb.c
+@@ -15,7 +15,7 @@
+  * The extra state information to record how much of the 128bit block we have
+  * used is contained in *num;
+  */
+-void Camellia_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char *ivec, int *num)
  {
-     size_t i;
-     if (in) {
-diff --git a/include/openssl/buffer.h b/include/openssl/buffer.h
-index d2765766b7..951f045fc3 100644
---- a/include/openssl/buffer.h
-+++ b/include/openssl/buffer.h
-@@ -44,12 +44,12 @@ struct buf_mem_st {
+diff --git a/include/openssl/camellia.h b/include/openssl/camellia.h
+index 151f3c1349..c4d15f7db7 100644
+--- a/include/openssl/camellia.h
++++ b/include/openssl/camellia.h
+@@ -44,32 +44,32 @@ struct camellia_key_st {
+ };
+ typedef struct camellia_key_st CAMELLIA_KEY;
  
- # define BUF_MEM_FLAG_SECURE  0x01
+-int Camellia_set_key(const unsigned char *userKey, const int bits,
++int __cdecl Camellia_set_key(const unsigned char *userKey, const int bits,
+                      CAMELLIA_KEY *key);
  
--BUF_MEM *BUF_MEM_new(void);
--BUF_MEM *BUF_MEM_new_ex(unsigned long flags);
--void BUF_MEM_free(BUF_MEM *a);
--size_t BUF_MEM_grow(BUF_MEM *str, size_t len);
--size_t BUF_MEM_grow_clean(BUF_MEM *str, size_t len);
--void BUF_reverse(unsigned char *out, const unsigned char *in, size_t siz);
-+BUF_MEM * __cdecl BUF_MEM_new(void);
-+BUF_MEM * __cdecl BUF_MEM_new_ex(unsigned long flags);
-+void __cdecl BUF_MEM_free(BUF_MEM *a);
-+size_t __cdecl BUF_MEM_grow(BUF_MEM *str, size_t len);
-+size_t __cdecl BUF_MEM_grow_clean(BUF_MEM *str, size_t len);
-+void __cdecl BUF_reverse(unsigned char *out, const unsigned char *in, size_t siz);
+-void Camellia_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_encrypt(const unsigned char *in, unsigned char *out,
+                       const CAMELLIA_KEY *key);
+-void Camellia_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_decrypt(const unsigned char *in, unsigned char *out,
+                       const CAMELLIA_KEY *key);
  
- 
- # ifdef  __cplusplus
-diff --git a/include/openssl/buffererr.h b/include/openssl/buffererr.h
-index 04f6ff7a83..0a3c910d10 100644
---- a/include/openssl/buffererr.h
-+++ b/include/openssl/buffererr.h
-@@ -18,7 +18,7 @@
- # ifdef  __cplusplus
- extern "C"
- # endif
--int ERR_load_BUF_strings(void);
-+int __cdecl ERR_load_BUF_strings(void);
- 
- /*
-  * BUF function codes.
+-void Camellia_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                           const CAMELLIA_KEY *key, const int enc);
+-void Camellia_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                           size_t length, const CAMELLIA_KEY *key,
+                           unsigned char *ivec, const int enc);
+-void Camellia_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char *ivec, int *num, const int enc);
+-void Camellia_cfb1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb1_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t length, const CAMELLIA_KEY *key,
+                            unsigned char *ivec, int *num, const int enc);
+-void Camellia_cfb8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_cfb8_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t length, const CAMELLIA_KEY *key,
+                            unsigned char *ivec, int *num, const int enc);
+-void Camellia_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char *ivec, int *num);
+-void Camellia_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl Camellia_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const CAMELLIA_KEY *key,
+                              unsigned char ivec[CAMELLIA_BLOCK_SIZE],
+                              unsigned char ecount_buf[CAMELLIA_BLOCK_SIZE],
