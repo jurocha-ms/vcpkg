@@ -12696,3 +12696,170 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
+diff --git a/crypto/comp/c_zlib.c b/crypto/comp/c_zlib.c
+index d688deee5f..be15b051e5 100644
+--- a/crypto/comp/c_zlib.c
++++ b/crypto/comp/c_zlib.c
+@@ -17,7 +17,7 @@
+ #include "internal/bio.h"
+ #include "comp_lcl.h"
+ 
+-COMP_METHOD *COMP_zlib(void);
++COMP_METHOD * __cdecl COMP_zlib(void);
+ 
+ static COMP_METHOD zlib_method_nozlib = {
+     NID_undef,
+@@ -206,7 +206,7 @@ static int zlib_stateful_expand_block(COMP_CTX *ctx, unsigned char *out,
+ 
+ #endif
+ 
+-COMP_METHOD *COMP_zlib(void)
++COMP_METHOD * __cdecl COMP_zlib(void)
+ {
+     COMP_METHOD *meth = &zlib_method_nozlib;
+ 
+@@ -310,7 +310,7 @@ static const BIO_METHOD bio_meth_zlib = {
+     bio_zlib_callback_ctrl
+ };
+ 
+-const BIO_METHOD *BIO_f_zlib(void)
++const BIO_METHOD * __cdecl BIO_f_zlib(void)
+ {
+     return &bio_meth_zlib;
+ }
+diff --git a/crypto/comp/comp_err.c b/crypto/comp/comp_err.c
+index 2dca315cf1..9d893d52ad 100644
+--- a/crypto/comp/comp_err.c
++++ b/crypto/comp/comp_err.c
+@@ -34,7 +34,7 @@ static const ERR_STRING_DATA COMP_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_COMP_strings(void)
++int __cdecl ERR_load_COMP_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(COMP_str_functs[0].error) == NULL) {
+diff --git a/crypto/comp/comp_lib.c b/crypto/comp/comp_lib.c
+index 6ae2114496..99169e6acd 100644
+--- a/crypto/comp/comp_lib.c
++++ b/crypto/comp/comp_lib.c
+@@ -15,7 +15,7 @@
+ #include <openssl/err.h>
+ #include "comp_lcl.h"
+ 
+-COMP_CTX *COMP_CTX_new(COMP_METHOD *meth)
++COMP_CTX * __cdecl COMP_CTX_new(COMP_METHOD *meth)
+ {
+     COMP_CTX *ret;
+ 
+@@ -31,22 +31,22 @@ COMP_CTX *COMP_CTX_new(COMP_METHOD *meth)
+     return ret;
+ }
+ 
+-const COMP_METHOD *COMP_CTX_get_method(const COMP_CTX *ctx)
++const COMP_METHOD * __cdecl COMP_CTX_get_method(const COMP_CTX *ctx)
+ {
+     return ctx->meth;
+ }
+ 
+-int COMP_get_type(const COMP_METHOD *meth)
++int __cdecl COMP_get_type(const COMP_METHOD *meth)
+ {
+     return meth->type;
+ }
+ 
+-const char *COMP_get_name(const COMP_METHOD *meth)
++const char * __cdecl COMP_get_name(const COMP_METHOD *meth)
+ {
+     return meth->name;
+ }
+ 
+-void COMP_CTX_free(COMP_CTX *ctx)
++void __cdecl COMP_CTX_free(COMP_CTX *ctx)
+ {
+     if (ctx == NULL)
+         return;
+@@ -56,7 +56,7 @@ void COMP_CTX_free(COMP_CTX *ctx)
+     OPENSSL_free(ctx);
+ }
+ 
+-int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
++int __cdecl COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
+                         unsigned char *in, int ilen)
+ {
+     int ret;
+@@ -71,7 +71,7 @@ int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
+     return ret;
+ }
+ 
+-int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
++int __cdecl COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
+                       unsigned char *in, int ilen)
+ {
+     int ret;
+@@ -87,7 +87,7 @@ int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
+     return ret;
+ }
+ 
+-int COMP_CTX_get_type(const COMP_CTX* comp)
++int __cdecl COMP_CTX_get_type(const COMP_CTX* comp)
+ {
+     return comp->meth ? comp->meth->type : NID_undef;
+ }
+diff --git a/include/openssl/comp.h b/include/openssl/comp.h
+index d814d3cf25..d2806578e1 100644
+--- a/include/openssl/comp.h
++++ b/include/openssl/comp.h
+@@ -21,19 +21,19 @@ extern "C" {
+ 
+ 
+ 
+-COMP_CTX *COMP_CTX_new(COMP_METHOD *meth);
+-const COMP_METHOD *COMP_CTX_get_method(const COMP_CTX *ctx);
+-int COMP_CTX_get_type(const COMP_CTX* comp);
+-int COMP_get_type(const COMP_METHOD *meth);
+-const char *COMP_get_name(const COMP_METHOD *meth);
+-void COMP_CTX_free(COMP_CTX *ctx);
+-
+-int COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
++COMP_CTX * __cdecl COMP_CTX_new(COMP_METHOD *meth);
++const COMP_METHOD * __cdecl COMP_CTX_get_method(const COMP_CTX *ctx);
++int __cdecl COMP_CTX_get_type(const COMP_CTX* comp);
++int __cdecl COMP_get_type(const COMP_METHOD *meth);
++const char * __cdecl COMP_get_name(const COMP_METHOD *meth);
++void __cdecl COMP_CTX_free(COMP_CTX *ctx);
++
++int __cdecl COMP_compress_block(COMP_CTX *ctx, unsigned char *out, int olen,
+                         unsigned char *in, int ilen);
+-int COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
++int __cdecl COMP_expand_block(COMP_CTX *ctx, unsigned char *out, int olen,
+                       unsigned char *in, int ilen);
+ 
+-COMP_METHOD *COMP_zlib(void);
++COMP_METHOD * __cdecl COMP_zlib(void);
+ 
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ #define COMP_zlib_cleanup() while(0) continue
+@@ -41,7 +41,7 @@ COMP_METHOD *COMP_zlib(void);
+ 
+ # ifdef HEADER_BIO_H
+ #  ifdef ZLIB
+-const BIO_METHOD *BIO_f_zlib(void);
++const BIO_METHOD * __cdecl BIO_f_zlib(void);
+ #  endif
+ # endif
+ 
+diff --git a/include/openssl/comperr.h b/include/openssl/comperr.h
+index 90231e9aa3..134ee4cfce 100644
+--- a/include/openssl/comperr.h
++++ b/include/openssl/comperr.h
+@@ -22,7 +22,7 @@
+ #  ifdef  __cplusplus
+ extern "C"
+ #  endif
+-int ERR_load_COMP_strings(void);
++int __cdecl ERR_load_COMP_strings(void);
+ 
+ /*
+  * COMP function codes.
