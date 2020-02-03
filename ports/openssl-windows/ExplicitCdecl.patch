@@ -6915,9 +6915,45 @@ index 6ae2114496..99169e6acd 100644
      return comp->meth ? comp->meth->type : NID_undef;
  }
 diff --git a/crypto/conf/conf_api.c b/crypto/conf/conf_api.c
-index 5e57d749ce..86bbf53e77 100644
+index 5e57d749ce..14a98b93bf 100644
 --- a/crypto/conf/conf_api.c
 +++ b/crypto/conf/conf_api.c
+@@ -20,7 +20,7 @@ static void value_free_hash(const CONF_VALUE *a, LHASH_OF(CONF_VALUE) *conf);
+ static void value_free_stack_doall(CONF_VALUE *a);
+ 
+ /* Up until OpenSSL 0.9.5a, this was get_section */
+-CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
++CONF_VALUE * __cdecl _CONF_get_section(const CONF *conf, const char *section)
+ {
+     CONF_VALUE *v, vv;
+ 
+@@ -33,7 +33,7 @@ CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
+ }
+ 
+ /* Up until OpenSSL 0.9.5a, this was CONF_get_section */
+-STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
++STACK_OF(CONF_VALUE) * __cdecl _CONF_get_section_values(const CONF *conf,
+                                                const char *section)
+ {
+     CONF_VALUE *v;
+@@ -45,7 +45,7 @@ STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
+         return NULL;
+ }
+ 
+-int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
++int __cdecl _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
+ {
+     CONF_VALUE *v = NULL;
+     STACK_OF(CONF_VALUE) *ts;
+@@ -67,7 +67,7 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
+     return 1;
+ }
+ 
+-char *_CONF_get_string(const CONF *conf, const char *section,
++char * __cdecl _CONF_get_string(const CONF *conf, const char *section,
+                        const char *name)
+ {
+     CONF_VALUE *v, vv;
 @@ -104,7 +104,7 @@ static unsigned long conf_value_hash(const CONF_VALUE *v)
      return (OPENSSL_LH_strhash(v->section) << 2) ^ OPENSSL_LH_strhash(v->name);
  }
@@ -6927,6 +6963,399 @@ index 5e57d749ce..86bbf53e77 100644
  {
      int i;
  
+@@ -123,7 +123,7 @@ static int conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
+         return ((a->name == NULL) ? -1 : 1);
+ }
+ 
+-int _CONF_new_data(CONF *conf)
++int __cdecl _CONF_new_data(CONF *conf)
+ {
+     if (conf == NULL) {
+         return 0;
+@@ -140,7 +140,7 @@ typedef LHASH_OF(CONF_VALUE) LH_CONF_VALUE;
+ 
+ IMPLEMENT_LHASH_DOALL_ARG_CONST(CONF_VALUE, LH_CONF_VALUE);
+ 
+-void _CONF_free_data(CONF *conf)
++void __cdecl _CONF_free_data(CONF *conf)
+ {
+     if (conf == NULL || conf->data == NULL)
+         return;
+@@ -186,7 +186,7 @@ static void value_free_stack_doall(CONF_VALUE *a)
+ }
+ 
+ /* Up until OpenSSL 0.9.5a, this was new_section */
+-CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
++CONF_VALUE * __cdecl _CONF_new_section(CONF *conf, const char *section)
+ {
+     STACK_OF(CONF_VALUE) *sk = NULL;
+     int i;
+diff --git a/crypto/conf/conf_def.c b/crypto/conf/conf_def.c
+index 8e3f42a0ca..5a07ccda71 100644
+--- a/crypto/conf/conf_def.c
++++ b/crypto/conf/conf_def.c
+@@ -89,12 +89,12 @@ static CONF_METHOD WIN32_method = {
+     def_load
+ };
+ 
+-CONF_METHOD *NCONF_default(void)
++CONF_METHOD * __cdecl NCONF_default(void)
+ {
+     return &default_method;
+ }
+ 
+-CONF_METHOD *NCONF_WIN32(void)
++CONF_METHOD * __cdecl NCONF_WIN32(void)
+ {
+     return &WIN32_method;
+ }
+diff --git a/crypto/conf/conf_err.c b/crypto/conf/conf_err.c
+index f7613584ec..a7d299e885 100644
+--- a/crypto/conf/conf_err.c
++++ b/crypto/conf/conf_err.c
+@@ -83,7 +83,7 @@ static const ERR_STRING_DATA CONF_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_CONF_strings(void)
++int __cdecl ERR_load_CONF_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(CONF_str_functs[0].error) == NULL) {
+diff --git a/crypto/conf/conf_lib.c b/crypto/conf/conf_lib.c
+index 2d40ac97ec..0bf3605698 100644
+--- a/crypto/conf/conf_lib.c
++++ b/crypto/conf/conf_lib.c
+@@ -22,7 +22,7 @@ static CONF_METHOD *default_CONF_method = NULL;
+ 
+ /* Init a 'CONF' structure from an old LHASH */
+ 
+-void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
++void __cdecl CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
+ {
+     if (default_CONF_method == NULL)
+         default_CONF_method = NCONF_default();
+@@ -36,13 +36,13 @@ void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
+  * terms of the new CONF interface.
+  */
+ 
+-int CONF_set_default_method(CONF_METHOD *meth)
++int __cdecl CONF_set_default_method(CONF_METHOD *meth)
+ {
+     default_CONF_method = meth;
+     return 1;
+ }
+ 
+-LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
+                                 long *eline)
+ {
+     LHASH_OF(CONF_VALUE) *ltmp;
+@@ -65,7 +65,7 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
+                                    long *eline)
+ {
+     BIO *btmp;
+@@ -80,7 +80,7 @@ LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
+ }
+ #endif
+ 
+-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+                                     long *eline)
+ {
+     CONF ctmp;
+@@ -94,7 +94,7 @@ LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+     return NULL;
+ }
+ 
+-STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
++STACK_OF(CONF_VALUE) * __cdecl CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
+                                        const char *section)
+ {
+     if (conf == NULL) {
+@@ -106,7 +106,7 @@ STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
+     }
+ }
+ 
+-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
++char * __cdecl CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+                       const char *name)
+ {
+     if (conf == NULL) {
+@@ -118,7 +118,7 @@ char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+     }
+ }
+ 
+-long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
++long __cdecl CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
+                      const char *name)
+ {
+     int status;
+@@ -136,7 +136,7 @@ long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
+     return status == 0 ? 0L : result;
+ }
+ 
+-void CONF_free(LHASH_OF(CONF_VALUE) *conf)
++void __cdecl CONF_free(LHASH_OF(CONF_VALUE) *conf)
+ {
+     CONF ctmp;
+     CONF_set_nconf(&ctmp, conf);
+@@ -144,7 +144,7 @@ void CONF_free(LHASH_OF(CONF_VALUE) *conf)
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
++int __cdecl CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
+ {
+     BIO *btmp;
+     int ret;
+@@ -159,7 +159,7 @@ int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
+ }
+ #endif
+ 
+-int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
++int __cdecl CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
+ {
+     CONF ctmp;
+     CONF_set_nconf(&ctmp, conf);
+@@ -174,7 +174,7 @@ int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
+  * the "CONF classic" functions, for consistency.
+  */
+ 
+-CONF *NCONF_new(CONF_METHOD *meth)
++CONF * __cdecl NCONF_new(CONF_METHOD *meth)
+ {
+     CONF *ret;
+ 
+@@ -190,21 +190,21 @@ CONF *NCONF_new(CONF_METHOD *meth)
+     return ret;
+ }
+ 
+-void NCONF_free(CONF *conf)
++void __cdecl NCONF_free(CONF *conf)
+ {
+     if (conf == NULL)
+         return;
+     conf->meth->destroy(conf);
+ }
+ 
+-void NCONF_free_data(CONF *conf)
++void __cdecl NCONF_free_data(CONF *conf)
+ {
+     if (conf == NULL)
+         return;
+     conf->meth->destroy_data(conf);
+ }
+ 
+-int NCONF_load(CONF *conf, const char *file, long *eline)
++int __cdecl NCONF_load(CONF *conf, const char *file, long *eline)
+ {
+     if (conf == NULL) {
+         CONFerr(CONF_F_NCONF_LOAD, CONF_R_NO_CONF);
+@@ -215,7 +215,7 @@ int NCONF_load(CONF *conf, const char *file, long *eline)
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
++int __cdecl NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
+ {
+     BIO *btmp;
+     int ret;
+@@ -229,7 +229,7 @@ int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
+ }
+ #endif
+ 
+-int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
++int __cdecl NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
+ {
+     if (conf == NULL) {
+         CONFerr(CONF_F_NCONF_LOAD_BIO, CONF_R_NO_CONF);
+@@ -239,7 +239,7 @@ int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
+     return conf->meth->load_bio(conf, bp, eline);
+ }
+ 
+-STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf, const char *section)
++STACK_OF(CONF_VALUE) * __cdecl NCONF_get_section(const CONF *conf, const char *section)
+ {
+     if (conf == NULL) {
+         CONFerr(CONF_F_NCONF_GET_SECTION, CONF_R_NO_CONF);
+@@ -254,7 +254,7 @@ STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf, const char *section)
+     return _CONF_get_section_values(conf, section);
+ }
+ 
+-char *NCONF_get_string(const CONF *conf, const char *group, const char *name)
++char * __cdecl NCONF_get_string(const CONF *conf, const char *group, const char *name)
+ {
+     char *s = _CONF_get_string(conf, group, name);
+ 
+@@ -285,7 +285,7 @@ static int default_to_int(const CONF *conf, char c)
+     return (int)(c - '0');
+ }
+ 
+-int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
++int __cdecl NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
+                        long *result)
+ {
+     char *str;
+@@ -324,7 +324,7 @@ int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int NCONF_dump_fp(const CONF *conf, FILE *out)
++int __cdecl NCONF_dump_fp(const CONF *conf, FILE *out)
+ {
+     BIO *btmp;
+     int ret;
+@@ -338,7 +338,7 @@ int NCONF_dump_fp(const CONF *conf, FILE *out)
+ }
+ #endif
+ 
+-int NCONF_dump_bio(const CONF *conf, BIO *out)
++int __cdecl NCONF_dump_bio(const CONF *conf, BIO *out)
+ {
+     if (conf == NULL) {
+         CONFerr(CONF_F_NCONF_DUMP_BIO, CONF_R_NO_CONF);
+diff --git a/crypto/conf/conf_mall.c b/crypto/conf/conf_mall.c
+index 7e86948e89..164e3247cc 100644
+--- a/crypto/conf/conf_mall.c
++++ b/crypto/conf/conf_mall.c
+@@ -18,7 +18,7 @@
+ 
+ /* Load all OpenSSL builtin modules */
+ 
+-void OPENSSL_load_builtin_modules(void)
++void __cdecl OPENSSL_load_builtin_modules(void)
+ {
+     /* Add builtin modules here */
+     ASN1_add_oid_module();
+diff --git a/crypto/conf/conf_mod.c b/crypto/conf/conf_mod.c
+index e703d97f54..8fd90440b4 100644
+--- a/crypto/conf/conf_mod.c
++++ b/crypto/conf/conf_mod.c
+@@ -69,7 +69,7 @@ static CONF_MODULE *module_load_dso(const CONF *cnf, const char *name,
+ 
+ /* Main function: load modules from a CONF structure */
+ 
+-int CONF_modules_load(const CONF *cnf, const char *appname,
++int __cdecl CONF_modules_load(const CONF *cnf, const char *appname,
+                       unsigned long flags)
+ {
+     STACK_OF(CONF_VALUE) *values;
+@@ -109,7 +109,7 @@ int CONF_modules_load(const CONF *cnf, const char *appname,
+ 
+ }
+ 
+-int CONF_modules_load_file(const char *filename, const char *appname,
++int __cdecl CONF_modules_load_file(const char *filename, const char *appname,
+                            unsigned long flags)
+ {
+     char *file = NULL;
+@@ -356,7 +356,7 @@ static int module_init(CONF_MODULE *pmod, const char *name, const char *value,
+  * including static ones.
+  */
+ 
+-void CONF_modules_unload(int all)
++void __cdecl CONF_modules_unload(int all)
+ {
+     int i;
+     CONF_MODULE *md;
+@@ -387,7 +387,7 @@ static void module_free(CONF_MODULE *md)
+ 
+ /* finish and free up all modules instances */
+ 
+-void CONF_modules_finish(void)
++void __cdecl CONF_modules_finish(void)
+ {
+     CONF_IMODULE *imod;
+     while (sk_CONF_IMODULE_num(initialized_modules) > 0) {
+@@ -414,7 +414,7 @@ static void module_finish(CONF_IMODULE *imod)
+ 
+ /* Add a static module to OpenSSL */
+ 
+-int CONF_module_add(const char *name, conf_init_func *ifunc,
++int __cdecl CONF_module_add(const char *name, conf_init_func *ifunc,
+                     conf_finish_func *ffunc)
+ {
+     if (module_add(NULL, name, ifunc, ffunc))
+@@ -431,54 +431,54 @@ void conf_modules_free_int(void)
+ 
+ /* Utility functions */
+ 
+-const char *CONF_imodule_get_name(const CONF_IMODULE *md)
++const char * __cdecl CONF_imodule_get_name(const CONF_IMODULE *md)
+ {
+     return md->name;
+ }
+ 
+-const char *CONF_imodule_get_value(const CONF_IMODULE *md)
++const char * __cdecl CONF_imodule_get_value(const CONF_IMODULE *md)
+ {
+     return md->value;
+ }
+ 
+-void *CONF_imodule_get_usr_data(const CONF_IMODULE *md)
++void * __cdecl CONF_imodule_get_usr_data(const CONF_IMODULE *md)
+ {
+     return md->usr_data;
+ }
+ 
+-void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
++void __cdecl CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
+ {
+     md->usr_data = usr_data;
+ }
+ 
+-CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md)
++CONF_MODULE * __cdecl CONF_imodule_get_module(const CONF_IMODULE *md)
+ {
+     return md->pmod;
+ }
+ 
+-unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md)
++unsigned long __cdecl CONF_imodule_get_flags(const CONF_IMODULE *md)
+ {
+     return md->flags;
+ }
+ 
+-void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags)
++void __cdecl CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags)
+ {
+     md->flags = flags;
+ }
+ 
+-void *CONF_module_get_usr_data(CONF_MODULE *pmod)
++void * __cdecl CONF_module_get_usr_data(CONF_MODULE *pmod)
+ {
+     return pmod->usr_data;
+ }
+ 
+-void CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data)
++void __cdecl CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data)
+ {
+     pmod->usr_data = usr_data;
+ }
+ 
+ /* Return default config file name */
+ 
+-char *CONF_get1_default_config_file(void)
++char * __cdecl CONF_get1_default_config_file(void)
+ {
+     char *file, *sep = "";
+     int len;
+@@ -510,7 +510,7 @@ char *CONF_get1_default_config_file(void)
+  * lists for example.
+  */
+ 
+-int CONF_parse_list(const char *list_, int sep, int nospc,
++int __cdecl CONF_parse_list(const char *list_, int sep, int nospc,
+                     int (*list_cb) (const char *elem, int len, void *usr),
+                     void *arg)
+ {
 diff --git a/crypto/ct/ct_log.c b/crypto/ct/ct_log.c
 index c1bca3e141..cba30257d6 100644
 --- a/crypto/ct/ct_log.c
@@ -11606,6 +12035,187 @@ index 90231e9aa3..134ee4cfce 100644
  
  /*
   * COMP function codes.
+diff --git a/include/openssl/conf.h b/include/openssl/conf.h
+index 7336cd2f1d..de9fe93f0f 100644
+--- a/include/openssl/conf.h
++++ b/include/openssl/conf.h
+@@ -66,27 +66,27 @@ typedef void conf_finish_func (CONF_IMODULE *md);
+ # define CONF_MFLAGS_IGNORE_MISSING_FILE 0x10
+ # define CONF_MFLAGS_DEFAULT_SECTION     0x20
+ 
+-int CONF_set_default_method(CONF_METHOD *meth);
+-void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
+-LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
++int __cdecl CONF_set_default_method(CONF_METHOD *meth);
++void __cdecl CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
+                                 long *eline);
+ # ifndef OPENSSL_NO_STDIO
+-LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
+                                    long *eline);
+ # endif
+-LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
++LHASH_OF(CONF_VALUE) * __cdecl CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
+                                     long *eline);
+-STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
++STACK_OF(CONF_VALUE) * __cdecl CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
+                                        const char *section);
+-char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
++char * __cdecl CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
+                       const char *name);
+-long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
++long __cdecl CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
+                      const char *name);
+-void CONF_free(LHASH_OF(CONF_VALUE) *conf);
++void __cdecl CONF_free(LHASH_OF(CONF_VALUE) *conf);
+ #ifndef OPENSSL_NO_STDIO
+-int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
++int __cdecl CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
+ #endif
+-int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
++int __cdecl CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
+ 
+ DEPRECATEDIN_1_1_0(void OPENSSL_config(const char *config_name))
+ 
+@@ -106,60 +106,60 @@ struct conf_st {
+     LHASH_OF(CONF_VALUE) *data;
+ };
+ 
+-CONF *NCONF_new(CONF_METHOD *meth);
+-CONF_METHOD *NCONF_default(void);
+-CONF_METHOD *NCONF_WIN32(void);
+-void NCONF_free(CONF *conf);
+-void NCONF_free_data(CONF *conf);
++CONF * __cdecl NCONF_new(CONF_METHOD *meth);
++CONF_METHOD * __cdecl NCONF_default(void);
++CONF_METHOD * __cdecl NCONF_WIN32(void);
++void __cdecl NCONF_free(CONF *conf);
++void __cdecl NCONF_free_data(CONF *conf);
+ 
+-int NCONF_load(CONF *conf, const char *file, long *eline);
++int __cdecl NCONF_load(CONF *conf, const char *file, long *eline);
+ # ifndef OPENSSL_NO_STDIO
+-int NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
++int __cdecl NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
+ # endif
+-int NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
+-STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf,
++int __cdecl NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
++STACK_OF(CONF_VALUE) * __cdecl NCONF_get_section(const CONF *conf,
+                                         const char *section);
+-char *NCONF_get_string(const CONF *conf, const char *group, const char *name);
+-int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
++char * __cdecl NCONF_get_string(const CONF *conf, const char *group, const char *name);
++int __cdecl NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
+                        long *result);
+ #ifndef OPENSSL_NO_STDIO
+-int NCONF_dump_fp(const CONF *conf, FILE *out);
++int __cdecl NCONF_dump_fp(const CONF *conf, FILE *out);
+ #endif
+-int NCONF_dump_bio(const CONF *conf, BIO *out);
++int __cdecl NCONF_dump_bio(const CONF *conf, BIO *out);
+ 
+ #define NCONF_get_number(c,g,n,r) NCONF_get_number_e(c,g,n,r)
+ 
+ /* Module functions */
+ 
+-int CONF_modules_load(const CONF *cnf, const char *appname,
++int __cdecl CONF_modules_load(const CONF *cnf, const char *appname,
+                       unsigned long flags);
+-int CONF_modules_load_file(const char *filename, const char *appname,
++int __cdecl CONF_modules_load_file(const char *filename, const char *appname,
+                            unsigned long flags);
+-void CONF_modules_unload(int all);
+-void CONF_modules_finish(void);
++void __cdecl CONF_modules_unload(int all);
++void __cdecl CONF_modules_finish(void);
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ # define CONF_modules_free() while(0) continue
+ #endif
+-int CONF_module_add(const char *name, conf_init_func *ifunc,
++int __cdecl CONF_module_add(const char *name, conf_init_func *ifunc,
+                     conf_finish_func *ffunc);
+ 
+-const char *CONF_imodule_get_name(const CONF_IMODULE *md);
+-const char *CONF_imodule_get_value(const CONF_IMODULE *md);
+-void *CONF_imodule_get_usr_data(const CONF_IMODULE *md);
+-void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
+-CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md);
+-unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md);
+-void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
+-void *CONF_module_get_usr_data(CONF_MODULE *pmod);
+-void CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
++const char * __cdecl CONF_imodule_get_name(const CONF_IMODULE *md);
++const char * __cdecl CONF_imodule_get_value(const CONF_IMODULE *md);
++void * __cdecl CONF_imodule_get_usr_data(const CONF_IMODULE *md);
++void __cdecl CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
++CONF_MODULE * __cdecl CONF_imodule_get_module(const CONF_IMODULE *md);
++unsigned long __cdecl CONF_imodule_get_flags(const CONF_IMODULE *md);
++void __cdecl CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
++void * __cdecl CONF_module_get_usr_data(CONF_MODULE *pmod);
++void __cdecl CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
+ 
+-char *CONF_get1_default_config_file(void);
++char * __cdecl CONF_get1_default_config_file(void);
+ 
+-int CONF_parse_list(const char *list, int sep, int nospc,
++int __cdecl CONF_parse_list(const char *list, int sep, int nospc,
+                     int (*list_cb) (const char *elem, int len, void *usr),
+                     void *arg);
+ 
+-void OPENSSL_load_builtin_modules(void);
++void __cdecl OPENSSL_load_builtin_modules(void);
+ 
+ 
+ # ifdef  __cplusplus
+diff --git a/include/openssl/conf_api.h b/include/openssl/conf_api.h
+index a0275ad79b..093a9d4825 100644
+--- a/include/openssl/conf_api.h
++++ b/include/openssl/conf_api.h
+@@ -18,21 +18,21 @@ extern "C" {
+ #endif
+ 
+ /* Up until OpenSSL 0.9.5a, this was new_section */
+-CONF_VALUE *_CONF_new_section(CONF *conf, const char *section);
++CONF_VALUE * __cdecl _CONF_new_section(CONF *conf, const char *section);
+ /* Up until OpenSSL 0.9.5a, this was get_section */
+-CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section);
++CONF_VALUE * __cdecl _CONF_get_section(const CONF *conf, const char *section);
+ /* Up until OpenSSL 0.9.5a, this was CONF_get_section */
+-STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
++STACK_OF(CONF_VALUE) * __cdecl _CONF_get_section_values(const CONF *conf,
+                                                const char *section);
+ 
+-int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value);
+-char *_CONF_get_string(const CONF *conf, const char *section,
++int __cdecl _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value);
++char * __cdecl _CONF_get_string(const CONF *conf, const char *section,
+                        const char *name);
+-long _CONF_get_number(const CONF *conf, const char *section,
++long __cdecl _CONF_get_number(const CONF *conf, const char *section,
+                       const char *name);
+ 
+-int _CONF_new_data(CONF *conf);
+-void _CONF_free_data(CONF *conf);
++int __cdecl _CONF_new_data(CONF *conf);
++void __cdecl _CONF_free_data(CONF *conf);
+ 
+ #ifdef  __cplusplus
+ }
+diff --git a/include/openssl/conferr.h b/include/openssl/conferr.h
+index 32b9229185..4bd6d6a051 100644
+--- a/include/openssl/conferr.h
++++ b/include/openssl/conferr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_CONF_strings(void);
++int __cdecl ERR_load_CONF_strings(void);
+ 
+ /*
+  * CONF function codes.
 diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
 index 7d0b526236..90aa5e4acc 100644
 --- a/include/openssl/crypto.h
@@ -12863,617 +13473,1227 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/conf/conf_api.c b/crypto/conf/conf_api.c
-index 86bbf53e77..14a98b93bf 100644
---- a/crypto/conf/conf_api.c
-+++ b/crypto/conf/conf_api.c
-@@ -20,7 +20,7 @@ static void value_free_hash(const CONF_VALUE *a, LHASH_OF(CONF_VALUE) *conf);
- static void value_free_stack_doall(CONF_VALUE *a);
- 
- /* Up until OpenSSL 0.9.5a, this was get_section */
--CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
-+CONF_VALUE * __cdecl _CONF_get_section(const CONF *conf, const char *section)
- {
-     CONF_VALUE *v, vv;
- 
-@@ -33,7 +33,7 @@ CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section)
- }
- 
- /* Up until OpenSSL 0.9.5a, this was CONF_get_section */
--STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
-+STACK_OF(CONF_VALUE) * __cdecl _CONF_get_section_values(const CONF *conf,
-                                                const char *section)
- {
-     CONF_VALUE *v;
-@@ -45,7 +45,7 @@ STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
-         return NULL;
- }
- 
--int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
-+int __cdecl _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
- {
-     CONF_VALUE *v = NULL;
-     STACK_OF(CONF_VALUE) *ts;
-@@ -67,7 +67,7 @@ int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value)
-     return 1;
- }
- 
--char *_CONF_get_string(const CONF *conf, const char *section,
-+char * __cdecl _CONF_get_string(const CONF *conf, const char *section,
-                        const char *name)
- {
-     CONF_VALUE *v, vv;
-@@ -123,7 +123,7 @@ static int __cdecl conf_value_cmp(const CONF_VALUE *a, const CONF_VALUE *b)
-         return ((a->name == NULL) ? -1 : 1);
- }
- 
--int _CONF_new_data(CONF *conf)
-+int __cdecl _CONF_new_data(CONF *conf)
- {
-     if (conf == NULL) {
-         return 0;
-@@ -140,7 +140,7 @@ typedef LHASH_OF(CONF_VALUE) LH_CONF_VALUE;
- 
- IMPLEMENT_LHASH_DOALL_ARG_CONST(CONF_VALUE, LH_CONF_VALUE);
- 
--void _CONF_free_data(CONF *conf)
-+void __cdecl _CONF_free_data(CONF *conf)
- {
-     if (conf == NULL || conf->data == NULL)
-         return;
-@@ -186,7 +186,7 @@ static void value_free_stack_doall(CONF_VALUE *a)
- }
- 
- /* Up until OpenSSL 0.9.5a, this was new_section */
--CONF_VALUE *_CONF_new_section(CONF *conf, const char *section)
-+CONF_VALUE * __cdecl _CONF_new_section(CONF *conf, const char *section)
- {
-     STACK_OF(CONF_VALUE) *sk = NULL;
-     int i;
-diff --git a/crypto/conf/conf_def.c b/crypto/conf/conf_def.c
-index 8e3f42a0ca..5a07ccda71 100644
---- a/crypto/conf/conf_def.c
-+++ b/crypto/conf/conf_def.c
-@@ -89,12 +89,12 @@ static CONF_METHOD WIN32_method = {
-     def_load
- };
- 
--CONF_METHOD *NCONF_default(void)
-+CONF_METHOD * __cdecl NCONF_default(void)
- {
-     return &default_method;
- }
- 
--CONF_METHOD *NCONF_WIN32(void)
-+CONF_METHOD * __cdecl NCONF_WIN32(void)
- {
-     return &WIN32_method;
- }
-diff --git a/crypto/conf/conf_err.c b/crypto/conf/conf_err.c
-index f7613584ec..a7d299e885 100644
---- a/crypto/conf/conf_err.c
-+++ b/crypto/conf/conf_err.c
-@@ -83,7 +83,7 @@ static const ERR_STRING_DATA CONF_str_reasons[] = {
- 
- #endif
- 
--int ERR_load_CONF_strings(void)
-+int __cdecl ERR_load_CONF_strings(void)
- {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(CONF_str_functs[0].error) == NULL) {
 diff --git a/crypto/conf/conf_lib.c b/crypto/conf/conf_lib.c
-index 2d40ac97ec..0bf3605698 100644
+index 0bf3605698..21fe21c999 100644
 --- a/crypto/conf/conf_lib.c
 +++ b/crypto/conf/conf_lib.c
-@@ -22,7 +22,7 @@ static CONF_METHOD *default_CONF_method = NULL;
- 
- /* Init a 'CONF' structure from an old LHASH */
- 
--void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
-+void __cdecl CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
- {
-     if (default_CONF_method == NULL)
-         default_CONF_method = NCONF_default();
-@@ -36,13 +36,13 @@ void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash)
-  * terms of the new CONF interface.
+@@ -352,7 +352,7 @@ int __cdecl NCONF_dump_bio(const CONF *conf, BIO *out)
+  * These routines call the C malloc/free, to avoid intermixing with
+  * OpenSSL function pointers before the library is initialized.
   */
- 
--int CONF_set_default_method(CONF_METHOD *meth)
-+int __cdecl CONF_set_default_method(CONF_METHOD *meth)
+-OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void)
++OPENSSL_INIT_SETTINGS * __cdecl OPENSSL_INIT_new(void)
  {
-     default_CONF_method = meth;
+     OPENSSL_INIT_SETTINGS *ret = malloc(sizeof(*ret));
+ 
+@@ -365,7 +365,7 @@ OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void)
+ 
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
++int __cdecl OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
+                                      const char *filename)
+ {
+     char *newfilename = NULL;
+@@ -382,13 +382,13 @@ int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
      return 1;
  }
  
--LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
-                                 long *eline)
+-void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
++void __cdecl OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
+                                         unsigned long flags)
  {
-     LHASH_OF(CONF_VALUE) *ltmp;
-@@ -65,7 +65,7 @@ LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
+     settings->flags = flags;
  }
  
- #ifndef OPENSSL_NO_STDIO
--LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
-                                    long *eline)
+-int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
++int __cdecl OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
+                                     const char *appname)
  {
-     BIO *btmp;
-@@ -80,7 +80,7 @@ LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
+     char *newappname = NULL;
+@@ -406,7 +406,7 @@ int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
  }
  #endif
  
--LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-                                     long *eline)
+-void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings)
++void __cdecl OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings)
  {
-     CONF ctmp;
-@@ -94,7 +94,7 @@ LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-     return NULL;
+     free(settings->filename);
+     free(settings->appname);
+diff --git a/crypto/cpt_err.c b/crypto/cpt_err.c
+index 4147b1cb9e..e01ac49581 100644
+--- a/crypto/cpt_err.c
++++ b/crypto/cpt_err.c
+@@ -65,7 +65,7 @@ static const ERR_STRING_DATA CRYPTO_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_CRYPTO_strings(void)
++int __cdecl ERR_load_CRYPTO_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(CRYPTO_str_functs[0].error) == NULL) {
+diff --git a/crypto/cryptlib.c b/crypto/cryptlib.c
+index 7b761a3adc..f91032571e 100644
+--- a/crypto/cryptlib.c
++++ b/crypto/cryptlib.c
+@@ -184,13 +184,13 @@ void OPENSSL_cpuid_setup(void)
+ # if defined(_WIN32_WINNT) && _WIN32_WINNT>=0x0333
+ #  ifdef OPENSSL_SYS_WIN_CORE
+ 
+-int OPENSSL_isservice(void)
++int __cdecl OPENSSL_isservice(void)
+ {
+     /* OneCore API cannot interact with GUI */
+     return 1;
+ }
+ #  else
+-int OPENSSL_isservice(void)
++int __cdecl OPENSSL_isservice(void)
+ {
+     HWINSTA h;
+     DWORD len;
+@@ -252,7 +252,7 @@ int OPENSSL_isservice(void)
+ }
+ #  endif
+ # else
+-int OPENSSL_isservice(void)
++int __cdecl OPENSSL_isservice(void)
+ {
+     return 0;
+ }
+@@ -407,13 +407,13 @@ void OPENSSL_showfatal(const char *fmta, ...)
+ #endif
  }
  
--STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-+STACK_OF(CONF_VALUE) * __cdecl CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-                                        const char *section)
+-int OPENSSL_isservice(void)
++int __cdecl OPENSSL_isservice(void)
  {
-     if (conf == NULL) {
-@@ -106,7 +106,7 @@ STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-     }
- }
- 
--char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-+char * __cdecl CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                       const char *name)
- {
-     if (conf == NULL) {
-@@ -118,7 +118,7 @@ char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-     }
- }
- 
--long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-+long __cdecl CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                      const char *name)
- {
-     int status;
-@@ -136,7 +136,7 @@ long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-     return status == 0 ? 0L : result;
- }
- 
--void CONF_free(LHASH_OF(CONF_VALUE) *conf)
-+void __cdecl CONF_free(LHASH_OF(CONF_VALUE) *conf)
- {
-     CONF ctmp;
-     CONF_set_nconf(&ctmp, conf);
-@@ -144,7 +144,7 @@ void CONF_free(LHASH_OF(CONF_VALUE) *conf)
- }
- 
- #ifndef OPENSSL_NO_STDIO
--int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
-+int __cdecl CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
- {
-     BIO *btmp;
-     int ret;
-@@ -159,7 +159,7 @@ int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out)
+     return 0;
  }
  #endif
  
--int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
-+int __cdecl CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
+-void OPENSSL_die(const char *message, const char *file, int line)
++void __cdecl OPENSSL_die(const char *message, const char *file, int line)
  {
-     CONF ctmp;
-     CONF_set_nconf(&ctmp, conf);
-@@ -174,7 +174,7 @@ int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out)
-  * the "CONF classic" functions, for consistency.
+     OPENSSL_showfatal("%s:%d: OpenSSL internal error: %s\n",
+                       file, line, message);
+@@ -440,7 +440,7 @@ void OPENSSL_die(const char *message, const char *file, int line)
+  * There are also assembler versions of this function.
+  */
+ # undef CRYPTO_memcmp
+-int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len)
++int __cdecl CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len)
+ {
+     size_t i;
+     const volatile unsigned char *a = in_a;
+diff --git a/crypto/cversion.c b/crypto/cversion.c
+index 534e7eba55..dae679e43d 100644
+--- a/crypto/cversion.c
++++ b/crypto/cversion.c
+@@ -11,12 +11,12 @@
+ 
+ #include "buildinf.h"
+ 
+-unsigned long OpenSSL_version_num(void)
++unsigned long __cdecl OpenSSL_version_num(void)
+ {
+     return OPENSSL_VERSION_NUMBER;
+ }
+ 
+-const char *OpenSSL_version(int t)
++const char * __cdecl OpenSSL_version(int t)
+ {
+     switch (t) {
+     case OPENSSL_VERSION:
+diff --git a/crypto/ex_data.c b/crypto/ex_data.c
+index 9caa209495..db440eeb06 100644
+--- a/crypto/ex_data.c
++++ b/crypto/ex_data.c
+@@ -127,7 +127,7 @@ static int dummy_dup(CRYPTO_EX_DATA *to, const CRYPTO_EX_DATA *from,
+     return 1;
+ }
+ 
+-int CRYPTO_free_ex_index(int class_index, int idx)
++int __cdecl CRYPTO_free_ex_index(int class_index, int idx)
+ {
+     EX_CALLBACKS *ip = get_and_lock(class_index);
+     EX_CALLBACK *a;
+@@ -152,7 +152,7 @@ err:
+ /*
+  * Register a new index.
+  */
+-int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
++int __cdecl CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
+                             CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func,
+                             CRYPTO_EX_free *free_func)
+ {
+@@ -205,7 +205,7 @@ int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
+  * in the lock, then using them outside the lock. Note this only applies
+  * to the global "ex_data" state (ie. class definitions), not 'ad' itself.
+  */
+-int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
++int __cdecl CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+ {
+     int mx, i;
+     void *ptr;
+@@ -250,7 +250,7 @@ int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+  * Duplicate a CRYPTO_EX_DATA variable - including calling dup() callbacks
+  * for each index in the class used by this variable
+  */
+-int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
++int __cdecl CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
+                        const CRYPTO_EX_DATA *from)
+ {
+     int mx, j, i;
+@@ -317,7 +317,7 @@ int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
+  * Cleanup a CRYPTO_EX_DATA variable - including calling free() callbacks for
+  * each index in the class used by this variable
+  */
+-void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
++void __cdecl CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+ {
+     int mx, i;
+     EX_CALLBACKS *ip;
+@@ -366,7 +366,7 @@ void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad)
+  * For a given CRYPTO_EX_DATA variable, set the value corresponding to a
+  * particular index in the class used by this variable
+  */
+-int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
++int __cdecl CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
+ {
+     int i;
+ 
+@@ -391,7 +391,7 @@ int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val)
+  * For a given CRYPTO_EX_DATA_ variable, get the value corresponding to a
+  * particular index in the class used by this variable
+  */
+-void *CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx)
++void * __cdecl CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx)
+ {
+     if (ad->sk == NULL || idx >= sk_void_num(ad->sk))
+         return NULL;
+diff --git a/crypto/init.c b/crypto/init.c
+index 6bdb538618..c87de50e62 100644
+--- a/crypto/init.c
++++ b/crypto/init.c
+@@ -837,15 +837,15 @@ int __cdecl OPENSSL_atexit(void (*handler)(void))
+  *      http://man7.org/linux/man-pages/man7/signal-safety.7.html
   */
  
--CONF *NCONF_new(CONF_METHOD *meth)
-+CONF * __cdecl NCONF_new(CONF_METHOD *meth)
+-void OPENSSL_fork_prepare(void)
++void __cdecl OPENSSL_fork_prepare(void)
  {
-     CONF *ret;
+ }
  
-@@ -190,21 +190,21 @@ CONF *NCONF_new(CONF_METHOD *meth)
+-void OPENSSL_fork_parent(void)
++void __cdecl OPENSSL_fork_parent(void)
+ {
+ }
+ 
+-void OPENSSL_fork_child(void)
++void __cdecl OPENSSL_fork_child(void)
+ {
+ }
+ #endif
+diff --git a/crypto/mem.c b/crypto/mem.c
+index 55c7295526..56c02305ea 100644
+--- a/crypto/mem.c
++++ b/crypto/mem.c
+@@ -57,7 +57,7 @@ static int call_malloc_debug = 0;
+ # define FAILTEST() /* empty */
+ #endif
+ 
+-int CRYPTO_set_mem_functions(
++int __cdecl CRYPTO_set_mem_functions(
+         void *(__cdecl *m)(size_t, const char *, int),
+         void *(__cdecl *r)(void *, size_t, const char *, int),
+         void (__cdecl *f)(void *, const char *, int))
+@@ -73,7 +73,7 @@ int CRYPTO_set_mem_functions(
+     return 1;
+ }
+ 
+-int CRYPTO_set_mem_debug(int flag)
++int __cdecl CRYPTO_set_mem_debug(int flag)
+ {
+     if (!allow_customize)
+         return 0;
+@@ -81,7 +81,7 @@ int CRYPTO_set_mem_debug(int flag)
+     return 1;
+ }
+ 
+-void CRYPTO_get_mem_functions(
++void __cdecl CRYPTO_get_mem_functions(
+         void *(__cdecl **m)(size_t, const char *, int),
+         void *(__cdecl **r)(void *, size_t, const char *, int),
+         void (__cdecl **f)(void *, const char *, int))
+@@ -95,7 +95,7 @@ void CRYPTO_get_mem_functions(
+ }
+ 
+ #ifndef OPENSSL_NO_CRYPTO_MDEBUG
+-void CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount)
++void __cdecl CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount)
+ {
+     if (mcount != NULL)
+         *mcount = tsan_load(&malloc_count);
+@@ -225,7 +225,7 @@ void * __cdecl CRYPTO_malloc(size_t num, const char *file, int line)
      return ret;
  }
  
--void NCONF_free(CONF *conf)
-+void __cdecl NCONF_free(CONF *conf)
+-void *CRYPTO_zalloc(size_t num, const char *file, int line)
++void * __cdecl CRYPTO_zalloc(size_t num, const char *file, int line)
  {
-     if (conf == NULL)
+     void *ret = CRYPTO_malloc(num, file, line);
+ 
+@@ -265,7 +265,7 @@ void * __cdecl CRYPTO_realloc(void *str, size_t num, const char *file, int line)
+ 
+ }
+ 
+-void *CRYPTO_clear_realloc(void *str, size_t old_len, size_t num,
++void * __cdecl CRYPTO_clear_realloc(void *str, size_t old_len, size_t num,
+                            const char *file, int line)
+ {
+     void *ret = NULL;
+@@ -313,7 +313,7 @@ void __cdecl CRYPTO_free(void *str, const char *file, int line)
+ #endif
+ }
+ 
+-void CRYPTO_clear_free(void *str, size_t num, const char *file, int line)
++void __cdecl CRYPTO_clear_free(void *str, size_t num, const char *file, int line)
+ {
+     if (str == NULL)
          return;
-     conf->meth->destroy(conf);
- }
+diff --git a/crypto/mem_clr.c b/crypto/mem_clr.c
+index b5ccbe2c32..c9310edccd 100644
+--- a/crypto/mem_clr.c
++++ b/crypto/mem_clr.c
+@@ -19,7 +19,7 @@ typedef void *(__cdecl *memset_t)(void *, int, size_t);
  
--void NCONF_free_data(CONF *conf)
-+void __cdecl NCONF_free_data(CONF *conf)
- {
-     if (conf == NULL)
-         return;
-     conf->meth->destroy_data(conf);
- }
+ static volatile memset_t memset_func = memset;
  
--int NCONF_load(CONF *conf, const char *file, long *eline)
-+int __cdecl NCONF_load(CONF *conf, const char *file, long *eline)
+-void OPENSSL_cleanse(void *ptr, size_t len)
++void __cdecl OPENSSL_cleanse(void *ptr, size_t len)
  {
-     if (conf == NULL) {
-         CONFerr(CONF_F_NCONF_LOAD, CONF_R_NO_CONF);
-@@ -215,7 +215,7 @@ int NCONF_load(CONF *conf, const char *file, long *eline)
+     memset_func(ptr, 0, len);
  }
- 
- #ifndef OPENSSL_NO_STDIO
--int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
-+int __cdecl NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
- {
-     BIO *btmp;
-     int ret;
-@@ -229,7 +229,7 @@ int NCONF_load_fp(CONF *conf, FILE *fp, long *eline)
+diff --git a/crypto/mem_dbg.c b/crypto/mem_dbg.c
+index 0489e97adb..9d4d5e5dc1 100644
+--- a/crypto/mem_dbg.c
++++ b/crypto/mem_dbg.c
+@@ -117,7 +117,7 @@ static void app_info_free(APP_INFO *inf)
  }
  #endif
  
--int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
-+int __cdecl NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
+-int CRYPTO_mem_ctrl(int mode)
++int __cdecl CRYPTO_mem_ctrl(int mode)
  {
-     if (conf == NULL) {
-         CONFerr(CONF_F_NCONF_LOAD_BIO, CONF_R_NO_CONF);
-@@ -239,7 +239,7 @@ int NCONF_load_bio(CONF *conf, BIO *bp, long *eline)
-     return conf->meth->load_bio(conf, bp, eline);
+ #ifdef OPENSSL_NO_CRYPTO_MDEBUG
+     return mode - mode;
+@@ -266,7 +266,7 @@ static int pop_info(void)
+     return 0;
  }
  
--STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf, const char *section)
-+STACK_OF(CONF_VALUE) * __cdecl NCONF_get_section(const CONF *conf, const char *section)
+-int CRYPTO_mem_debug_push(const char *info, const char *file, int line)
++int __cdecl CRYPTO_mem_debug_push(const char *info, const char *file, int line)
  {
-     if (conf == NULL) {
-         CONFerr(CONF_F_NCONF_GET_SECTION, CONF_R_NO_CONF);
-@@ -254,7 +254,7 @@ STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf, const char *section)
-     return _CONF_get_section_values(conf, section);
+     APP_INFO *ami, *amim;
+     int ret = 0;
+@@ -298,7 +298,7 @@ int CRYPTO_mem_debug_push(const char *info, const char *file, int line)
+     return ret;
  }
  
--char *NCONF_get_string(const CONF *conf, const char *group, const char *name)
-+char * __cdecl NCONF_get_string(const CONF *conf, const char *group, const char *name)
+-int CRYPTO_mem_debug_pop(void)
++int __cdecl CRYPTO_mem_debug_pop(void)
  {
-     char *s = _CONF_get_string(conf, group, name);
+     int ret = 0;
  
-@@ -285,7 +285,7 @@ static int default_to_int(const CONF *conf, char c)
-     return (int)(c - '0');
+@@ -312,7 +312,7 @@ int CRYPTO_mem_debug_pop(void)
+ 
+ static unsigned long break_order_num = 0;
+ 
+-void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
++void __cdecl CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
+                              const char *file, int line)
+ {
+     MEM *m, *mm;
+@@ -379,7 +379,7 @@ void CRYPTO_mem_debug_malloc(void *addr, size_t num, int before_p,
+     return;
  }
  
--int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
-+int __cdecl NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
-                        long *result)
+-void CRYPTO_mem_debug_free(void *addr, int before_p,
++void __cdecl CRYPTO_mem_debug_free(void *addr, int before_p,
+         const char *file, int line)
  {
-     char *str;
-@@ -324,7 +324,7 @@ int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
+     MEM m, *mp;
+@@ -407,7 +407,7 @@ void CRYPTO_mem_debug_free(void *addr, int before_p,
+     }
  }
  
- #ifndef OPENSSL_NO_STDIO
--int NCONF_dump_fp(const CONF *conf, FILE *out)
-+int __cdecl NCONF_dump_fp(const CONF *conf, FILE *out)
+-void CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num,
++void __cdecl CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num,
+                               int before_p, const char *file, int line)
  {
-     BIO *btmp;
+     MEM m, *mp;
+@@ -566,7 +566,7 @@ static void print_leak(const MEM *m, MEM_LEAK *l)
+ 
+ IMPLEMENT_LHASH_DOALL_ARG_CONST(MEM, MEM_LEAK);
+ 
+-int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
++int __cdecl CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
+                         void *u)
+ {
+     MEM_LEAK ml;
+@@ -633,7 +633,7 @@ static int print_bio(const char *str, size_t len, void *b)
+     return BIO_write((BIO *)b, str, len);
+ }
+ 
+-int CRYPTO_mem_leaks(BIO *b)
++int __cdecl CRYPTO_mem_leaks(BIO *b)
+ {
+     /*
+      * OPENSSL_cleanup() will free the ex_data locks so we can't have any
+@@ -645,7 +645,7 @@ int CRYPTO_mem_leaks(BIO *b)
+ }
+ 
+ # ifndef OPENSSL_NO_STDIO
+-int CRYPTO_mem_leaks_fp(FILE *fp)
++int __cdecl CRYPTO_mem_leaks_fp(FILE *fp)
+ {
+     BIO *b;
      int ret;
-@@ -338,7 +338,7 @@ int NCONF_dump_fp(const CONF *conf, FILE *out)
- }
+diff --git a/crypto/mem_sec.c b/crypto/mem_sec.c
+index 9e0f6702f4..ec7000fd8c 100644
+--- a/crypto/mem_sec.c
++++ b/crypto/mem_sec.c
+@@ -65,7 +65,7 @@ static size_t sh_actual_size(char *ptr);
+ static int sh_allocated(const char *ptr);
  #endif
  
--int NCONF_dump_bio(const CONF *conf, BIO *out)
-+int __cdecl NCONF_dump_bio(const CONF *conf, BIO *out)
+-int CRYPTO_secure_malloc_init(size_t size, int minsize)
++int __cdecl CRYPTO_secure_malloc_init(size_t size, int minsize)
  {
-     if (conf == NULL) {
-         CONFerr(CONF_F_NCONF_DUMP_BIO, CONF_R_NO_CONF);
-diff --git a/crypto/conf/conf_mall.c b/crypto/conf/conf_mall.c
-index 7e86948e89..164e3247cc 100644
---- a/crypto/conf/conf_mall.c
-+++ b/crypto/conf/conf_mall.c
-@@ -18,7 +18,7 @@
- 
- /* Load all OpenSSL builtin modules */
- 
--void OPENSSL_load_builtin_modules(void)
-+void __cdecl OPENSSL_load_builtin_modules(void)
- {
-     /* Add builtin modules here */
-     ASN1_add_oid_module();
-diff --git a/crypto/conf/conf_mod.c b/crypto/conf/conf_mod.c
-index e703d97f54..8fd90440b4 100644
---- a/crypto/conf/conf_mod.c
-+++ b/crypto/conf/conf_mod.c
-@@ -69,7 +69,7 @@ static CONF_MODULE *module_load_dso(const CONF *cnf, const char *name,
- 
- /* Main function: load modules from a CONF structure */
- 
--int CONF_modules_load(const CONF *cnf, const char *appname,
-+int __cdecl CONF_modules_load(const CONF *cnf, const char *appname,
-                       unsigned long flags)
- {
-     STACK_OF(CONF_VALUE) *values;
-@@ -109,7 +109,7 @@ int CONF_modules_load(const CONF *cnf, const char *appname,
- 
+ #ifdef OPENSSL_SECURE_MEMORY
+     int ret = 0;
+@@ -88,7 +88,7 @@ int CRYPTO_secure_malloc_init(size_t size, int minsize)
+ #endif /* OPENSSL_SECURE_MEMORY */
  }
  
--int CONF_modules_load_file(const char *filename, const char *appname,
-+int __cdecl CONF_modules_load_file(const char *filename, const char *appname,
-                            unsigned long flags)
+-int CRYPTO_secure_malloc_done(void)
++int __cdecl CRYPTO_secure_malloc_done(void)
  {
-     char *file = NULL;
-@@ -356,7 +356,7 @@ static int module_init(CONF_MODULE *pmod, const char *name, const char *value,
-  * including static ones.
+ #ifdef OPENSSL_SECURE_MEMORY
+     if (secure_mem_used == 0) {
+@@ -102,7 +102,7 @@ int CRYPTO_secure_malloc_done(void)
+     return 0;
+ }
+ 
+-int CRYPTO_secure_malloc_initialized(void)
++int __cdecl CRYPTO_secure_malloc_initialized(void)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     return secure_mem_initialized;
+@@ -111,7 +111,7 @@ int CRYPTO_secure_malloc_initialized(void)
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
++void * __cdecl CRYPTO_secure_malloc(size_t num, const char *file, int line)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     void *ret;
+@@ -131,7 +131,7 @@ void *CRYPTO_secure_malloc(size_t num, const char *file, int line)
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-void *CRYPTO_secure_zalloc(size_t num, const char *file, int line)
++void * __cdecl CRYPTO_secure_zalloc(size_t num, const char *file, int line)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     if (secure_mem_initialized)
+@@ -141,7 +141,7 @@ void *CRYPTO_secure_zalloc(size_t num, const char *file, int line)
+     return CRYPTO_zalloc(num, file, line);
+ }
+ 
+-void CRYPTO_secure_free(void *ptr, const char *file, int line)
++void __cdecl CRYPTO_secure_free(void *ptr, const char *file, int line)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     size_t actual_size;
+@@ -163,7 +163,7 @@ void CRYPTO_secure_free(void *ptr, const char *file, int line)
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-void CRYPTO_secure_clear_free(void *ptr, size_t num,
++void __cdecl CRYPTO_secure_clear_free(void *ptr, size_t num,
+                               const char *file, int line)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+@@ -190,7 +190,7 @@ void CRYPTO_secure_clear_free(void *ptr, size_t num,
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-int CRYPTO_secure_allocated(const void *ptr)
++int __cdecl CRYPTO_secure_allocated(const void *ptr)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     int ret;
+@@ -206,7 +206,7 @@ int CRYPTO_secure_allocated(const void *ptr)
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-size_t CRYPTO_secure_used(void)
++size_t __cdecl CRYPTO_secure_used(void)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     return secure_mem_used;
+@@ -215,7 +215,7 @@ size_t CRYPTO_secure_used(void)
+ #endif /* OPENSSL_SECURE_MEMORY */
+ }
+ 
+-size_t CRYPTO_secure_actual_size(void *ptr)
++size_t __cdecl CRYPTO_secure_actual_size(void *ptr)
+ {
+ #ifdef OPENSSL_SECURE_MEMORY
+     size_t actual_size;
+diff --git a/crypto/o_fips.c b/crypto/o_fips.c
+index 050ea9c216..f3a1755872 100644
+--- a/crypto/o_fips.c
++++ b/crypto/o_fips.c
+@@ -9,13 +9,13 @@
+ 
+ #include "internal/cryptlib.h"
+ 
+-int FIPS_mode(void)
++int __cdecl FIPS_mode(void)
+ {
+     /* This version of the library does not support FIPS mode. */
+     return 0;
+ }
+ 
+-int FIPS_mode_set(int r)
++int __cdecl FIPS_mode_set(int r)
+ {
+     if (r == 0)
+         return 1;
+diff --git a/crypto/o_init.c b/crypto/o_init.c
+index ed6b1303d8..e133b629c0 100644
+--- a/crypto/o_init.c
++++ b/crypto/o_init.c
+@@ -15,7 +15,7 @@
+  * nothing.
   */
  
--void CONF_modules_unload(int all)
-+void __cdecl CONF_modules_unload(int all)
+-void OPENSSL_init(void)
++void __cdecl OPENSSL_init(void)
  {
-     int i;
-     CONF_MODULE *md;
-@@ -387,7 +387,7 @@ static void module_free(CONF_MODULE *md)
- 
- /* finish and free up all modules instances */
- 
--void CONF_modules_finish(void)
-+void __cdecl CONF_modules_finish(void)
- {
-     CONF_IMODULE *imod;
-     while (sk_CONF_IMODULE_num(initialized_modules) > 0) {
-@@ -414,7 +414,7 @@ static void module_finish(CONF_IMODULE *imod)
- 
- /* Add a static module to OpenSSL */
- 
--int CONF_module_add(const char *name, conf_init_func *ifunc,
-+int __cdecl CONF_module_add(const char *name, conf_init_func *ifunc,
-                     conf_finish_func *ffunc)
- {
-     if (module_add(NULL, name, ifunc, ffunc))
-@@ -431,54 +431,54 @@ void conf_modules_free_int(void)
- 
- /* Utility functions */
- 
--const char *CONF_imodule_get_name(const CONF_IMODULE *md)
-+const char * __cdecl CONF_imodule_get_name(const CONF_IMODULE *md)
- {
-     return md->name;
+     return;
+ }
+diff --git a/crypto/o_str.c b/crypto/o_str.c
+index 9ad7a89dca..2684c159aa 100644
+--- a/crypto/o_str.c
++++ b/crypto/o_str.c
+@@ -24,7 +24,7 @@ int OPENSSL_memcmp(const void *v1, const void *v2, size_t n)
+     return ret;
  }
  
--const char *CONF_imodule_get_value(const CONF_IMODULE *md)
-+const char * __cdecl CONF_imodule_get_value(const CONF_IMODULE *md)
+-char *CRYPTO_strdup(const char *str, const char* file, int line)
++char * __cdecl CRYPTO_strdup(const char *str, const char* file, int line)
  {
-     return md->value;
+     char *ret;
+ 
+@@ -36,7 +36,7 @@ char *CRYPTO_strdup(const char *str, const char* file, int line)
+     return ret;
  }
  
--void *CONF_imodule_get_usr_data(const CONF_IMODULE *md)
-+void * __cdecl CONF_imodule_get_usr_data(const CONF_IMODULE *md)
+-char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
++char * __cdecl CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
  {
-     return md->usr_data;
+     size_t maxlen;
+     char *ret;
+@@ -54,7 +54,7 @@ char *CRYPTO_strndup(const char *str, size_t s, const char* file, int line)
+     return ret;
  }
  
--void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
-+void __cdecl CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data)
+-void *CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
++void * __cdecl CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
  {
-     md->usr_data = usr_data;
+     void *ret;
+ 
+@@ -69,7 +69,7 @@ void *CRYPTO_memdup(const void *data, size_t siz, const char* file, int line)
+     return memcpy(ret, data, siz);
  }
  
--CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md)
-+CONF_MODULE * __cdecl CONF_imodule_get_module(const CONF_IMODULE *md)
+-size_t OPENSSL_strnlen(const char *str, size_t maxlen)
++size_t __cdecl OPENSSL_strnlen(const char *str, size_t maxlen)
  {
-     return md->pmod;
+     const char *p;
+ 
+@@ -78,7 +78,7 @@ size_t OPENSSL_strnlen(const char *str, size_t maxlen)
+     return p - str;
  }
  
--unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md)
-+unsigned long __cdecl CONF_imodule_get_flags(const CONF_IMODULE *md)
+-size_t OPENSSL_strlcpy(char *dst, const char *src, size_t size)
++size_t __cdecl OPENSSL_strlcpy(char *dst, const char *src, size_t size)
  {
-     return md->flags;
+     size_t l = 0;
+     for (; size > 1 && *src; size--) {
+@@ -90,7 +90,7 @@ size_t OPENSSL_strlcpy(char *dst, const char *src, size_t size)
+     return l + strlen(src);
  }
  
--void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags)
-+void __cdecl CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags)
+-size_t OPENSSL_strlcat(char *dst, const char *src, size_t size)
++size_t __cdecl OPENSSL_strlcat(char *dst, const char *src, size_t size)
  {
-     md->flags = flags;
+     size_t l = 0;
+     for (; size > 0 && *dst; size--, dst++)
+@@ -98,7 +98,7 @@ size_t OPENSSL_strlcat(char *dst, const char *src, size_t size)
+     return l + OPENSSL_strlcpy(dst, src, size);
  }
  
--void *CONF_module_get_usr_data(CONF_MODULE *pmod)
-+void * __cdecl CONF_module_get_usr_data(CONF_MODULE *pmod)
+-int OPENSSL_hexchar2int(unsigned char c)
++int __cdecl OPENSSL_hexchar2int(unsigned char c)
  {
-     return pmod->usr_data;
- }
- 
--void CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data)
-+void __cdecl CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data)
- {
-     pmod->usr_data = usr_data;
- }
- 
- /* Return default config file name */
- 
--char *CONF_get1_default_config_file(void)
-+char * __cdecl CONF_get1_default_config_file(void)
- {
-     char *file, *sep = "";
-     int len;
-@@ -510,7 +510,7 @@ char *CONF_get1_default_config_file(void)
-  * lists for example.
+ #ifdef CHARSET_EBCDIC
+     c = os_toebcdic[c];
+@@ -144,7 +144,7 @@ int OPENSSL_hexchar2int(unsigned char c)
+ /*
+  * Give a string of hex digits convert to a buffer
   */
- 
--int CONF_parse_list(const char *list_, int sep, int nospc,
-+int __cdecl CONF_parse_list(const char *list_, int sep, int nospc,
-                     int (*list_cb) (const char *elem, int len, void *usr),
-                     void *arg)
+-unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
++unsigned char * __cdecl OPENSSL_hexstr2buf(const char *str, long *len)
  {
-diff --git a/include/openssl/conf.h b/include/openssl/conf.h
-index 7336cd2f1d..de9fe93f0f 100644
---- a/include/openssl/conf.h
-+++ b/include/openssl/conf.h
-@@ -66,27 +66,27 @@ typedef void conf_finish_func (CONF_IMODULE *md);
- # define CONF_MFLAGS_IGNORE_MISSING_FILE 0x10
- # define CONF_MFLAGS_DEFAULT_SECTION     0x20
+     unsigned char *hexbuf, *q;
+     unsigned char ch, cl;
+@@ -188,7 +188,7 @@ unsigned char *OPENSSL_hexstr2buf(const char *str, long *len)
+  * hex representation @@@ (Contents of buffer are always kept in ASCII, also
+  * on EBCDIC machines)
+  */
+-char *OPENSSL_buf2hexstr(const unsigned char *buffer, long len)
++char * __cdecl OPENSSL_buf2hexstr(const unsigned char *buffer, long len)
+ {
+     static const char hexdig[] = "0123456789ABCDEF";
+     char *tmp, *q;
+diff --git a/crypto/o_time.c b/crypto/o_time.c
+index 6d764f55e2..8e2a4cd734 100644
+--- a/crypto/o_time.c
++++ b/crypto/o_time.c
+@@ -11,7 +11,7 @@
+ #include <string.h>
+ #include <openssl/crypto.h>
  
--int CONF_set_default_method(CONF_METHOD *meth);
--void CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
--LHASH_OF(CONF_VALUE) *CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
-+int __cdecl CONF_set_default_method(CONF_METHOD *meth);
-+void __cdecl CONF_set_nconf(CONF *conf, LHASH_OF(CONF_VALUE) *hash);
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load(LHASH_OF(CONF_VALUE) *conf, const char *file,
-                                 long *eline);
- # ifndef OPENSSL_NO_STDIO
--LHASH_OF(CONF_VALUE) *CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load_fp(LHASH_OF(CONF_VALUE) *conf, FILE *fp,
-                                    long *eline);
+-struct tm *OPENSSL_gmtime(const time_t *timer, struct tm *result)
++struct tm * __cdecl OPENSSL_gmtime(const time_t *timer, struct tm *result)
+ {
+     struct tm *ts = NULL;
+ 
+@@ -69,7 +69,7 @@ static void julian_to_date(long jd, int *y, int *m, int *d);
+ static int julian_adj(const struct tm *tm, int off_day, long offset_sec,
+                       long *pday, int *psec);
+ 
+-int OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
++int __cdecl OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
+ {
+     int time_sec, time_year, time_month, time_day;
+     long time_jd;
+@@ -99,7 +99,7 @@ int OPENSSL_gmtime_adj(struct tm *tm, int off_day, long offset_sec)
+ 
+ }
+ 
+-int OPENSSL_gmtime_diff(int *pday, int *psec,
++int __cdecl OPENSSL_gmtime_diff(int *pday, int *psec,
+                         const struct tm *from, const struct tm *to)
+ {
+     int from_sec, to_sec, diff_sec;
+diff --git a/crypto/threads_none.c b/crypto/threads_none.c
+index 389bc13d82..744fad452c 100644
+--- a/crypto/threads_none.c
++++ b/crypto/threads_none.c
+@@ -17,7 +17,7 @@
+ #  include <unistd.h>
  # endif
--LHASH_OF(CONF_VALUE) *CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-+LHASH_OF(CONF_VALUE) * __cdecl CONF_load_bio(LHASH_OF(CONF_VALUE) *conf, BIO *bp,
-                                     long *eline);
--STACK_OF(CONF_VALUE) *CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-+STACK_OF(CONF_VALUE) * __cdecl CONF_get_section(LHASH_OF(CONF_VALUE) *conf,
-                                        const char *section);
--char *CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-+char * __cdecl CONF_get_string(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                       const char *name);
--long CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-+long __cdecl CONF_get_number(LHASH_OF(CONF_VALUE) *conf, const char *group,
-                      const char *name);
--void CONF_free(LHASH_OF(CONF_VALUE) *conf);
-+void __cdecl CONF_free(LHASH_OF(CONF_VALUE) *conf);
- #ifndef OPENSSL_NO_STDIO
--int CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
-+int __cdecl CONF_dump_fp(LHASH_OF(CONF_VALUE) *conf, FILE *out);
- #endif
--int CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
-+int __cdecl CONF_dump_bio(LHASH_OF(CONF_VALUE) *conf, BIO *out);
  
- DEPRECATEDIN_1_1_0(void OPENSSL_config(const char *config_name))
+-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
++CRYPTO_RWLOCK * __cdecl CRYPTO_THREAD_lock_new(void)
+ {
+     CRYPTO_RWLOCK *lock;
  
-@@ -106,60 +106,60 @@ struct conf_st {
-     LHASH_OF(CONF_VALUE) *data;
- };
+@@ -31,28 +31,28 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
+     return lock;
+ }
  
--CONF *NCONF_new(CONF_METHOD *meth);
--CONF_METHOD *NCONF_default(void);
--CONF_METHOD *NCONF_WIN32(void);
--void NCONF_free(CONF *conf);
--void NCONF_free_data(CONF *conf);
-+CONF * __cdecl NCONF_new(CONF_METHOD *meth);
-+CONF_METHOD * __cdecl NCONF_default(void);
-+CONF_METHOD * __cdecl NCONF_WIN32(void);
-+void __cdecl NCONF_free(CONF *conf);
-+void __cdecl NCONF_free_data(CONF *conf);
+-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
+ {
+     if (!ossl_assert(*(unsigned int *)lock == 1))
+         return 0;
+     return 1;
+ }
  
--int NCONF_load(CONF *conf, const char *file, long *eline);
-+int __cdecl NCONF_load(CONF *conf, const char *file, long *eline);
- # ifndef OPENSSL_NO_STDIO
--int NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
-+int __cdecl NCONF_load_fp(CONF *conf, FILE *fp, long *eline);
+-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
+ {
+     if (!ossl_assert(*(unsigned int *)lock == 1))
+         return 0;
+     return 1;
+ }
+ 
+-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
+ {
+     if (!ossl_assert(*(unsigned int *)lock == 1))
+         return 0;
+     return 1;
+ }
+ 
+-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock) {
++void __cdecl CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock) {
+     if (lock == NULL)
+         return;
+ 
+@@ -77,7 +77,7 @@ int __cdecl CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
+ 
+ static void *thread_local_storage[OPENSSL_CRYPTO_THREAD_LOCAL_KEY_MAX];
+ 
+-int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
++int __cdecl CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
+ {
+     static unsigned int thread_local_key = 0;
+ 
+@@ -91,7 +91,7 @@ int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
+     return 1;
+ }
+ 
+-void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
++void * __cdecl CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
+ {
+     if (*key >= OPENSSL_CRYPTO_THREAD_LOCAL_KEY_MAX)
+         return NULL;
+@@ -99,7 +99,7 @@ void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
+     return thread_local_storage[*key];
+ }
+ 
+-int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
++int __cdecl CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
+ {
+     if (*key >= OPENSSL_CRYPTO_THREAD_LOCAL_KEY_MAX)
+         return 0;
+@@ -109,23 +109,23 @@ int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
+     return 1;
+ }
+ 
+-int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
++int __cdecl CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
+ {
+     *key = OPENSSL_CRYPTO_THREAD_LOCAL_KEY_MAX + 1;
+     return 1;
+ }
+ 
+-CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id(void)
++CRYPTO_THREAD_ID __cdecl CRYPTO_THREAD_get_current_id(void)
+ {
+     return 0;
+ }
+ 
+-int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
++int __cdecl CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
+ {
+     return (a == b);
+ }
+ 
+-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
+ {
+     *val += amount;
+     *ret  = *val;
+diff --git a/crypto/threads_pthread.c b/crypto/threads_pthread.c
+index 5556ec3c5b..1ee53716d3 100644
+--- a/crypto/threads_pthread.c
++++ b/crypto/threads_pthread.c
+@@ -21,7 +21,7 @@
+ #  define USE_RWLOCK
  # endif
--int NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
--STACK_OF(CONF_VALUE) *NCONF_get_section(const CONF *conf,
-+int __cdecl NCONF_load_bio(CONF *conf, BIO *bp, long *eline);
-+STACK_OF(CONF_VALUE) * __cdecl NCONF_get_section(const CONF *conf,
-                                         const char *section);
--char *NCONF_get_string(const CONF *conf, const char *group, const char *name);
--int NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
-+char * __cdecl NCONF_get_string(const CONF *conf, const char *group, const char *name);
-+int __cdecl NCONF_get_number_e(const CONF *conf, const char *group, const char *name,
-                        long *result);
- #ifndef OPENSSL_NO_STDIO
--int NCONF_dump_fp(const CONF *conf, FILE *out);
-+int __cdecl NCONF_dump_fp(const CONF *conf, FILE *out);
- #endif
--int NCONF_dump_bio(const CONF *conf, BIO *out);
-+int __cdecl NCONF_dump_bio(const CONF *conf, BIO *out);
  
- #define NCONF_get_number(c,g,n,r) NCONF_get_number_e(c,g,n,r)
+-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
++CRYPTO_RWLOCK * __cdecl CRYPTO_THREAD_lock_new(void)
+ {
+ # ifdef USE_RWLOCK
+     CRYPTO_RWLOCK *lock;
+@@ -59,7 +59,7 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
+     return lock;
+ }
  
- /* Module functions */
+-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
+ {
+ # ifdef USE_RWLOCK
+     if (pthread_rwlock_rdlock(lock) != 0)
+@@ -72,7 +72,7 @@ int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
+     return 1;
+ }
  
--int CONF_modules_load(const CONF *cnf, const char *appname,
-+int __cdecl CONF_modules_load(const CONF *cnf, const char *appname,
-                       unsigned long flags);
--int CONF_modules_load_file(const char *filename, const char *appname,
-+int __cdecl CONF_modules_load_file(const char *filename, const char *appname,
-                            unsigned long flags);
--void CONF_modules_unload(int all);
--void CONF_modules_finish(void);
-+void __cdecl CONF_modules_unload(int all);
-+void __cdecl CONF_modules_finish(void);
- #if OPENSSL_API_COMPAT < 0x10100000L
- # define CONF_modules_free() while(0) continue
- #endif
--int CONF_module_add(const char *name, conf_init_func *ifunc,
-+int __cdecl CONF_module_add(const char *name, conf_init_func *ifunc,
-                     conf_finish_func *ffunc);
+-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
+ {
+ # ifdef USE_RWLOCK
+     if (pthread_rwlock_wrlock(lock) != 0)
+@@ -85,7 +85,7 @@ int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
+     return 1;
+ }
  
--const char *CONF_imodule_get_name(const CONF_IMODULE *md);
--const char *CONF_imodule_get_value(const CONF_IMODULE *md);
--void *CONF_imodule_get_usr_data(const CONF_IMODULE *md);
--void CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
--CONF_MODULE *CONF_imodule_get_module(const CONF_IMODULE *md);
--unsigned long CONF_imodule_get_flags(const CONF_IMODULE *md);
--void CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
--void *CONF_module_get_usr_data(CONF_MODULE *pmod);
--void CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
-+const char * __cdecl CONF_imodule_get_name(const CONF_IMODULE *md);
-+const char * __cdecl CONF_imodule_get_value(const CONF_IMODULE *md);
-+void * __cdecl CONF_imodule_get_usr_data(const CONF_IMODULE *md);
-+void __cdecl CONF_imodule_set_usr_data(CONF_IMODULE *md, void *usr_data);
-+CONF_MODULE * __cdecl CONF_imodule_get_module(const CONF_IMODULE *md);
-+unsigned long __cdecl CONF_imodule_get_flags(const CONF_IMODULE *md);
-+void __cdecl CONF_imodule_set_flags(CONF_IMODULE *md, unsigned long flags);
-+void * __cdecl CONF_module_get_usr_data(CONF_MODULE *pmod);
-+void __cdecl CONF_module_set_usr_data(CONF_MODULE *pmod, void *usr_data);
+-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
+ {
+ # ifdef USE_RWLOCK
+     if (pthread_rwlock_unlock(lock) != 0)
+@@ -98,7 +98,7 @@ int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
+     return 1;
+ }
  
--char *CONF_get1_default_config_file(void);
-+char * __cdecl CONF_get1_default_config_file(void);
+-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
++void __cdecl CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
+ {
+     if (lock == NULL)
+         return;
+@@ -160,7 +160,7 @@ int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
+     return pthread_equal(a, b);
+ }
  
--int CONF_parse_list(const char *list, int sep, int nospc,
-+int __cdecl CONF_parse_list(const char *list, int sep, int nospc,
-                     int (*list_cb) (const char *elem, int len, void *usr),
-                     void *arg);
+-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
+ {
+ # if defined(__GNUC__) && defined(__ATOMIC_ACQ_REL)
+     if (__atomic_is_lock_free(sizeof(*val), val)) {
+diff --git a/crypto/threads_win.c b/crypto/threads_win.c
+index 932beb0f39..499d9d2a9f 100644
+--- a/crypto/threads_win.c
++++ b/crypto/threads_win.c
+@@ -15,7 +15,7 @@
  
--void OPENSSL_load_builtin_modules(void);
-+void __cdecl OPENSSL_load_builtin_modules(void);
+ #if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG) && defined(OPENSSL_SYS_WINDOWS)
+ 
+-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
++CRYPTO_RWLOCK * __cdecl CRYPTO_THREAD_lock_new(void)
+ {
+     CRYPTO_RWLOCK *lock;
+ 
+@@ -37,25 +37,25 @@ CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void)
+     return lock;
+ }
+ 
+-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock)
+ {
+     EnterCriticalSection(lock);
+     return 1;
+ }
+ 
+-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock)
+ {
+     EnterCriticalSection(lock);
+     return 1;
+ }
+ 
+-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock)
+ {
+     LeaveCriticalSection(lock);
+     return 1;
+ }
+ 
+-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
++void __cdecl CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock)
+ {
+     if (lock == NULL)
+         return;
+@@ -94,7 +94,7 @@ int __cdecl CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void))
+     return (*lock == ONCE_DONE);
+ }
+ 
+-int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
++int __cdecl CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
+ {
+     *key = TlsAlloc();
+     if (*key == TLS_OUT_OF_INDEXES)
+@@ -103,7 +103,7 @@ int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *))
+     return 1;
+ }
+ 
+-void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
++void * __cdecl CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
+ {
+     DWORD last_error;
+     void *ret;
+@@ -127,7 +127,7 @@ void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key)
+     return ret;
+ }
+ 
+-int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
++int __cdecl CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
+ {
+     if (TlsSetValue(*key, val) == 0)
+         return 0;
+@@ -135,7 +135,7 @@ int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val)
+     return 1;
+ }
+ 
+-int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
++int __cdecl CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
+ {
+     if (TlsFree(*key) == 0)
+         return 0;
+@@ -143,17 +143,17 @@ int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key)
+     return 1;
+ }
+ 
+-CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id(void)
++CRYPTO_THREAD_ID __cdecl CRYPTO_THREAD_get_current_id(void)
+ {
+     return GetCurrentThreadId();
+ }
+ 
+-int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
++int __cdecl CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b)
+ {
+     return (a == b);
+ }
+ 
+-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
++int __cdecl CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock)
+ {
+     *ret = InterlockedExchangeAdd(val, amount) + amount;
+     return 1;
+diff --git a/crypto/uid.c b/crypto/uid.c
+index 65b1171039..0bc9bc0d8c 100644
+--- a/crypto/uid.c
++++ b/crypto/uid.c
+@@ -12,7 +12,7 @@
+ 
+ #if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_UEFI)
+ 
+-int OPENSSL_issetugid(void)
++int __cdecl OPENSSL_issetugid(void)
+ {
+     return 0;
+ }
+@@ -21,7 +21,7 @@ int OPENSSL_issetugid(void)
+ 
+ # include OPENSSL_UNISTD
+ 
+-int OPENSSL_issetugid(void)
++int __cdecl OPENSSL_issetugid(void)
+ {
+     return issetugid();
+ }
+@@ -38,7 +38,7 @@ int OPENSSL_issetugid(void)
+ #  endif
+ # endif
+ 
+-int OPENSSL_issetugid(void)
++int __cdecl OPENSSL_issetugid(void)
+ {
+ # ifdef OSSL_IMPLEMENT_GETAUXVAL
+     return getauxval(AT_SECURE) != 0;
+diff --git a/include/openssl/crypto.h b/include/openssl/crypto.h
+index 90aa5e4acc..ca4497e209 100644
+--- a/include/openssl/crypto.h
++++ b/include/openssl/crypto.h
+@@ -66,13 +66,13 @@ typedef struct {
+ 
+ typedef void CRYPTO_RWLOCK;
+ 
+-CRYPTO_RWLOCK *CRYPTO_THREAD_lock_new(void);
+-int CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock);
+-int CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock);
+-int CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock);
+-void CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock);
++CRYPTO_RWLOCK * __cdecl CRYPTO_THREAD_lock_new(void);
++int __cdecl CRYPTO_THREAD_read_lock(CRYPTO_RWLOCK *lock);
++int __cdecl CRYPTO_THREAD_write_lock(CRYPTO_RWLOCK *lock);
++int __cdecl CRYPTO_THREAD_unlock(CRYPTO_RWLOCK *lock);
++void __cdecl CRYPTO_THREAD_lock_free(CRYPTO_RWLOCK *lock);
+ 
+-int CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock);
++int __cdecl CRYPTO_atomic_add(int *val, int amount, int *ret, CRYPTO_RWLOCK *lock);
+ 
+ /*
+  * The following can be used to detect memory leaks in the library. If
+@@ -112,7 +112,7 @@ DEFINE_STACK_OF(void)
+ /* No longer needed, so this is a no-op */
+ #define OPENSSL_malloc_init() while(0) continue
+ 
+-int CRYPTO_mem_ctrl(int mode);
++int __cdecl CRYPTO_mem_ctrl(int mode);
+ 
+ # define OPENSSL_malloc(num) \
+         CRYPTO_malloc(num, OPENSSL_FILE, OPENSSL_LINE)
+@@ -143,17 +143,17 @@ int CRYPTO_mem_ctrl(int mode);
+ # define OPENSSL_secure_actual_size(ptr) \
+         CRYPTO_secure_actual_size(ptr)
+ 
+-size_t OPENSSL_strlcpy(char *dst, const char *src, size_t siz);
+-size_t OPENSSL_strlcat(char *dst, const char *src, size_t siz);
+-size_t OPENSSL_strnlen(const char *str, size_t maxlen);
+-char *OPENSSL_buf2hexstr(const unsigned char *buffer, long len);
+-unsigned char *OPENSSL_hexstr2buf(const char *str, long *len);
+-int OPENSSL_hexchar2int(unsigned char c);
++size_t __cdecl OPENSSL_strlcpy(char *dst, const char *src, size_t siz);
++size_t __cdecl OPENSSL_strlcat(char *dst, const char *src, size_t siz);
++size_t __cdecl OPENSSL_strnlen(const char *str, size_t maxlen);
++char * __cdecl OPENSSL_buf2hexstr(const unsigned char *buffer, long len);
++unsigned char * __cdecl OPENSSL_hexstr2buf(const char *str, long *len);
++int __cdecl OPENSSL_hexchar2int(unsigned char c);
+ 
+ # define OPENSSL_MALLOC_MAX_NELEMS(type)  (((1U<<(sizeof(int)*8-1))-1)/sizeof(type))
+ 
+-unsigned long OpenSSL_version_num(void);
+-const char *OpenSSL_version(int type);
++unsigned long __cdecl OpenSSL_version_num(void);
++const char * __cdecl OpenSSL_version(int type);
+ # define OPENSSL_VERSION          0
+ # define OPENSSL_CFLAGS           1
+ # define OPENSSL_BUILT_ON         2
+@@ -161,7 +161,7 @@ const char *OpenSSL_version(int type);
+ # define OPENSSL_DIR              4
+ # define OPENSSL_ENGINES_DIR      5
+ 
+-int OPENSSL_issetugid(void);
++int __cdecl OPENSSL_issetugid(void);
+ 
+ typedef void CRYPTO_EX_new (void *parent, void *ptr, CRYPTO_EX_DATA *ad,
+                            int idx, long argl, void *argp);
+@@ -169,28 +169,28 @@ typedef void CRYPTO_EX_free (void *parent, void *ptr, CRYPTO_EX_DATA *ad,
+                              int idx, long argl, void *argp);
+ typedef int CRYPTO_EX_dup (CRYPTO_EX_DATA *to, const CRYPTO_EX_DATA *from,
+                            void *from_d, int idx, long argl, void *argp);
+-__owur int CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
++__owur int __cdecl CRYPTO_get_ex_new_index(int class_index, long argl, void *argp,
+                             CRYPTO_EX_new *new_func, CRYPTO_EX_dup *dup_func,
+                             CRYPTO_EX_free *free_func);
+ /* No longer use an index. */
+-int CRYPTO_free_ex_index(int class_index, int idx);
++int __cdecl CRYPTO_free_ex_index(int class_index, int idx);
+ 
+ /*
+  * Initialise/duplicate/free CRYPTO_EX_DATA variables corresponding to a
+  * given class (invokes whatever per-class callbacks are applicable)
+  */
+-int CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
+-int CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
++int __cdecl CRYPTO_new_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
++int __cdecl CRYPTO_dup_ex_data(int class_index, CRYPTO_EX_DATA *to,
+                        const CRYPTO_EX_DATA *from);
+ 
+-void CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
++void __cdecl CRYPTO_free_ex_data(int class_index, void *obj, CRYPTO_EX_DATA *ad);
+ 
+ /*
+  * Get/set data in a CRYPTO_EX_DATA variable corresponding to a particular
+  * index (relative to the class type involved)
+  */
+-int CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val);
+-void *CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx);
++int __cdecl CRYPTO_set_ex_data(CRYPTO_EX_DATA *ad, int idx, void *val);
++void * __cdecl CRYPTO_get_ex_data(const CRYPTO_EX_DATA *ad, int idx);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ /*
+@@ -253,49 +253,49 @@ typedef struct crypto_threadid_st {
+ #  define CRYPTO_get_dynlock_destroy_callback()         (NULL)
+ # endif /* OPENSSL_API_COMPAT < 0x10100000L */
+ 
+-int CRYPTO_set_mem_functions(
++int __cdecl CRYPTO_set_mem_functions(
+         void *(__cdecl *m) (size_t, const char *, int),
+         void *(__cdecl *r) (void *, size_t, const char *, int),
+         void (__cdecl *f) (void *, const char *, int));
+-int CRYPTO_set_mem_debug(int flag);
+-void CRYPTO_get_mem_functions(
++int __cdecl CRYPTO_set_mem_debug(int flag);
++void __cdecl CRYPTO_get_mem_functions(
+         void *(__cdecl **m) (size_t, const char *, int),
+         void *(__cdecl **r) (void *, size_t, const char *, int),
+         void (__cdecl **f) (void *, const char *, int));
+ 
+ void * __cdecl CRYPTO_malloc(size_t num, const char *file, int line);
+-void *CRYPTO_zalloc(size_t num, const char *file, int line);
+-void *CRYPTO_memdup(const void *str, size_t siz, const char *file, int line);
+-char *CRYPTO_strdup(const char *str, const char *file, int line);
+-char *CRYPTO_strndup(const char *str, size_t s, const char *file, int line);
++void * __cdecl CRYPTO_zalloc(size_t num, const char *file, int line);
++void * __cdecl CRYPTO_memdup(const void *str, size_t siz, const char *file, int line);
++char * __cdecl CRYPTO_strdup(const char *str, const char *file, int line);
++char * __cdecl CRYPTO_strndup(const char *str, size_t s, const char *file, int line);
+ void __cdecl CRYPTO_free(void *ptr, const char *file, int line);
+-void CRYPTO_clear_free(void *ptr, size_t num, const char *file, int line);
++void __cdecl CRYPTO_clear_free(void *ptr, size_t num, const char *file, int line);
+ void * __cdecl CRYPTO_realloc(void *addr, size_t num, const char *file, int line);
+-void *CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
++void * __cdecl CRYPTO_clear_realloc(void *addr, size_t old_num, size_t num,
+                            const char *file, int line);
+ 
+-int CRYPTO_secure_malloc_init(size_t sz, int minsize);
+-int CRYPTO_secure_malloc_done(void);
+-void *CRYPTO_secure_malloc(size_t num, const char *file, int line);
+-void *CRYPTO_secure_zalloc(size_t num, const char *file, int line);
+-void CRYPTO_secure_free(void *ptr, const char *file, int line);
+-void CRYPTO_secure_clear_free(void *ptr, size_t num,
++int __cdecl CRYPTO_secure_malloc_init(size_t sz, int minsize);
++int __cdecl CRYPTO_secure_malloc_done(void);
++void * __cdecl CRYPTO_secure_malloc(size_t num, const char *file, int line);
++void * __cdecl CRYPTO_secure_zalloc(size_t num, const char *file, int line);
++void __cdecl CRYPTO_secure_free(void *ptr, const char *file, int line);
++void __cdecl CRYPTO_secure_clear_free(void *ptr, size_t num,
+                               const char *file, int line);
+-int CRYPTO_secure_allocated(const void *ptr);
+-int CRYPTO_secure_malloc_initialized(void);
+-size_t CRYPTO_secure_actual_size(void *ptr);
+-size_t CRYPTO_secure_used(void);
++int __cdecl CRYPTO_secure_allocated(const void *ptr);
++int __cdecl CRYPTO_secure_malloc_initialized(void);
++size_t __cdecl CRYPTO_secure_actual_size(void *ptr);
++size_t __cdecl CRYPTO_secure_used(void);
+ 
+-void OPENSSL_cleanse(void *ptr, size_t len);
++void __cdecl OPENSSL_cleanse(void *ptr, size_t len);
+ 
+ # ifndef OPENSSL_NO_CRYPTO_MDEBUG
+ #  define OPENSSL_mem_debug_push(info) \
+         CRYPTO_mem_debug_push(info, OPENSSL_FILE, OPENSSL_LINE)
+ #  define OPENSSL_mem_debug_pop() \
+         CRYPTO_mem_debug_pop()
+-int CRYPTO_mem_debug_push(const char *info, const char *file, int line);
+-int CRYPTO_mem_debug_pop(void);
+-void CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount);
++int __cdecl CRYPTO_mem_debug_push(const char *info, const char *file, int line);
++int __cdecl CRYPTO_mem_debug_pop(void);
++void __cdecl CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount);
+ 
+ /*-
+  * Debugging functions (enabled by CRYPTO_set_mem_debug(1))
+@@ -303,44 +303,44 @@ void CRYPTO_get_alloc_counts(int *mcount, int *rcount, int *fcount);
+  *   0:   called before the actual memory allocation has taken place
+  *   1:   called after the actual memory allocation has taken place
+  */
+-void CRYPTO_mem_debug_malloc(void *addr, size_t num, int flag,
++void __cdecl CRYPTO_mem_debug_malloc(void *addr, size_t num, int flag,
+         const char *file, int line);
+-void CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num, int flag,
++void __cdecl CRYPTO_mem_debug_realloc(void *addr1, void *addr2, size_t num, int flag,
+         const char *file, int line);
+-void CRYPTO_mem_debug_free(void *addr, int flag,
++void __cdecl CRYPTO_mem_debug_free(void *addr, int flag,
+         const char *file, int line);
+ 
+-int CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
++int __cdecl CRYPTO_mem_leaks_cb(int (*cb) (const char *str, size_t len, void *u),
+                         void *u);
+ #  ifndef OPENSSL_NO_STDIO
+-int CRYPTO_mem_leaks_fp(FILE *);
++int __cdecl CRYPTO_mem_leaks_fp(FILE *);
+ #  endif
+-int CRYPTO_mem_leaks(BIO *bio);
++int __cdecl CRYPTO_mem_leaks(BIO *bio);
+ # endif
+ 
+ /* die if we have to */
+-ossl_noreturn void OPENSSL_die(const char *assertion, const char *file, int line);
++ossl_noreturn void __cdecl OPENSSL_die(const char *assertion, const char *file, int line);
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define OpenSSLDie(f,l,a) OPENSSL_die((a),(f),(l))
+ # endif
+ # define OPENSSL_assert(e) \
+     (void)((e) ? 0 : (OPENSSL_die("assertion failed: " #e, OPENSSL_FILE, OPENSSL_LINE), 1))
+ 
+-int OPENSSL_isservice(void);
++int __cdecl OPENSSL_isservice(void);
+ 
+-int FIPS_mode(void);
+-int FIPS_mode_set(int r);
++int __cdecl FIPS_mode(void);
++int __cdecl FIPS_mode_set(int r);
+ 
+-void OPENSSL_init(void);
++void __cdecl OPENSSL_init(void);
+ # ifdef OPENSSL_SYS_UNIX
+-void OPENSSL_fork_prepare(void);
+-void OPENSSL_fork_parent(void);
+-void OPENSSL_fork_child(void);
++void __cdecl OPENSSL_fork_prepare(void);
++void __cdecl OPENSSL_fork_parent(void);
++void __cdecl OPENSSL_fork_child(void);
+ # endif
+ 
+-struct tm *OPENSSL_gmtime(const time_t *timer, struct tm *result);
+-int OPENSSL_gmtime_adj(struct tm *tm, int offset_day, long offset_sec);
+-int OPENSSL_gmtime_diff(int *pday, int *psec,
++struct tm * __cdecl OPENSSL_gmtime(const time_t *timer, struct tm *result);
++int __cdecl OPENSSL_gmtime_adj(struct tm *tm, int offset_day, long offset_sec);
++int __cdecl OPENSSL_gmtime_diff(int *pday, int *psec,
+                         const struct tm *from, const struct tm *to);
+ 
+ /*
+@@ -350,7 +350,7 @@ int OPENSSL_gmtime_diff(int *pday, int *psec,
+  * into a defined order as the return value when a != b is undefined, other
+  * than to be non-zero.
+  */
+-int CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
++int __cdecl CRYPTO_memcmp(const void * in_a, const void * in_b, size_t len);
+ 
+ /* Standard initialisation options */
+ # define OPENSSL_INIT_NO_LOAD_CRYPTO_STRINGS 0x00000001L
+@@ -390,16 +390,16 @@ int __cdecl OPENSSL_atexit(void (*handler)(void));
+ void __cdecl OPENSSL_thread_stop(void);
+ 
+ /* Low-level control of initialization */
+-OPENSSL_INIT_SETTINGS *OPENSSL_INIT_new(void);
++OPENSSL_INIT_SETTINGS * __cdecl OPENSSL_INIT_new(void);
+ # ifndef OPENSSL_NO_STDIO
+-int OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
++int __cdecl OPENSSL_INIT_set_config_filename(OPENSSL_INIT_SETTINGS *settings,
+                                      const char *config_filename);
+-void OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
++void __cdecl OPENSSL_INIT_set_config_file_flags(OPENSSL_INIT_SETTINGS *settings,
+                                         unsigned long flags);
+-int OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
++int __cdecl OPENSSL_INIT_set_config_appname(OPENSSL_INIT_SETTINGS *settings,
+                                     const char *config_appname);
+ # endif
+-void OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
++void __cdecl OPENSSL_INIT_free(OPENSSL_INIT_SETTINGS *settings);
+ 
+ # if defined(OPENSSL_THREADS) && !defined(CRYPTO_TDEBUG)
+ #  if defined(_WIN32)
+@@ -430,13 +430,13 @@ typedef unsigned int CRYPTO_THREAD_ID;
+ 
+ int __cdecl CRYPTO_THREAD_run_once(CRYPTO_ONCE *once, void (*init)(void));
+ 
+-int CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *));
+-void *CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key);
+-int CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val);
+-int CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key);
++int __cdecl CRYPTO_THREAD_init_local(CRYPTO_THREAD_LOCAL *key, void (*cleanup)(void *));
++void * __cdecl CRYPTO_THREAD_get_local(CRYPTO_THREAD_LOCAL *key);
++int __cdecl CRYPTO_THREAD_set_local(CRYPTO_THREAD_LOCAL *key, void *val);
++int __cdecl CRYPTO_THREAD_cleanup_local(CRYPTO_THREAD_LOCAL *key);
+ 
+-CRYPTO_THREAD_ID CRYPTO_THREAD_get_current_id(void);
+-int CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
++CRYPTO_THREAD_ID __cdecl CRYPTO_THREAD_get_current_id(void);
++int __cdecl CRYPTO_THREAD_compare_id(CRYPTO_THREAD_ID a, CRYPTO_THREAD_ID b);
  
  
  # ifdef  __cplusplus
-diff --git a/include/openssl/conf_api.h b/include/openssl/conf_api.h
-index a0275ad79b..093a9d4825 100644
---- a/include/openssl/conf_api.h
-+++ b/include/openssl/conf_api.h
-@@ -18,21 +18,21 @@ extern "C" {
- #endif
- 
- /* Up until OpenSSL 0.9.5a, this was new_section */
--CONF_VALUE *_CONF_new_section(CONF *conf, const char *section);
-+CONF_VALUE * __cdecl _CONF_new_section(CONF *conf, const char *section);
- /* Up until OpenSSL 0.9.5a, this was get_section */
--CONF_VALUE *_CONF_get_section(const CONF *conf, const char *section);
-+CONF_VALUE * __cdecl _CONF_get_section(const CONF *conf, const char *section);
- /* Up until OpenSSL 0.9.5a, this was CONF_get_section */
--STACK_OF(CONF_VALUE) *_CONF_get_section_values(const CONF *conf,
-+STACK_OF(CONF_VALUE) * __cdecl _CONF_get_section_values(const CONF *conf,
-                                                const char *section);
- 
--int _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value);
--char *_CONF_get_string(const CONF *conf, const char *section,
-+int __cdecl _CONF_add_string(CONF *conf, CONF_VALUE *section, CONF_VALUE *value);
-+char * __cdecl _CONF_get_string(const CONF *conf, const char *section,
-                        const char *name);
--long _CONF_get_number(const CONF *conf, const char *section,
-+long __cdecl _CONF_get_number(const CONF *conf, const char *section,
-                       const char *name);
- 
--int _CONF_new_data(CONF *conf);
--void _CONF_free_data(CONF *conf);
-+int __cdecl _CONF_new_data(CONF *conf);
-+void __cdecl _CONF_free_data(CONF *conf);
- 
- #ifdef  __cplusplus
- }
-diff --git a/include/openssl/conferr.h b/include/openssl/conferr.h
-index 32b9229185..4bd6d6a051 100644
---- a/include/openssl/conferr.h
-+++ b/include/openssl/conferr.h
+diff --git a/include/openssl/cryptoerr.h b/include/openssl/cryptoerr.h
+index 3db5a4ee99..ec1f1e5d1a 100644
+--- a/include/openssl/cryptoerr.h
++++ b/include/openssl/cryptoerr.h
 @@ -18,7 +18,7 @@
  # ifdef  __cplusplus
  extern "C"
  # endif
--int ERR_load_CONF_strings(void);
-+int __cdecl ERR_load_CONF_strings(void);
+-int ERR_load_CRYPTO_strings(void);
++int __cdecl ERR_load_CRYPTO_strings(void);
  
  /*
-  * CONF function codes.
+  * CRYPTO function codes.
