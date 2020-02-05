@@ -11152,6 +11152,72 @@ index e6e4c9d2cb..3aab2f0220 100644
  {
      static const EC_METHOD ret = {
          EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/engine/eng_all.c b/crypto/engine/eng_all.c
+index af306ccffc..c37fb7859b 100644
+--- a/crypto/engine/eng_all.c
++++ b/crypto/engine/eng_all.c
+@@ -10,7 +10,7 @@
+ #include "internal/cryptlib.h"
+ #include "eng_int.h"
+ 
+-void ENGINE_load_builtin_engines(void)
++void __cdecl ENGINE_load_builtin_engines(void)
+ {
+     /* Some ENGINEs need this */
+     OPENSSL_cpuid_setup();
+diff --git a/crypto/engine/eng_cnf.c b/crypto/engine/eng_cnf.c
+index 6f0a066d06..3a19b8511c 100644
+--- a/crypto/engine/eng_cnf.c
++++ b/crypto/engine/eng_cnf.c
+@@ -185,7 +185,7 @@ static void int_engine_module_finish(CONF_IMODULE *md)
+     initialized_engines = NULL;
+ }
+ 
+-void ENGINE_add_conf_module(void)
++void __cdecl ENGINE_add_conf_module(void)
+ {
+     CONF_module_add("engines",
+                     int_engine_module_init, int_engine_module_finish);
+diff --git a/crypto/engine/eng_ctrl.c b/crypto/engine/eng_ctrl.c
+index 3bc4aab16f..57a306616e 100644
+--- a/crypto/engine/eng_ctrl.c
++++ b/crypto/engine/eng_ctrl.c
+@@ -122,7 +122,7 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
+     return -1;
+ }
+ 
+-int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
++int __cdecl ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+ {
+     int ctrl_exists, ref_exists;
+     if (e == NULL) {
+@@ -174,7 +174,7 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+     return e->ctrl(e, cmd, i, p, f);
+ }
+ 
+-int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
++int __cdecl ENGINE_cmd_is_executable(ENGINE *e, int cmd)
+ {
+     int flags;
+     if ((flags =
+@@ -190,7 +190,7 @@ int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
+     return 1;
+ }
+ 
+-int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
++int __cdecl ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
+                     long i, void *p, void (*f) (void), int cmd_optional)
+ {
+     int num;
+@@ -226,7 +226,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
+     return 0;
+ }
+ 
+-int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
++int __cdecl ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
+                            int cmd_optional)
+ {
+     int num, flags;
 diff --git a/crypto/engine/eng_dyn.c b/crypto/engine/eng_dyn.c
 index 843226c077..8844659541 100644
 --- a/crypto/engine/eng_dyn.c
@@ -11165,10 +11231,90 @@ index 843226c077..8844659541 100644
  {
      OPENSSL_free(s);
  }
+diff --git a/crypto/engine/eng_fat.c b/crypto/engine/eng_fat.c
+index 591fddc8e4..a7d5050732 100644
+--- a/crypto/engine/eng_fat.c
++++ b/crypto/engine/eng_fat.c
+@@ -11,7 +11,7 @@
+ #include "eng_int.h"
+ #include <openssl/conf.h>
+ 
+-int ENGINE_set_default(ENGINE *e, unsigned int flags)
++int __cdecl ENGINE_set_default(ENGINE *e, unsigned int flags)
+ {
+     if ((flags & ENGINE_METHOD_CIPHERS) && !ENGINE_set_default_ciphers(e))
+         return 0;
+@@ -78,7 +78,7 @@ static int int_def_cb(const char *alg, int len, void *arg)
+     return 1;
+ }
+ 
+-int ENGINE_set_default_string(ENGINE *e, const char *def_list)
++int __cdecl ENGINE_set_default_string(ENGINE *e, const char *def_list)
+ {
+     unsigned int flags = 0;
+     if (!CONF_parse_list(def_list, ',', 1, int_def_cb, &flags)) {
+@@ -90,7 +90,7 @@ int ENGINE_set_default_string(ENGINE *e, const char *def_list)
+     return ENGINE_set_default(e, flags);
+ }
+ 
+-int ENGINE_register_complete(ENGINE *e)
++int __cdecl ENGINE_register_complete(ENGINE *e)
+ {
+     ENGINE_register_ciphers(e);
+     ENGINE_register_digests(e);
+@@ -112,7 +112,7 @@ int ENGINE_register_complete(ENGINE *e)
+     return 1;
+ }
+ 
+-int ENGINE_register_all_complete(void)
++int __cdecl ENGINE_register_all_complete(void)
+ {
+     ENGINE *e;
+ 
+diff --git a/crypto/engine/eng_init.c b/crypto/engine/eng_init.c
+index 7c235fc472..f21b08fdf2 100644
+--- a/crypto/engine/eng_init.c
++++ b/crypto/engine/eng_init.c
+@@ -74,7 +74,7 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
+ }
+ 
+ /* The API (locked) version of "init" */
+-int ENGINE_init(ENGINE *e)
++int __cdecl ENGINE_init(ENGINE *e)
+ {
+     int ret;
+     if (e == NULL) {
+@@ -92,7 +92,7 @@ int ENGINE_init(ENGINE *e)
+ }
+ 
+ /* The API (locked) version of "finish" */
+-int ENGINE_finish(ENGINE *e)
++int __cdecl ENGINE_finish(ENGINE *e)
+ {
+     int to_return = 1;
+ 
 diff --git a/crypto/engine/eng_lib.c b/crypto/engine/eng_lib.c
-index d7f2026fac..1e494730a6 100644
+index d7f2026fac..62853b561b 100644
 --- a/crypto/engine/eng_lib.c
 +++ b/crypto/engine/eng_lib.c
+@@ -26,7 +26,7 @@ DEFINE_RUN_ONCE(do_engine_lock_init)
+     return global_engine_lock != NULL;
+ }
+ 
+-ENGINE *ENGINE_new(void)
++ENGINE * __cdecl ENGINE_new(void)
+ {
+     ENGINE *ret;
+ 
+@@ -97,7 +97,7 @@ int engine_free_util(ENGINE *e, int not_locked)
+     return 1;
+ }
+ 
+-int ENGINE_free(ENGINE *e)
++int __cdecl ENGINE_free(ENGINE *e)
+ {
+     return engine_free_util(e, 1);
+ }
 @@ -157,7 +157,7 @@ void engine_cleanup_add_last(ENGINE_CLEANUP_CB *cb)
  }
  
@@ -11178,10 +11324,312 @@ index d7f2026fac..1e494730a6 100644
  {
      (*(item->cb)) ();
      OPENSSL_free(item);
+@@ -175,12 +175,12 @@ void engine_cleanup_int(void)
+ 
+ /* Now the "ex_data" support */
+ 
+-int ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
++int __cdecl ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&e->ex_data, idx, arg);
+ }
+ 
+-void *ENGINE_get_ex_data(const ENGINE *e, int idx)
++void * __cdecl ENGINE_get_ex_data(const ENGINE *e, int idx)
+ {
+     return CRYPTO_get_ex_data(&e->ex_data, idx);
+ }
+@@ -190,7 +190,7 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx)
+  * ENGINE structure itself.
+  */
+ 
+-int ENGINE_set_id(ENGINE *e, const char *id)
++int __cdecl ENGINE_set_id(ENGINE *e, const char *id)
+ {
+     if (id == NULL) {
+         ENGINEerr(ENGINE_F_ENGINE_SET_ID, ERR_R_PASSED_NULL_PARAMETER);
+@@ -200,7 +200,7 @@ int ENGINE_set_id(ENGINE *e, const char *id)
+     return 1;
+ }
+ 
+-int ENGINE_set_name(ENGINE *e, const char *name)
++int __cdecl ENGINE_set_name(ENGINE *e, const char *name)
+ {
+     if (name == NULL) {
+         ENGINEerr(ENGINE_F_ENGINE_SET_NAME, ERR_R_PASSED_NULL_PARAMETER);
+@@ -210,78 +210,78 @@ int ENGINE_set_name(ENGINE *e, const char *name)
+     return 1;
+ }
+ 
+-int ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
++int __cdecl ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
+ {
+     e->destroy = destroy_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
++int __cdecl ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
+ {
+     e->init = init_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
++int __cdecl ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
+ {
+     e->finish = finish_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
++int __cdecl ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
+ {
+     e->ctrl = ctrl_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_flags(ENGINE *e, int flags)
++int __cdecl ENGINE_set_flags(ENGINE *e, int flags)
+ {
+     e->flags = flags;
+     return 1;
+ }
+ 
+-int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
++int __cdecl ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
+ {
+     e->cmd_defns = defns;
+     return 1;
+ }
+ 
+-const char *ENGINE_get_id(const ENGINE *e)
++const char * __cdecl ENGINE_get_id(const ENGINE *e)
+ {
+     return e->id;
+ }
+ 
+-const char *ENGINE_get_name(const ENGINE *e)
++const char * __cdecl ENGINE_get_name(const ENGINE *e)
+ {
+     return e->name;
+ }
+ 
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_destroy_function(const ENGINE *e)
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_destroy_function(const ENGINE *e)
+ {
+     return e->destroy;
+ }
+ 
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_init_function(const ENGINE *e)
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_init_function(const ENGINE *e)
+ {
+     return e->init;
+ }
+ 
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_finish_function(const ENGINE *e)
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_finish_function(const ENGINE *e)
+ {
+     return e->finish;
+ }
+ 
+-ENGINE_CTRL_FUNC_PTR ENGINE_get_ctrl_function(const ENGINE *e)
++ENGINE_CTRL_FUNC_PTR __cdecl ENGINE_get_ctrl_function(const ENGINE *e)
+ {
+     return e->ctrl;
+ }
+ 
+-int ENGINE_get_flags(const ENGINE *e)
++int __cdecl ENGINE_get_flags(const ENGINE *e)
+ {
+     return e->flags;
+ }
+ 
+-const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
++const ENGINE_CMD_DEFN * __cdecl ENGINE_get_cmd_defns(const ENGINE *e)
+ {
+     return e->cmd_defns;
+ }
+@@ -293,7 +293,7 @@ const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
+ 
+ static int internal_static_hack = 0;
+ 
+-void *ENGINE_get_static_state(void)
++void * __cdecl ENGINE_get_static_state(void)
+ {
+     return &internal_static_hack;
+ }
+diff --git a/crypto/engine/eng_list.c b/crypto/engine/eng_list.c
+index 45c339c541..e1eef752c8 100644
+--- a/crypto/engine/eng_list.c
++++ b/crypto/engine/eng_list.c
+@@ -127,7 +127,7 @@ static int engine_list_remove(ENGINE *e)
+ }
+ 
+ /* Get the first/last "ENGINE" type available. */
+-ENGINE *ENGINE_get_first(void)
++ENGINE * __cdecl ENGINE_get_first(void)
+ {
+     ENGINE *ret;
+ 
+@@ -146,7 +146,7 @@ ENGINE *ENGINE_get_first(void)
+     return ret;
+ }
+ 
+-ENGINE *ENGINE_get_last(void)
++ENGINE * __cdecl ENGINE_get_last(void)
+ {
+     ENGINE *ret;
+ 
+@@ -166,7 +166,7 @@ ENGINE *ENGINE_get_last(void)
+ }
+ 
+ /* Iterate to the next/previous "ENGINE" type (NULL = end of the list). */
+-ENGINE *ENGINE_get_next(ENGINE *e)
++ENGINE * __cdecl ENGINE_get_next(ENGINE *e)
+ {
+     ENGINE *ret = NULL;
+     if (e == NULL) {
+@@ -186,7 +186,7 @@ ENGINE *ENGINE_get_next(ENGINE *e)
+     return ret;
+ }
+ 
+-ENGINE *ENGINE_get_prev(ENGINE *e)
++ENGINE * __cdecl ENGINE_get_prev(ENGINE *e)
+ {
+     ENGINE *ret = NULL;
+     if (e == NULL) {
+@@ -207,7 +207,7 @@ ENGINE *ENGINE_get_prev(ENGINE *e)
+ }
+ 
+ /* Add another "ENGINE" type into the list. */
+-int ENGINE_add(ENGINE *e)
++int __cdecl ENGINE_add(ENGINE *e)
+ {
+     int to_return = 1;
+     if (e == NULL) {
+@@ -228,7 +228,7 @@ int ENGINE_add(ENGINE *e)
+ }
+ 
+ /* Remove an existing "ENGINE" type from the array. */
+-int ENGINE_remove(ENGINE *e)
++int __cdecl ENGINE_remove(ENGINE *e)
+ {
+     int to_return = 1;
+     if (e == NULL) {
+@@ -274,7 +274,7 @@ static void engine_cpy(ENGINE *dest, const ENGINE *src)
+     dest->flags = src->flags;
+ }
+ 
+-ENGINE *ENGINE_by_id(const char *id)
++ENGINE * __cdecl ENGINE_by_id(const char *id)
+ {
+     ENGINE *iterator;
+     char *load_dir = NULL;
+@@ -337,7 +337,7 @@ ENGINE *ENGINE_by_id(const char *id)
+     /* EEK! Experimental code ends */
+ }
+ 
+-int ENGINE_up_ref(ENGINE *e)
++int __cdecl ENGINE_up_ref(ENGINE *e)
+ {
+     int i;
+     if (e == NULL) {
+diff --git a/crypto/engine/eng_pkey.c b/crypto/engine/eng_pkey.c
+index 305a648feb..2f0118985a 100644
+--- a/crypto/engine/eng_pkey.c
++++ b/crypto/engine/eng_pkey.c
+@@ -11,20 +11,20 @@
+ 
+ /* Basic get/set stuff */
+ 
+-int ENGINE_set_load_privkey_function(ENGINE *e,
++int __cdecl ENGINE_set_load_privkey_function(ENGINE *e,
+                                      ENGINE_LOAD_KEY_PTR loadpriv_f)
+ {
+     e->load_privkey = loadpriv_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f)
++int __cdecl ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f)
+ {
+     e->load_pubkey = loadpub_f;
+     return 1;
+ }
+ 
+-int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
++int __cdecl ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
+                                              ENGINE_SSL_CLIENT_CERT_PTR
+                                              loadssl_f)
+ {
+@@ -32,17 +32,17 @@ int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
+     return 1;
+ }
+ 
+-ENGINE_LOAD_KEY_PTR ENGINE_get_load_privkey_function(const ENGINE *e)
++ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_privkey_function(const ENGINE *e)
+ {
+     return e->load_privkey;
+ }
+ 
+-ENGINE_LOAD_KEY_PTR ENGINE_get_load_pubkey_function(const ENGINE *e)
++ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_pubkey_function(const ENGINE *e)
+ {
+     return e->load_pubkey;
+ }
+ 
+-ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
++ENGINE_SSL_CLIENT_CERT_PTR __cdecl ENGINE_get_ssl_client_cert_function(const ENGINE
+                                                                *e)
+ {
+     return e->load_ssl_client_cert;
+@@ -50,7 +50,7 @@ ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
+ 
+ /* API functions to load public/private keys */
+ 
+-EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
++EVP_PKEY * __cdecl ENGINE_load_private_key(ENGINE *e, const char *key_id,
+                                   UI_METHOD *ui_method, void *callback_data)
+ {
+     EVP_PKEY *pkey;
+@@ -81,7 +81,7 @@ EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
+     return pkey;
+ }
+ 
+-EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
++EVP_PKEY * __cdecl ENGINE_load_public_key(ENGINE *e, const char *key_id,
+                                  UI_METHOD *ui_method, void *callback_data)
+ {
+     EVP_PKEY *pkey;
+@@ -111,7 +111,7 @@ EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
+     return pkey;
+ }
+ 
+-int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
++int __cdecl ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
+                                 STACK_OF(X509_NAME) *ca_dn, X509 **pcert,
+                                 EVP_PKEY **ppkey, STACK_OF(X509) **pother,
+                                 UI_METHOD *ui_method, void *callback_data)
 diff --git a/crypto/engine/eng_table.c b/crypto/engine/eng_table.c
-index ac4b02fc12..cc46bdb969 100644
+index ac4b02fc12..e3b10448dd 100644
 --- a/crypto/engine/eng_table.c
 +++ b/crypto/engine/eng_table.c
+@@ -40,12 +40,12 @@ typedef struct st_engine_pile_doall {
+ static unsigned int table_flags = 0;
+ 
+ /* API function manipulating 'table_flags' */
+-unsigned int ENGINE_get_table_flags(void)
++unsigned int __cdecl ENGINE_get_table_flags(void)
+ {
+     return table_flags;
+ }
+ 
+-void ENGINE_set_table_flags(unsigned int flags)
++void __cdecl ENGINE_set_table_flags(unsigned int flags)
+ {
+     table_flags = flags;
+ }
 @@ -56,7 +56,7 @@ static unsigned long engine_pile_hash(const ENGINE_PILE *c)
      return c->nid;
  }
@@ -11191,6 +11639,629 @@ index ac4b02fc12..cc46bdb969 100644
  {
      return a->nid - b->nid;
  }
+diff --git a/crypto/engine/tb_asnmth.c b/crypto/engine/tb_asnmth.c
+index 4bcc76136a..5d56cfade2 100644
+--- a/crypto/engine/tb_asnmth.c
++++ b/crypto/engine/tb_asnmth.c
+@@ -22,7 +22,7 @@
+ 
+ static ENGINE_TABLE *pkey_asn1_meth_table = NULL;
+ 
+-void ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
++void __cdecl ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
+ {
+     engine_table_unregister(&pkey_asn1_meth_table, e);
+ }
+@@ -32,7 +32,7 @@ static void engine_unregister_all_pkey_asn1_meths(void)
+     engine_table_cleanup(&pkey_asn1_meth_table);
+ }
+ 
+-int ENGINE_register_pkey_asn1_meths(ENGINE *e)
++int __cdecl ENGINE_register_pkey_asn1_meths(ENGINE *e)
+ {
+     if (e->pkey_asn1_meths) {
+         const int *nids;
+@@ -45,7 +45,7 @@ int ENGINE_register_pkey_asn1_meths(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_pkey_asn1_meths(void)
++void __cdecl ENGINE_register_all_pkey_asn1_meths(void)
+ {
+     ENGINE *e;
+ 
+@@ -53,7 +53,7 @@ void ENGINE_register_all_pkey_asn1_meths(void)
+         ENGINE_register_pkey_asn1_meths(e);
+ }
+ 
+-int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
++int __cdecl ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
+ {
+     if (e->pkey_asn1_meths) {
+         const int *nids;
+@@ -71,7 +71,7 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references) for a given pkey_asn1_meth 'nid'
+  */
+-ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
++ENGINE * __cdecl ENGINE_get_pkey_asn1_meth_engine(int nid)
+ {
+     return engine_table_select(&pkey_asn1_meth_table, nid);
+ }
+@@ -80,7 +80,7 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
+  * Obtains a pkey_asn1_meth implementation from an ENGINE functional
+  * reference
+  */
+-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
+ {
+     EVP_PKEY_ASN1_METHOD *ret;
+     ENGINE_PKEY_ASN1_METHS_PTR fn = ENGINE_get_pkey_asn1_meths(e);
+@@ -93,13 +93,13 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
+ }
+ 
+ /* Gets the pkey_asn1_meth callback from an ENGINE structure */
+-ENGINE_PKEY_ASN1_METHS_PTR ENGINE_get_pkey_asn1_meths(const ENGINE *e)
++ENGINE_PKEY_ASN1_METHS_PTR __cdecl ENGINE_get_pkey_asn1_meths(const ENGINE *e)
+ {
+     return e->pkey_asn1_meths;
+ }
+ 
+ /* Sets the pkey_asn1_meth callback in an ENGINE structure */
+-int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
++int __cdecl ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
+ {
+     e->pkey_asn1_meths = f;
+     return 1;
+@@ -133,7 +133,7 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
+  * for speed critical operations.
+  */
+ 
+-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
+                                                           const char *str,
+                                                           int len)
+ {
+@@ -181,7 +181,7 @@ static void look_str_cb(int nid, STACK_OF(ENGINE) *sk, ENGINE *def, void *arg)
+     }
+ }
+ 
+-const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_pkey_asn1_find_str(ENGINE **pe,
+                                                       const char *str,
+                                                       int len)
+ {
+diff --git a/crypto/engine/tb_cipher.c b/crypto/engine/tb_cipher.c
+index faa967c475..99888b2bf8 100644
+--- a/crypto/engine/tb_cipher.c
++++ b/crypto/engine/tb_cipher.c
+@@ -11,7 +11,7 @@
+ 
+ static ENGINE_TABLE *cipher_table = NULL;
+ 
+-void ENGINE_unregister_ciphers(ENGINE *e)
++void __cdecl ENGINE_unregister_ciphers(ENGINE *e)
+ {
+     engine_table_unregister(&cipher_table, e);
+ }
+@@ -21,7 +21,7 @@ static void engine_unregister_all_ciphers(void)
+     engine_table_cleanup(&cipher_table);
+ }
+ 
+-int ENGINE_register_ciphers(ENGINE *e)
++int __cdecl ENGINE_register_ciphers(ENGINE *e)
+ {
+     if (e->ciphers) {
+         const int *nids;
+@@ -34,7 +34,7 @@ int ENGINE_register_ciphers(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_ciphers(void)
++void __cdecl ENGINE_register_all_ciphers(void)
+ {
+     ENGINE *e;
+ 
+@@ -42,7 +42,7 @@ void ENGINE_register_all_ciphers(void)
+         ENGINE_register_ciphers(e);
+ }
+ 
+-int ENGINE_set_default_ciphers(ENGINE *e)
++int __cdecl ENGINE_set_default_ciphers(ENGINE *e)
+ {
+     if (e->ciphers) {
+         const int *nids;
+@@ -60,13 +60,13 @@ int ENGINE_set_default_ciphers(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references) for a given cipher 'nid'
+  */
+-ENGINE *ENGINE_get_cipher_engine(int nid)
++ENGINE * __cdecl ENGINE_get_cipher_engine(int nid)
+ {
+     return engine_table_select(&cipher_table, nid);
+ }
+ 
+ /* Obtains a cipher implementation from an ENGINE functional reference */
+-const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid)
++const EVP_CIPHER * __cdecl ENGINE_get_cipher(ENGINE *e, int nid)
+ {
+     const EVP_CIPHER *ret;
+     ENGINE_CIPHERS_PTR fn = ENGINE_get_ciphers(e);
+@@ -78,13 +78,13 @@ const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid)
+ }
+ 
+ /* Gets the cipher callback from an ENGINE structure */
+-ENGINE_CIPHERS_PTR ENGINE_get_ciphers(const ENGINE *e)
++ENGINE_CIPHERS_PTR __cdecl ENGINE_get_ciphers(const ENGINE *e)
+ {
+     return e->ciphers;
+ }
+ 
+ /* Sets the cipher callback in an ENGINE structure */
+-int ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f)
++int __cdecl ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f)
+ {
+     e->ciphers = f;
+     return 1;
+diff --git a/crypto/engine/tb_dh.c b/crypto/engine/tb_dh.c
+index 785119f65a..8824be9eca 100644
+--- a/crypto/engine/tb_dh.c
++++ b/crypto/engine/tb_dh.c
+@@ -12,7 +12,7 @@
+ static ENGINE_TABLE *dh_table = NULL;
+ static const int dummy_nid = 1;
+ 
+-void ENGINE_unregister_DH(ENGINE *e)
++void __cdecl ENGINE_unregister_DH(ENGINE *e)
+ {
+     engine_table_unregister(&dh_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_DH(void)
+     engine_table_cleanup(&dh_table);
+ }
+ 
+-int ENGINE_register_DH(ENGINE *e)
++int __cdecl ENGINE_register_DH(ENGINE *e)
+ {
+     if (e->dh_meth)
+         return engine_table_register(&dh_table,
+@@ -31,7 +31,7 @@ int ENGINE_register_DH(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_DH(void)
++void __cdecl ENGINE_register_all_DH(void)
+ {
+     ENGINE *e;
+ 
+@@ -39,7 +39,7 @@ void ENGINE_register_all_DH(void)
+         ENGINE_register_DH(e);
+ }
+ 
+-int ENGINE_set_default_DH(ENGINE *e)
++int __cdecl ENGINE_set_default_DH(ENGINE *e)
+ {
+     if (e->dh_meth)
+         return engine_table_register(&dh_table,
+@@ -53,19 +53,19 @@ int ENGINE_set_default_DH(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references).
+  */
+-ENGINE *ENGINE_get_default_DH(void)
++ENGINE * __cdecl ENGINE_get_default_DH(void)
+ {
+     return engine_table_select(&dh_table, dummy_nid);
+ }
+ 
+ /* Obtains an DH implementation from an ENGINE functional reference */
+-const DH_METHOD *ENGINE_get_DH(const ENGINE *e)
++const DH_METHOD * __cdecl ENGINE_get_DH(const ENGINE *e)
+ {
+     return e->dh_meth;
+ }
+ 
+ /* Sets an DH implementation in an ENGINE structure */
+-int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth)
++int __cdecl ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth)
+ {
+     e->dh_meth = dh_meth;
+     return 1;
+diff --git a/crypto/engine/tb_digest.c b/crypto/engine/tb_digest.c
+index d644b1b0a8..995376b3e2 100644
+--- a/crypto/engine/tb_digest.c
++++ b/crypto/engine/tb_digest.c
+@@ -11,7 +11,7 @@
+ 
+ static ENGINE_TABLE *digest_table = NULL;
+ 
+-void ENGINE_unregister_digests(ENGINE *e)
++void __cdecl ENGINE_unregister_digests(ENGINE *e)
+ {
+     engine_table_unregister(&digest_table, e);
+ }
+@@ -21,7 +21,7 @@ static void engine_unregister_all_digests(void)
+     engine_table_cleanup(&digest_table);
+ }
+ 
+-int ENGINE_register_digests(ENGINE *e)
++int __cdecl ENGINE_register_digests(ENGINE *e)
+ {
+     if (e->digests) {
+         const int *nids;
+@@ -34,7 +34,7 @@ int ENGINE_register_digests(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_digests(void)
++void __cdecl ENGINE_register_all_digests(void)
+ {
+     ENGINE *e;
+ 
+@@ -42,7 +42,7 @@ void ENGINE_register_all_digests(void)
+         ENGINE_register_digests(e);
+ }
+ 
+-int ENGINE_set_default_digests(ENGINE *e)
++int __cdecl ENGINE_set_default_digests(ENGINE *e)
+ {
+     if (e->digests) {
+         const int *nids;
+@@ -60,13 +60,13 @@ int ENGINE_set_default_digests(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references) for a given digest 'nid'
+  */
+-ENGINE *ENGINE_get_digest_engine(int nid)
++ENGINE * __cdecl ENGINE_get_digest_engine(int nid)
+ {
+     return engine_table_select(&digest_table, nid);
+ }
+ 
+ /* Obtains a digest implementation from an ENGINE functional reference */
+-const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid)
++const EVP_MD * __cdecl ENGINE_get_digest(ENGINE *e, int nid)
+ {
+     const EVP_MD *ret;
+     ENGINE_DIGESTS_PTR fn = ENGINE_get_digests(e);
+@@ -78,13 +78,13 @@ const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid)
+ }
+ 
+ /* Gets the digest callback from an ENGINE structure */
+-ENGINE_DIGESTS_PTR ENGINE_get_digests(const ENGINE *e)
++ENGINE_DIGESTS_PTR __cdecl ENGINE_get_digests(const ENGINE *e)
+ {
+     return e->digests;
+ }
+ 
+ /* Sets the digest callback in an ENGINE structure */
+-int ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f)
++int __cdecl ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f)
+ {
+     e->digests = f;
+     return 1;
+diff --git a/crypto/engine/tb_dsa.c b/crypto/engine/tb_dsa.c
+index 65b6ea8d3a..f4d45d28d2 100644
+--- a/crypto/engine/tb_dsa.c
++++ b/crypto/engine/tb_dsa.c
+@@ -12,7 +12,7 @@
+ static ENGINE_TABLE *dsa_table = NULL;
+ static const int dummy_nid = 1;
+ 
+-void ENGINE_unregister_DSA(ENGINE *e)
++void __cdecl ENGINE_unregister_DSA(ENGINE *e)
+ {
+     engine_table_unregister(&dsa_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_DSA(void)
+     engine_table_cleanup(&dsa_table);
+ }
+ 
+-int ENGINE_register_DSA(ENGINE *e)
++int __cdecl ENGINE_register_DSA(ENGINE *e)
+ {
+     if (e->dsa_meth)
+         return engine_table_register(&dsa_table,
+@@ -31,7 +31,7 @@ int ENGINE_register_DSA(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_DSA(void)
++void __cdecl ENGINE_register_all_DSA(void)
+ {
+     ENGINE *e;
+ 
+@@ -39,7 +39,7 @@ void ENGINE_register_all_DSA(void)
+         ENGINE_register_DSA(e);
+ }
+ 
+-int ENGINE_set_default_DSA(ENGINE *e)
++int __cdecl ENGINE_set_default_DSA(ENGINE *e)
+ {
+     if (e->dsa_meth)
+         return engine_table_register(&dsa_table,
+@@ -53,19 +53,19 @@ int ENGINE_set_default_DSA(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references).
+  */
+-ENGINE *ENGINE_get_default_DSA(void)
++ENGINE * __cdecl ENGINE_get_default_DSA(void)
+ {
+     return engine_table_select(&dsa_table, dummy_nid);
+ }
+ 
+ /* Obtains an DSA implementation from an ENGINE functional reference */
+-const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e)
++const DSA_METHOD * __cdecl ENGINE_get_DSA(const ENGINE *e)
+ {
+     return e->dsa_meth;
+ }
+ 
+ /* Sets an DSA implementation in an ENGINE structure */
+-int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth)
++int __cdecl ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth)
+ {
+     e->dsa_meth = dsa_meth;
+     return 1;
+diff --git a/crypto/engine/tb_eckey.c b/crypto/engine/tb_eckey.c
+index 1e50736854..d558908aa7 100644
+--- a/crypto/engine/tb_eckey.c
++++ b/crypto/engine/tb_eckey.c
+@@ -12,7 +12,7 @@
+ static ENGINE_TABLE *dh_table = NULL;
+ static const int dummy_nid = 1;
+ 
+-void ENGINE_unregister_EC(ENGINE *e)
++void __cdecl ENGINE_unregister_EC(ENGINE *e)
+ {
+     engine_table_unregister(&dh_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_EC(void)
+     engine_table_cleanup(&dh_table);
+ }
+ 
+-int ENGINE_register_EC(ENGINE *e)
++int __cdecl ENGINE_register_EC(ENGINE *e)
+ {
+     if (e->ec_meth != NULL)
+         return engine_table_register(&dh_table,
+@@ -31,7 +31,7 @@ int ENGINE_register_EC(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_EC(void)
++void __cdecl ENGINE_register_all_EC(void)
+ {
+     ENGINE *e;
+ 
+@@ -39,7 +39,7 @@ void ENGINE_register_all_EC(void)
+         ENGINE_register_EC(e);
+ }
+ 
+-int ENGINE_set_default_EC(ENGINE *e)
++int __cdecl ENGINE_set_default_EC(ENGINE *e)
+ {
+     if (e->ec_meth != NULL)
+         return engine_table_register(&dh_table,
+@@ -53,19 +53,19 @@ int ENGINE_set_default_EC(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references).
+  */
+-ENGINE *ENGINE_get_default_EC(void)
++ENGINE * __cdecl ENGINE_get_default_EC(void)
+ {
+     return engine_table_select(&dh_table, dummy_nid);
+ }
+ 
+ /* Obtains an EC_KEY implementation from an ENGINE functional reference */
+-const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e)
++const EC_KEY_METHOD * __cdecl ENGINE_get_EC(const ENGINE *e)
+ {
+     return e->ec_meth;
+ }
+ 
+ /* Sets an EC_KEY implementation in an ENGINE structure */
+-int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ec_meth)
++int __cdecl ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ec_meth)
+ {
+     e->ec_meth = ec_meth;
+     return 1;
+diff --git a/crypto/engine/tb_pkmeth.c b/crypto/engine/tb_pkmeth.c
+index 03cd1e69dd..2ec8ca0288 100644
+--- a/crypto/engine/tb_pkmeth.c
++++ b/crypto/engine/tb_pkmeth.c
+@@ -12,7 +12,7 @@
+ 
+ static ENGINE_TABLE *pkey_meth_table = NULL;
+ 
+-void ENGINE_unregister_pkey_meths(ENGINE *e)
++void __cdecl ENGINE_unregister_pkey_meths(ENGINE *e)
+ {
+     engine_table_unregister(&pkey_meth_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_pkey_meths(void)
+     engine_table_cleanup(&pkey_meth_table);
+ }
+ 
+-int ENGINE_register_pkey_meths(ENGINE *e)
++int __cdecl ENGINE_register_pkey_meths(ENGINE *e)
+ {
+     if (e->pkey_meths) {
+         const int *nids;
+@@ -35,7 +35,7 @@ int ENGINE_register_pkey_meths(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_pkey_meths(void)
++void __cdecl ENGINE_register_all_pkey_meths(void)
+ {
+     ENGINE *e;
+ 
+@@ -43,7 +43,7 @@ void ENGINE_register_all_pkey_meths(void)
+         ENGINE_register_pkey_meths(e);
+ }
+ 
+-int ENGINE_set_default_pkey_meths(ENGINE *e)
++int __cdecl ENGINE_set_default_pkey_meths(ENGINE *e)
+ {
+     if (e->pkey_meths) {
+         const int *nids;
+@@ -61,13 +61,13 @@ int ENGINE_set_default_pkey_meths(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references) for a given pkey_meth 'nid'
+  */
+-ENGINE *ENGINE_get_pkey_meth_engine(int nid)
++ENGINE * __cdecl ENGINE_get_pkey_meth_engine(int nid)
+ {
+     return engine_table_select(&pkey_meth_table, nid);
+ }
+ 
+ /* Obtains a pkey_meth implementation from an ENGINE functional reference */
+-const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid)
++const EVP_PKEY_METHOD * __cdecl ENGINE_get_pkey_meth(ENGINE *e, int nid)
+ {
+     EVP_PKEY_METHOD *ret;
+     ENGINE_PKEY_METHS_PTR fn = ENGINE_get_pkey_meths(e);
+@@ -80,13 +80,13 @@ const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid)
+ }
+ 
+ /* Gets the pkey_meth callback from an ENGINE structure */
+-ENGINE_PKEY_METHS_PTR ENGINE_get_pkey_meths(const ENGINE *e)
++ENGINE_PKEY_METHS_PTR __cdecl ENGINE_get_pkey_meths(const ENGINE *e)
+ {
+     return e->pkey_meths;
+ }
+ 
+ /* Sets the pkey_meth callback in an ENGINE structure */
+-int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f)
++int __cdecl ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f)
+ {
+     e->pkey_meths = f;
+     return 1;
+diff --git a/crypto/engine/tb_rand.c b/crypto/engine/tb_rand.c
+index 98a98073cd..19f2ef0149 100644
+--- a/crypto/engine/tb_rand.c
++++ b/crypto/engine/tb_rand.c
+@@ -12,7 +12,7 @@
+ static ENGINE_TABLE *rand_table = NULL;
+ static const int dummy_nid = 1;
+ 
+-void ENGINE_unregister_RAND(ENGINE *e)
++void __cdecl ENGINE_unregister_RAND(ENGINE *e)
+ {
+     engine_table_unregister(&rand_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_RAND(void)
+     engine_table_cleanup(&rand_table);
+ }
+ 
+-int ENGINE_register_RAND(ENGINE *e)
++int __cdecl ENGINE_register_RAND(ENGINE *e)
+ {
+     if (e->rand_meth)
+         return engine_table_register(&rand_table,
+@@ -31,7 +31,7 @@ int ENGINE_register_RAND(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_RAND(void)
++void __cdecl ENGINE_register_all_RAND(void)
+ {
+     ENGINE *e;
+ 
+@@ -39,7 +39,7 @@ void ENGINE_register_all_RAND(void)
+         ENGINE_register_RAND(e);
+ }
+ 
+-int ENGINE_set_default_RAND(ENGINE *e)
++int __cdecl ENGINE_set_default_RAND(ENGINE *e)
+ {
+     if (e->rand_meth)
+         return engine_table_register(&rand_table,
+@@ -53,19 +53,19 @@ int ENGINE_set_default_RAND(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references).
+  */
+-ENGINE *ENGINE_get_default_RAND(void)
++ENGINE * __cdecl ENGINE_get_default_RAND(void)
+ {
+     return engine_table_select(&rand_table, dummy_nid);
+ }
+ 
+ /* Obtains an RAND implementation from an ENGINE functional reference */
+-const RAND_METHOD *ENGINE_get_RAND(const ENGINE *e)
++const RAND_METHOD * __cdecl ENGINE_get_RAND(const ENGINE *e)
+ {
+     return e->rand_meth;
+ }
+ 
+ /* Sets an RAND implementation in an ENGINE structure */
+-int ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth)
++int __cdecl ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth)
+ {
+     e->rand_meth = rand_meth;
+     return 1;
+diff --git a/crypto/engine/tb_rsa.c b/crypto/engine/tb_rsa.c
+index d8d2e34f84..1bb83c773e 100644
+--- a/crypto/engine/tb_rsa.c
++++ b/crypto/engine/tb_rsa.c
+@@ -12,7 +12,7 @@
+ static ENGINE_TABLE *rsa_table = NULL;
+ static const int dummy_nid = 1;
+ 
+-void ENGINE_unregister_RSA(ENGINE *e)
++void __cdecl ENGINE_unregister_RSA(ENGINE *e)
+ {
+     engine_table_unregister(&rsa_table, e);
+ }
+@@ -22,7 +22,7 @@ static void engine_unregister_all_RSA(void)
+     engine_table_cleanup(&rsa_table);
+ }
+ 
+-int ENGINE_register_RSA(ENGINE *e)
++int __cdecl ENGINE_register_RSA(ENGINE *e)
+ {
+     if (e->rsa_meth)
+         return engine_table_register(&rsa_table,
+@@ -31,7 +31,7 @@ int ENGINE_register_RSA(ENGINE *e)
+     return 1;
+ }
+ 
+-void ENGINE_register_all_RSA(void)
++void __cdecl ENGINE_register_all_RSA(void)
+ {
+     ENGINE *e;
+ 
+@@ -39,7 +39,7 @@ void ENGINE_register_all_RSA(void)
+         ENGINE_register_RSA(e);
+ }
+ 
+-int ENGINE_set_default_RSA(ENGINE *e)
++int __cdecl ENGINE_set_default_RSA(ENGINE *e)
+ {
+     if (e->rsa_meth)
+         return engine_table_register(&rsa_table,
+@@ -53,19 +53,19 @@ int ENGINE_set_default_RSA(ENGINE *e)
+  * table (ie. try to get a functional reference from the tabled structural
+  * references).
+  */
+-ENGINE *ENGINE_get_default_RSA(void)
++ENGINE * __cdecl ENGINE_get_default_RSA(void)
+ {
+     return engine_table_select(&rsa_table, dummy_nid);
+ }
+ 
+ /* Obtains an RSA implementation from an ENGINE functional reference */
+-const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e)
++const RSA_METHOD * __cdecl ENGINE_get_RSA(const ENGINE *e)
+ {
+     return e->rsa_meth;
+ }
+ 
+ /* Sets an RSA implementation in an ENGINE structure */
+-int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth)
++int __cdecl ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth)
+ {
+     e->rsa_meth = rsa_meth;
+     return 1;
 diff --git a/crypto/err/err.c b/crypto/err/err.c
 index 3a58ccb958..cec0cfdc3a 100644
 --- a/crypto/err/err.c
@@ -20705,9 +21776,395 @@ index f7b9183456..e1b9ba1a1e 100644
  /*
   * EC function codes.
 diff --git a/include/openssl/engine.h b/include/openssl/engine.h
-index 0780f0fb5f..226277635a 100644
+index 0780f0fb5f..599088da5f 100644
 --- a/include/openssl/engine.h
 +++ b/include/openssl/engine.h
+@@ -308,17 +308,17 @@ typedef int (*ENGINE_PKEY_ASN1_METHS_PTR) (ENGINE *, EVP_PKEY_ASN1_METHOD **,
+  */
+ 
+ /* Get the first/last "ENGINE" type available. */
+-ENGINE *ENGINE_get_first(void);
+-ENGINE *ENGINE_get_last(void);
++ENGINE * __cdecl ENGINE_get_first(void);
++ENGINE * __cdecl ENGINE_get_last(void);
+ /* Iterate to the next/previous "ENGINE" type (NULL = end of the list). */
+-ENGINE *ENGINE_get_next(ENGINE *e);
+-ENGINE *ENGINE_get_prev(ENGINE *e);
++ENGINE * __cdecl ENGINE_get_next(ENGINE *e);
++ENGINE * __cdecl ENGINE_get_prev(ENGINE *e);
+ /* Add another "ENGINE" type into the array. */
+-int ENGINE_add(ENGINE *e);
++int __cdecl ENGINE_add(ENGINE *e);
+ /* Remove an existing "ENGINE" type from the array. */
+-int ENGINE_remove(ENGINE *e);
++int __cdecl ENGINE_remove(ENGINE *e);
+ /* Retrieve an engine from the list by its unique "id" value. */
+-ENGINE *ENGINE_by_id(const char *id);
++ENGINE * __cdecl ENGINE_by_id(const char *id);
+ 
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ # define ENGINE_load_openssl() \
+@@ -338,14 +338,14 @@ ENGINE *ENGINE_by_id(const char *id);
+ # define ENGINE_load_rdrand() \
+     OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_RDRAND, NULL)
+ #endif
+-void ENGINE_load_builtin_engines(void);
++void __cdecl ENGINE_load_builtin_engines(void);
+ 
+ /*
+  * Get and set global flags (ENGINE_TABLE_FLAG_***) for the implementation
+  * "registry" handling.
+  */
+-unsigned int ENGINE_get_table_flags(void);
+-void ENGINE_set_table_flags(unsigned int flags);
++unsigned int __cdecl ENGINE_get_table_flags(void);
++void __cdecl ENGINE_set_table_flags(unsigned int flags);
+ 
+ /*- Manage registration of ENGINEs per "table". For each type, there are 3
+  * functions;
+@@ -355,41 +355,41 @@ void ENGINE_set_table_flags(unsigned int flags);
+  * Cleanup is automatically registered from each table when required.
+  */
+ 
+-int ENGINE_register_RSA(ENGINE *e);
+-void ENGINE_unregister_RSA(ENGINE *e);
+-void ENGINE_register_all_RSA(void);
++int __cdecl ENGINE_register_RSA(ENGINE *e);
++void __cdecl ENGINE_unregister_RSA(ENGINE *e);
++void __cdecl ENGINE_register_all_RSA(void);
+ 
+-int ENGINE_register_DSA(ENGINE *e);
+-void ENGINE_unregister_DSA(ENGINE *e);
+-void ENGINE_register_all_DSA(void);
++int __cdecl ENGINE_register_DSA(ENGINE *e);
++void __cdecl ENGINE_unregister_DSA(ENGINE *e);
++void __cdecl ENGINE_register_all_DSA(void);
+ 
+-int ENGINE_register_EC(ENGINE *e);
+-void ENGINE_unregister_EC(ENGINE *e);
+-void ENGINE_register_all_EC(void);
++int __cdecl ENGINE_register_EC(ENGINE *e);
++void __cdecl ENGINE_unregister_EC(ENGINE *e);
++void __cdecl ENGINE_register_all_EC(void);
+ 
+-int ENGINE_register_DH(ENGINE *e);
+-void ENGINE_unregister_DH(ENGINE *e);
+-void ENGINE_register_all_DH(void);
++int __cdecl ENGINE_register_DH(ENGINE *e);
++void __cdecl ENGINE_unregister_DH(ENGINE *e);
++void __cdecl ENGINE_register_all_DH(void);
+ 
+-int ENGINE_register_RAND(ENGINE *e);
+-void ENGINE_unregister_RAND(ENGINE *e);
+-void ENGINE_register_all_RAND(void);
++int __cdecl ENGINE_register_RAND(ENGINE *e);
++void __cdecl ENGINE_unregister_RAND(ENGINE *e);
++void __cdecl ENGINE_register_all_RAND(void);
+ 
+-int ENGINE_register_ciphers(ENGINE *e);
+-void ENGINE_unregister_ciphers(ENGINE *e);
+-void ENGINE_register_all_ciphers(void);
++int __cdecl ENGINE_register_ciphers(ENGINE *e);
++void __cdecl ENGINE_unregister_ciphers(ENGINE *e);
++void __cdecl ENGINE_register_all_ciphers(void);
+ 
+-int ENGINE_register_digests(ENGINE *e);
+-void ENGINE_unregister_digests(ENGINE *e);
+-void ENGINE_register_all_digests(void);
++int __cdecl ENGINE_register_digests(ENGINE *e);
++void __cdecl ENGINE_unregister_digests(ENGINE *e);
++void __cdecl ENGINE_register_all_digests(void);
+ 
+-int ENGINE_register_pkey_meths(ENGINE *e);
+-void ENGINE_unregister_pkey_meths(ENGINE *e);
+-void ENGINE_register_all_pkey_meths(void);
++int __cdecl ENGINE_register_pkey_meths(ENGINE *e);
++void __cdecl ENGINE_unregister_pkey_meths(ENGINE *e);
++void __cdecl ENGINE_register_all_pkey_meths(void);
+ 
+-int ENGINE_register_pkey_asn1_meths(ENGINE *e);
+-void ENGINE_unregister_pkey_asn1_meths(ENGINE *e);
+-void ENGINE_register_all_pkey_asn1_meths(void);
++int __cdecl ENGINE_register_pkey_asn1_meths(ENGINE *e);
++void __cdecl ENGINE_unregister_pkey_asn1_meths(ENGINE *e);
++void __cdecl ENGINE_register_all_pkey_asn1_meths(void);
+ 
+ /*
+  * These functions register all support from the above categories. Note, use
+@@ -397,8 +397,8 @@ void ENGINE_register_all_pkey_asn1_meths(void);
+  * may not need. If you only need a subset of functionality, consider using
+  * more selective initialisation.
+  */
+-int ENGINE_register_complete(ENGINE *e);
+-int ENGINE_register_all_complete(void);
++int __cdecl ENGINE_register_complete(ENGINE *e);
++int __cdecl ENGINE_register_all_complete(void);
+ 
+ /*
+  * Send parameterised control commands to the engine. The possibilities to
+@@ -410,7 +410,7 @@ int ENGINE_register_all_complete(void);
+  * commands that require an operational ENGINE, and only use functional
+  * references in such situations.
+  */
+-int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
++int __cdecl ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
+ 
+ /*
+  * This function tests if an ENGINE-specific command is usable as a
+@@ -418,7 +418,7 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
+  * ENGINE_ctrl_cmd_string(). If this returns zero, it is not available to
+  * ENGINE_ctrl_cmd_string(), only ENGINE_ctrl().
+  */
+-int ENGINE_cmd_is_executable(ENGINE *e, int cmd);
++int __cdecl ENGINE_cmd_is_executable(ENGINE *e, int cmd);
+ 
+ /*
+  * This function works like ENGINE_ctrl() with the exception of taking a
+@@ -426,7 +426,7 @@ int ENGINE_cmd_is_executable(ENGINE *e, int cmd);
+  * commands. See the comment on ENGINE_ctrl_cmd_string() for an explanation
+  * on how to use the cmd_name and cmd_optional.
+  */
+-int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
++int __cdecl ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
+                     long i, void *p, void (*f) (void), int cmd_optional);
+ 
+ /*
+@@ -451,7 +451,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
+  * applications can work consistently with the same configuration for the
+  * same ENGINE-enabled devices, across applications.
+  */
+-int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
++int __cdecl ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
+                            int cmd_optional);
+ 
+ /*
+@@ -462,37 +462,37 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
+  * These are also here so that the ENGINE structure doesn't have to be
+  * exposed and break binary compatibility!
+  */
+-ENGINE *ENGINE_new(void);
+-int ENGINE_free(ENGINE *e);
+-int ENGINE_up_ref(ENGINE *e);
+-int ENGINE_set_id(ENGINE *e, const char *id);
+-int ENGINE_set_name(ENGINE *e, const char *name);
+-int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
+-int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
+-int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
+-int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
+-int ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth);
+-int ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f);
+-int ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f);
+-int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f);
+-int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f);
+-int ENGINE_set_load_privkey_function(ENGINE *e,
++ENGINE * __cdecl ENGINE_new(void);
++int __cdecl ENGINE_free(ENGINE *e);
++int __cdecl ENGINE_up_ref(ENGINE *e);
++int __cdecl ENGINE_set_id(ENGINE *e, const char *id);
++int __cdecl ENGINE_set_name(ENGINE *e, const char *name);
++int __cdecl ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
++int __cdecl ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
++int __cdecl ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
++int __cdecl ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
++int __cdecl ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth);
++int __cdecl ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f);
++int __cdecl ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f);
++int __cdecl ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f);
++int __cdecl ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f);
++int __cdecl ENGINE_set_load_privkey_function(ENGINE *e,
+                                      ENGINE_LOAD_KEY_PTR loadpriv_f);
+-int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
+-int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
++int __cdecl ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
++int __cdecl ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
+                                              ENGINE_SSL_CLIENT_CERT_PTR
+                                              loadssl_f);
+-int ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f);
+-int ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f);
+-int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
+-int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
+-int ENGINE_set_flags(ENGINE *e, int flags);
+-int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
++int __cdecl ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f);
++int __cdecl ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f);
++int __cdecl ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
++int __cdecl ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
++int __cdecl ENGINE_set_flags(ENGINE *e, int flags);
++int __cdecl ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
+ /* These functions allow control over any per-structure ENGINE data. */
+ #define ENGINE_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_ENGINE, l, p, newf, dupf, freef)
+-int ENGINE_set_ex_data(ENGINE *e, int idx, void *arg);
+-void *ENGINE_get_ex_data(const ENGINE *e, int idx);
++int __cdecl ENGINE_set_ex_data(ENGINE *e, int idx, void *arg);
++void * __cdecl ENGINE_get_ex_data(const ENGINE *e, int idx);
+ 
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ /*
+@@ -508,37 +508,37 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx);
+  * which you obtained. Using the result for functional purposes if you only
+  * obtained a structural reference may be problematic!
+  */
+-const char *ENGINE_get_id(const ENGINE *e);
+-const char *ENGINE_get_name(const ENGINE *e);
+-const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e);
+-const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e);
+-const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e);
+-const DH_METHOD *ENGINE_get_DH(const ENGINE *e);
+-const RAND_METHOD *ENGINE_get_RAND(const ENGINE *e);
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_destroy_function(const ENGINE *e);
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_init_function(const ENGINE *e);
+-ENGINE_GEN_INT_FUNC_PTR ENGINE_get_finish_function(const ENGINE *e);
+-ENGINE_CTRL_FUNC_PTR ENGINE_get_ctrl_function(const ENGINE *e);
+-ENGINE_LOAD_KEY_PTR ENGINE_get_load_privkey_function(const ENGINE *e);
+-ENGINE_LOAD_KEY_PTR ENGINE_get_load_pubkey_function(const ENGINE *e);
+-ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
++const char * __cdecl ENGINE_get_id(const ENGINE *e);
++const char * __cdecl ENGINE_get_name(const ENGINE *e);
++const RSA_METHOD * __cdecl ENGINE_get_RSA(const ENGINE *e);
++const DSA_METHOD * __cdecl ENGINE_get_DSA(const ENGINE *e);
++const EC_KEY_METHOD * __cdecl ENGINE_get_EC(const ENGINE *e);
++const DH_METHOD * __cdecl ENGINE_get_DH(const ENGINE *e);
++const RAND_METHOD * __cdecl ENGINE_get_RAND(const ENGINE *e);
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_destroy_function(const ENGINE *e);
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_init_function(const ENGINE *e);
++ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_finish_function(const ENGINE *e);
++ENGINE_CTRL_FUNC_PTR __cdecl ENGINE_get_ctrl_function(const ENGINE *e);
++ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_privkey_function(const ENGINE *e);
++ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_pubkey_function(const ENGINE *e);
++ENGINE_SSL_CLIENT_CERT_PTR __cdecl ENGINE_get_ssl_client_cert_function(const ENGINE
+                                                                *e);
+-ENGINE_CIPHERS_PTR ENGINE_get_ciphers(const ENGINE *e);
+-ENGINE_DIGESTS_PTR ENGINE_get_digests(const ENGINE *e);
+-ENGINE_PKEY_METHS_PTR ENGINE_get_pkey_meths(const ENGINE *e);
+-ENGINE_PKEY_ASN1_METHS_PTR ENGINE_get_pkey_asn1_meths(const ENGINE *e);
+-const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid);
+-const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid);
+-const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid);
+-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid);
+-const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
++ENGINE_CIPHERS_PTR __cdecl ENGINE_get_ciphers(const ENGINE *e);
++ENGINE_DIGESTS_PTR __cdecl ENGINE_get_digests(const ENGINE *e);
++ENGINE_PKEY_METHS_PTR __cdecl ENGINE_get_pkey_meths(const ENGINE *e);
++ENGINE_PKEY_ASN1_METHS_PTR __cdecl ENGINE_get_pkey_asn1_meths(const ENGINE *e);
++const EVP_CIPHER * __cdecl ENGINE_get_cipher(ENGINE *e, int nid);
++const EVP_MD * __cdecl ENGINE_get_digest(ENGINE *e, int nid);
++const EVP_PKEY_METHOD * __cdecl ENGINE_get_pkey_meth(ENGINE *e, int nid);
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid);
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
+                                                           const char *str,
+                                                           int len);
+-const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
++const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_pkey_asn1_find_str(ENGINE **pe,
+                                                       const char *str,
+                                                       int len);
+-const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e);
+-int ENGINE_get_flags(const ENGINE *e);
++const ENGINE_CMD_DEFN * __cdecl ENGINE_get_cmd_defns(const ENGINE *e);
++int __cdecl ENGINE_get_flags(const ENGINE *e);
+ 
+ /*
+  * FUNCTIONAL functions. These functions deal with ENGINE structures that
+@@ -558,24 +558,24 @@ int ENGINE_get_flags(const ENGINE *e);
+  * already in use). This will fail if the engine is not currently operational
+  * and cannot initialise.
+  */
+-int ENGINE_init(ENGINE *e);
++int __cdecl ENGINE_init(ENGINE *e);
+ /*
+  * Free a functional reference to a engine type. This does not require a
+  * corresponding call to ENGINE_free as it also releases a structural
+  * reference.
+  */
+-int ENGINE_finish(ENGINE *e);
++int __cdecl ENGINE_finish(ENGINE *e);
+ 
+ /*
+  * The following functions handle keys that are stored in some secondary
+  * location, handled by the engine.  The storage may be on a card or
+  * whatever.
+  */
+-EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
++EVP_PKEY * __cdecl ENGINE_load_private_key(ENGINE *e, const char *key_id,
+                                   UI_METHOD *ui_method, void *callback_data);
+-EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
++EVP_PKEY * __cdecl ENGINE_load_public_key(ENGINE *e, const char *key_id,
+                                  UI_METHOD *ui_method, void *callback_data);
+-int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
++int __cdecl ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
+                                 STACK_OF(X509_NAME) *ca_dn, X509 **pcert,
+                                 EVP_PKEY **ppkey, STACK_OF(X509) **pother,
+                                 UI_METHOD *ui_method, void *callback_data);
+@@ -586,20 +586,20 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
+  * incremented reference, so it should be free'd (ENGINE_finish) before it is
+  * discarded.
+  */
+-ENGINE *ENGINE_get_default_RSA(void);
++ENGINE * __cdecl ENGINE_get_default_RSA(void);
+ /* Same for the other "methods" */
+-ENGINE *ENGINE_get_default_DSA(void);
+-ENGINE *ENGINE_get_default_EC(void);
+-ENGINE *ENGINE_get_default_DH(void);
+-ENGINE *ENGINE_get_default_RAND(void);
++ENGINE * __cdecl ENGINE_get_default_DSA(void);
++ENGINE * __cdecl ENGINE_get_default_EC(void);
++ENGINE * __cdecl ENGINE_get_default_DH(void);
++ENGINE * __cdecl ENGINE_get_default_RAND(void);
+ /*
+  * These functions can be used to get a functional reference to perform
+  * ciphering or digesting corresponding to "nid".
+  */
+-ENGINE *ENGINE_get_cipher_engine(int nid);
+-ENGINE *ENGINE_get_digest_engine(int nid);
+-ENGINE *ENGINE_get_pkey_meth_engine(int nid);
+-ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
++ENGINE * __cdecl ENGINE_get_cipher_engine(int nid);
++ENGINE * __cdecl ENGINE_get_digest_engine(int nid);
++ENGINE * __cdecl ENGINE_get_pkey_meth_engine(int nid);
++ENGINE * __cdecl ENGINE_get_pkey_asn1_meth_engine(int nid);
+ 
+ /*
+  * This sets a new default ENGINE structure for performing RSA operations. If
+@@ -607,17 +607,17 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
+  * its reference count up'd so the caller should still free their own
+  * reference 'e'.
+  */
+-int ENGINE_set_default_RSA(ENGINE *e);
+-int ENGINE_set_default_string(ENGINE *e, const char *def_list);
++int __cdecl ENGINE_set_default_RSA(ENGINE *e);
++int __cdecl ENGINE_set_default_string(ENGINE *e, const char *def_list);
+ /* Same for the other "methods" */
+-int ENGINE_set_default_DSA(ENGINE *e);
+-int ENGINE_set_default_EC(ENGINE *e);
+-int ENGINE_set_default_DH(ENGINE *e);
+-int ENGINE_set_default_RAND(ENGINE *e);
+-int ENGINE_set_default_ciphers(ENGINE *e);
+-int ENGINE_set_default_digests(ENGINE *e);
+-int ENGINE_set_default_pkey_meths(ENGINE *e);
+-int ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
++int __cdecl ENGINE_set_default_DSA(ENGINE *e);
++int __cdecl ENGINE_set_default_EC(ENGINE *e);
++int __cdecl ENGINE_set_default_DH(ENGINE *e);
++int __cdecl ENGINE_set_default_RAND(ENGINE *e);
++int __cdecl ENGINE_set_default_ciphers(ENGINE *e);
++int __cdecl ENGINE_set_default_digests(ENGINE *e);
++int __cdecl ENGINE_set_default_pkey_meths(ENGINE *e);
++int __cdecl ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
+ 
+ /*
+  * The combination "set" - the flags are bitwise "OR"d from the
+@@ -626,9 +626,9 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
+  * application requires only specific functionality, consider using more
+  * selective functions.
+  */
+-int ENGINE_set_default(ENGINE *e, unsigned int flags);
++int __cdecl ENGINE_set_default(ENGINE *e, unsigned int flags);
+ 
+-void ENGINE_add_conf_module(void);
++void __cdecl ENGINE_add_conf_module(void);
+ 
+ /* Deprecated functions ... */
+ /* int ENGINE_clear_defaults(void); */
 @@ -656,9 +656,9 @@ void ENGINE_add_conf_module(void);
   * same static data as the calling application (or library), and thus whether
   * these callbacks need to be set or not.
@@ -20721,6 +22178,15 @@ index 0780f0fb5f..226277635a 100644
  typedef struct st_dynamic_MEM_fns {
      dyn_MEM_malloc_fn malloc_fn;
      dyn_MEM_realloc_fn realloc_fn;
+@@ -737,7 +737,7 @@ typedef int (*dynamic_bind_engine) (ENGINE *e, const char *id,
+  * static data and let the loading application and loaded ENGINE compare
+  * their respective values.
+  */
+-void *ENGINE_get_static_state(void);
++void * __cdecl ENGINE_get_static_state(void);
+ 
+ # if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+ DEPRECATEDIN_1_1_0(void ENGINE_setup_bsd_cryptodev(void))
 diff --git a/include/openssl/err.h b/include/openssl/err.h
 index b49f88129e..d4eec4ffcf 100644
 --- a/include/openssl/err.h
@@ -22512,1481 +23978,198 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/engine/eng_all.c b/crypto/engine/eng_all.c
-index af306ccffc..c37fb7859b 100644
---- a/crypto/engine/eng_all.c
-+++ b/crypto/engine/eng_all.c
-@@ -10,7 +10,7 @@
- #include "internal/cryptlib.h"
- #include "eng_int.h"
+diff --git a/crypto/engine/eng_err.c b/crypto/engine/eng_err.c
+index bd1aefa185..eec773c105 100644
+--- a/crypto/engine/eng_err.c
++++ b/crypto/engine/eng_err.c
+@@ -142,7 +142,7 @@ static const ERR_STRING_DATA ENGINE_str_reasons[] = {
  
--void ENGINE_load_builtin_engines(void)
-+void __cdecl ENGINE_load_builtin_engines(void)
+ #endif
+ 
+-int ERR_load_ENGINE_strings(void)
++int __cdecl ERR_load_ENGINE_strings(void)
  {
-     /* Some ENGINEs need this */
-     OPENSSL_cpuid_setup();
-diff --git a/crypto/engine/eng_cnf.c b/crypto/engine/eng_cnf.c
-index 6f0a066d06..3a19b8511c 100644
---- a/crypto/engine/eng_cnf.c
-+++ b/crypto/engine/eng_cnf.c
-@@ -185,7 +185,7 @@ static void int_engine_module_finish(CONF_IMODULE *md)
-     initialized_engines = NULL;
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(ENGINE_str_functs[0].error) == NULL) {
+diff --git a/crypto/err/err.c b/crypto/err/err.c
+index cec0cfdc3a..1fe1d67397 100644
+--- a/crypto/err/err.c
++++ b/crypto/err/err.c
+@@ -400,7 +400,7 @@ void __cdecl err_free_strings_int(void)
+ 
+ /********************************************************/
+ 
+-void ERR_put_error(int lib, int func, int reason, const char *file, int line)
++void __cdecl ERR_put_error(int lib, int func, int reason, const char *file, int line)
+ {
+     ERR_STATE *es;
+ 
+@@ -452,49 +452,49 @@ void __cdecl ERR_clear_error(void)
+     es->top = es->bottom = 0;
  }
  
--void ENGINE_add_conf_module(void)
-+void __cdecl ENGINE_add_conf_module(void)
+-unsigned long ERR_get_error(void)
++unsigned long __cdecl ERR_get_error(void)
  {
-     CONF_module_add("engines",
-                     int_engine_module_init, int_engine_module_finish);
-diff --git a/crypto/engine/eng_ctrl.c b/crypto/engine/eng_ctrl.c
-index 3bc4aab16f..57a306616e 100644
---- a/crypto/engine/eng_ctrl.c
-+++ b/crypto/engine/eng_ctrl.c
-@@ -122,7 +122,7 @@ static int int_ctrl_helper(ENGINE *e, int cmd, long i, void *p,
-     return -1;
+     return get_error_values(1, 0, NULL, NULL, NULL, NULL);
  }
  
--int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
-+int __cdecl ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
+-unsigned long ERR_get_error_line(const char **file, int *line)
++unsigned long __cdecl ERR_get_error_line(const char **file, int *line)
  {
-     int ctrl_exists, ref_exists;
-     if (e == NULL) {
-@@ -174,7 +174,7 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void))
-     return e->ctrl(e, cmd, i, p, f);
+     return get_error_values(1, 0, file, line, NULL, NULL);
  }
  
--int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
-+int __cdecl ENGINE_cmd_is_executable(ENGINE *e, int cmd)
+-unsigned long ERR_get_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_get_error_line_data(const char **file, int *line,
+                                       const char **data, int *flags)
  {
-     int flags;
-     if ((flags =
-@@ -190,7 +190,7 @@ int ENGINE_cmd_is_executable(ENGINE *e, int cmd)
-     return 1;
+     return get_error_values(1, 0, file, line, data, flags);
  }
  
--int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-+int __cdecl ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-                     long i, void *p, void (*f) (void), int cmd_optional)
+-unsigned long ERR_peek_error(void)
++unsigned long __cdecl ERR_peek_error(void)
  {
-     int num;
-@@ -226,7 +226,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-     return 0;
+     return get_error_values(0, 0, NULL, NULL, NULL, NULL);
  }
  
--int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-+int __cdecl ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-                            int cmd_optional)
+-unsigned long ERR_peek_error_line(const char **file, int *line)
++unsigned long __cdecl ERR_peek_error_line(const char **file, int *line)
  {
-     int num, flags;
-diff --git a/crypto/engine/eng_fat.c b/crypto/engine/eng_fat.c
-index 591fddc8e4..a7d5050732 100644
---- a/crypto/engine/eng_fat.c
-+++ b/crypto/engine/eng_fat.c
-@@ -11,7 +11,7 @@
- #include "eng_int.h"
- #include <openssl/conf.h>
- 
--int ENGINE_set_default(ENGINE *e, unsigned int flags)
-+int __cdecl ENGINE_set_default(ENGINE *e, unsigned int flags)
- {
-     if ((flags & ENGINE_METHOD_CIPHERS) && !ENGINE_set_default_ciphers(e))
-         return 0;
-@@ -78,7 +78,7 @@ static int int_def_cb(const char *alg, int len, void *arg)
-     return 1;
+     return get_error_values(0, 0, file, line, NULL, NULL);
  }
  
--int ENGINE_set_default_string(ENGINE *e, const char *def_list)
-+int __cdecl ENGINE_set_default_string(ENGINE *e, const char *def_list)
+-unsigned long ERR_peek_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_peek_error_line_data(const char **file, int *line,
+                                        const char **data, int *flags)
  {
-     unsigned int flags = 0;
-     if (!CONF_parse_list(def_list, ',', 1, int_def_cb, &flags)) {
-@@ -90,7 +90,7 @@ int ENGINE_set_default_string(ENGINE *e, const char *def_list)
-     return ENGINE_set_default(e, flags);
+     return get_error_values(0, 0, file, line, data, flags);
  }
  
--int ENGINE_register_complete(ENGINE *e)
-+int __cdecl ENGINE_register_complete(ENGINE *e)
+-unsigned long ERR_peek_last_error(void)
++unsigned long __cdecl ERR_peek_last_error(void)
  {
-     ENGINE_register_ciphers(e);
-     ENGINE_register_digests(e);
-@@ -112,7 +112,7 @@ int ENGINE_register_complete(ENGINE *e)
-     return 1;
+     return get_error_values(0, 1, NULL, NULL, NULL, NULL);
  }
  
--int ENGINE_register_all_complete(void)
-+int __cdecl ENGINE_register_all_complete(void)
+-unsigned long ERR_peek_last_error_line(const char **file, int *line)
++unsigned long __cdecl ERR_peek_last_error_line(const char **file, int *line)
  {
-     ENGINE *e;
- 
-diff --git a/crypto/engine/eng_init.c b/crypto/engine/eng_init.c
-index 7c235fc472..f21b08fdf2 100644
---- a/crypto/engine/eng_init.c
-+++ b/crypto/engine/eng_init.c
-@@ -74,7 +74,7 @@ int engine_unlocked_finish(ENGINE *e, int unlock_for_handlers)
+     return get_error_values(0, 1, file, line, NULL, NULL);
  }
  
- /* The API (locked) version of "init" */
--int ENGINE_init(ENGINE *e)
-+int __cdecl ENGINE_init(ENGINE *e)
+-unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_peek_last_error_line_data(const char **file, int *line,
+                                             const char **data, int *flags)
+ {
+     return get_error_values(0, 1, file, line, data, flags);
+@@ -795,7 +795,7 @@ void err_unshelve_state(void* state)
+         CRYPTO_THREAD_set_local(&err_thread_local, (ERR_STATE*)state);
+ }
+ 
+-int ERR_get_next_error_library(void)
++int __cdecl ERR_get_next_error_library(void)
  {
      int ret;
-     if (e == NULL) {
-@@ -92,7 +92,7 @@ int ENGINE_init(ENGINE *e)
- }
  
- /* The API (locked) version of "finish" */
--int ENGINE_finish(ENGINE *e)
-+int __cdecl ENGINE_finish(ENGINE *e)
- {
-     int to_return = 1;
- 
-diff --git a/crypto/engine/eng_lib.c b/crypto/engine/eng_lib.c
-index 1e494730a6..62853b561b 100644
---- a/crypto/engine/eng_lib.c
-+++ b/crypto/engine/eng_lib.c
-@@ -26,7 +26,7 @@ DEFINE_RUN_ONCE(do_engine_lock_init)
-     return global_engine_lock != NULL;
- }
- 
--ENGINE *ENGINE_new(void)
-+ENGINE * __cdecl ENGINE_new(void)
- {
-     ENGINE *ret;
- 
-@@ -97,7 +97,7 @@ int engine_free_util(ENGINE *e, int not_locked)
+@@ -826,7 +826,7 @@ static int err_set_error_data_int(char *data, int flags)
      return 1;
  }
  
--int ENGINE_free(ENGINE *e)
-+int __cdecl ENGINE_free(ENGINE *e)
+-void ERR_set_error_data(char *data, int flags)
++void __cdecl ERR_set_error_data(char *data, int flags)
  {
-     return engine_free_util(e, 1);
- }
-@@ -175,12 +175,12 @@ void engine_cleanup_int(void)
- 
- /* Now the "ex_data" support */
- 
--int ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
-+int __cdecl ENGINE_set_ex_data(ENGINE *e, int idx, void *arg)
- {
-     return CRYPTO_set_ex_data(&e->ex_data, idx, arg);
+     /*
+      * This function is void so we cannot propagate the error return. Since it
+@@ -876,7 +876,7 @@ void __cdecl ERR_add_error_vdata(int num, va_list args)
+         OPENSSL_free(str);
  }
  
--void *ENGINE_get_ex_data(const ENGINE *e, int idx)
-+void * __cdecl ENGINE_get_ex_data(const ENGINE *e, int idx)
+-int ERR_set_mark(void)
++int __cdecl ERR_set_mark(void)
  {
-     return CRYPTO_get_ex_data(&e->ex_data, idx);
- }
-@@ -190,7 +190,7 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx)
-  * ENGINE structure itself.
-  */
+     ERR_STATE *es;
  
--int ENGINE_set_id(ENGINE *e, const char *id)
-+int __cdecl ENGINE_set_id(ENGINE *e, const char *id)
- {
-     if (id == NULL) {
-         ENGINEerr(ENGINE_F_ENGINE_SET_ID, ERR_R_PASSED_NULL_PARAMETER);
-@@ -200,7 +200,7 @@ int ENGINE_set_id(ENGINE *e, const char *id)
+@@ -890,7 +890,7 @@ int ERR_set_mark(void)
      return 1;
  }
  
--int ENGINE_set_name(ENGINE *e, const char *name)
-+int __cdecl ENGINE_set_name(ENGINE *e, const char *name)
+-int ERR_pop_to_mark(void)
++int __cdecl ERR_pop_to_mark(void)
  {
-     if (name == NULL) {
-         ENGINEerr(ENGINE_F_ENGINE_SET_NAME, ERR_R_PASSED_NULL_PARAMETER);
-@@ -210,78 +210,78 @@ int ENGINE_set_name(ENGINE *e, const char *name)
+     ERR_STATE *es;
+ 
+@@ -910,7 +910,7 @@ int ERR_pop_to_mark(void)
      return 1;
  }
  
--int ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
-+int __cdecl ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f)
+-int ERR_clear_last_mark(void)
++int __cdecl ERR_clear_last_mark(void)
  {
-     e->destroy = destroy_f;
-     return 1;
- }
- 
--int ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
-+int __cdecl ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f)
- {
-     e->init = init_f;
-     return 1;
- }
- 
--int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
-+int __cdecl ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f)
- {
-     e->finish = finish_f;
-     return 1;
- }
- 
--int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
-+int __cdecl ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f)
- {
-     e->ctrl = ctrl_f;
-     return 1;
- }
- 
--int ENGINE_set_flags(ENGINE *e, int flags)
-+int __cdecl ENGINE_set_flags(ENGINE *e, int flags)
- {
-     e->flags = flags;
-     return 1;
- }
- 
--int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
-+int __cdecl ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns)
- {
-     e->cmd_defns = defns;
-     return 1;
- }
- 
--const char *ENGINE_get_id(const ENGINE *e)
-+const char * __cdecl ENGINE_get_id(const ENGINE *e)
- {
-     return e->id;
- }
- 
--const char *ENGINE_get_name(const ENGINE *e)
-+const char * __cdecl ENGINE_get_name(const ENGINE *e)
- {
-     return e->name;
- }
- 
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_destroy_function(const ENGINE *e)
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_destroy_function(const ENGINE *e)
- {
-     return e->destroy;
- }
- 
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_init_function(const ENGINE *e)
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_init_function(const ENGINE *e)
- {
-     return e->init;
- }
- 
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_finish_function(const ENGINE *e)
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_finish_function(const ENGINE *e)
- {
-     return e->finish;
- }
- 
--ENGINE_CTRL_FUNC_PTR ENGINE_get_ctrl_function(const ENGINE *e)
-+ENGINE_CTRL_FUNC_PTR __cdecl ENGINE_get_ctrl_function(const ENGINE *e)
- {
-     return e->ctrl;
- }
- 
--int ENGINE_get_flags(const ENGINE *e)
-+int __cdecl ENGINE_get_flags(const ENGINE *e)
- {
-     return e->flags;
- }
- 
--const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
-+const ENGINE_CMD_DEFN * __cdecl ENGINE_get_cmd_defns(const ENGINE *e)
- {
-     return e->cmd_defns;
- }
-@@ -293,7 +293,7 @@ const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e)
- 
- static int internal_static_hack = 0;
- 
--void *ENGINE_get_static_state(void)
-+void * __cdecl ENGINE_get_static_state(void)
- {
-     return &internal_static_hack;
- }
-diff --git a/crypto/engine/eng_list.c b/crypto/engine/eng_list.c
-index 45c339c541..e1eef752c8 100644
---- a/crypto/engine/eng_list.c
-+++ b/crypto/engine/eng_list.c
-@@ -127,7 +127,7 @@ static int engine_list_remove(ENGINE *e)
- }
- 
- /* Get the first/last "ENGINE" type available. */
--ENGINE *ENGINE_get_first(void)
-+ENGINE * __cdecl ENGINE_get_first(void)
- {
-     ENGINE *ret;
- 
-@@ -146,7 +146,7 @@ ENGINE *ENGINE_get_first(void)
-     return ret;
- }
- 
--ENGINE *ENGINE_get_last(void)
-+ENGINE * __cdecl ENGINE_get_last(void)
- {
-     ENGINE *ret;
- 
-@@ -166,7 +166,7 @@ ENGINE *ENGINE_get_last(void)
- }
- 
- /* Iterate to the next/previous "ENGINE" type (NULL = end of the list). */
--ENGINE *ENGINE_get_next(ENGINE *e)
-+ENGINE * __cdecl ENGINE_get_next(ENGINE *e)
- {
-     ENGINE *ret = NULL;
-     if (e == NULL) {
-@@ -186,7 +186,7 @@ ENGINE *ENGINE_get_next(ENGINE *e)
-     return ret;
- }
- 
--ENGINE *ENGINE_get_prev(ENGINE *e)
-+ENGINE * __cdecl ENGINE_get_prev(ENGINE *e)
- {
-     ENGINE *ret = NULL;
-     if (e == NULL) {
-@@ -207,7 +207,7 @@ ENGINE *ENGINE_get_prev(ENGINE *e)
- }
- 
- /* Add another "ENGINE" type into the list. */
--int ENGINE_add(ENGINE *e)
-+int __cdecl ENGINE_add(ENGINE *e)
- {
-     int to_return = 1;
-     if (e == NULL) {
-@@ -228,7 +228,7 @@ int ENGINE_add(ENGINE *e)
- }
- 
- /* Remove an existing "ENGINE" type from the array. */
--int ENGINE_remove(ENGINE *e)
-+int __cdecl ENGINE_remove(ENGINE *e)
- {
-     int to_return = 1;
-     if (e == NULL) {
-@@ -274,7 +274,7 @@ static void engine_cpy(ENGINE *dest, const ENGINE *src)
-     dest->flags = src->flags;
- }
- 
--ENGINE *ENGINE_by_id(const char *id)
-+ENGINE * __cdecl ENGINE_by_id(const char *id)
- {
-     ENGINE *iterator;
-     char *load_dir = NULL;
-@@ -337,7 +337,7 @@ ENGINE *ENGINE_by_id(const char *id)
-     /* EEK! Experimental code ends */
- }
- 
--int ENGINE_up_ref(ENGINE *e)
-+int __cdecl ENGINE_up_ref(ENGINE *e)
- {
-     int i;
-     if (e == NULL) {
-diff --git a/crypto/engine/eng_pkey.c b/crypto/engine/eng_pkey.c
-index 305a648feb..2f0118985a 100644
---- a/crypto/engine/eng_pkey.c
-+++ b/crypto/engine/eng_pkey.c
-@@ -11,20 +11,20 @@
- 
- /* Basic get/set stuff */
- 
--int ENGINE_set_load_privkey_function(ENGINE *e,
-+int __cdecl ENGINE_set_load_privkey_function(ENGINE *e,
-                                      ENGINE_LOAD_KEY_PTR loadpriv_f)
- {
-     e->load_privkey = loadpriv_f;
-     return 1;
- }
- 
--int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f)
-+int __cdecl ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f)
- {
-     e->load_pubkey = loadpub_f;
-     return 1;
- }
- 
--int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
-+int __cdecl ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
-                                              ENGINE_SSL_CLIENT_CERT_PTR
-                                              loadssl_f)
- {
-@@ -32,17 +32,17 @@ int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
-     return 1;
- }
- 
--ENGINE_LOAD_KEY_PTR ENGINE_get_load_privkey_function(const ENGINE *e)
-+ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_privkey_function(const ENGINE *e)
- {
-     return e->load_privkey;
- }
- 
--ENGINE_LOAD_KEY_PTR ENGINE_get_load_pubkey_function(const ENGINE *e)
-+ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_pubkey_function(const ENGINE *e)
- {
-     return e->load_pubkey;
- }
- 
--ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
-+ENGINE_SSL_CLIENT_CERT_PTR __cdecl ENGINE_get_ssl_client_cert_function(const ENGINE
-                                                                *e)
- {
-     return e->load_ssl_client_cert;
-@@ -50,7 +50,7 @@ ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
- 
- /* API functions to load public/private keys */
- 
--EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
-+EVP_PKEY * __cdecl ENGINE_load_private_key(ENGINE *e, const char *key_id,
-                                   UI_METHOD *ui_method, void *callback_data)
- {
-     EVP_PKEY *pkey;
-@@ -81,7 +81,7 @@ EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
-     return pkey;
- }
- 
--EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
-+EVP_PKEY * __cdecl ENGINE_load_public_key(ENGINE *e, const char *key_id,
-                                  UI_METHOD *ui_method, void *callback_data)
- {
-     EVP_PKEY *pkey;
-@@ -111,7 +111,7 @@ EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
-     return pkey;
- }
- 
--int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
-+int __cdecl ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
-                                 STACK_OF(X509_NAME) *ca_dn, X509 **pcert,
-                                 EVP_PKEY **ppkey, STACK_OF(X509) **pother,
-                                 UI_METHOD *ui_method, void *callback_data)
-diff --git a/crypto/engine/eng_table.c b/crypto/engine/eng_table.c
-index cc46bdb969..e3b10448dd 100644
---- a/crypto/engine/eng_table.c
-+++ b/crypto/engine/eng_table.c
-@@ -40,12 +40,12 @@ typedef struct st_engine_pile_doall {
- static unsigned int table_flags = 0;
- 
- /* API function manipulating 'table_flags' */
--unsigned int ENGINE_get_table_flags(void)
-+unsigned int __cdecl ENGINE_get_table_flags(void)
- {
-     return table_flags;
- }
- 
--void ENGINE_set_table_flags(unsigned int flags)
-+void __cdecl ENGINE_set_table_flags(unsigned int flags)
- {
-     table_flags = flags;
- }
-diff --git a/crypto/engine/tb_asnmth.c b/crypto/engine/tb_asnmth.c
-index 4bcc76136a..5d56cfade2 100644
---- a/crypto/engine/tb_asnmth.c
-+++ b/crypto/engine/tb_asnmth.c
+     ERR_STATE *es;
+     int top;
+diff --git a/include/openssl/engineerr.h b/include/openssl/engineerr.h
+index 05e84bd2a2..9741156b33 100644
+--- a/include/openssl/engineerr.h
++++ b/include/openssl/engineerr.h
 @@ -22,7 +22,7 @@
- 
- static ENGINE_TABLE *pkey_asn1_meth_table = NULL;
- 
--void ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
-+void __cdecl ENGINE_unregister_pkey_asn1_meths(ENGINE *e)
- {
-     engine_table_unregister(&pkey_asn1_meth_table, e);
- }
-@@ -32,7 +32,7 @@ static void engine_unregister_all_pkey_asn1_meths(void)
-     engine_table_cleanup(&pkey_asn1_meth_table);
- }
- 
--int ENGINE_register_pkey_asn1_meths(ENGINE *e)
-+int __cdecl ENGINE_register_pkey_asn1_meths(ENGINE *e)
- {
-     if (e->pkey_asn1_meths) {
-         const int *nids;
-@@ -45,7 +45,7 @@ int ENGINE_register_pkey_asn1_meths(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_pkey_asn1_meths(void)
-+void __cdecl ENGINE_register_all_pkey_asn1_meths(void)
- {
-     ENGINE *e;
- 
-@@ -53,7 +53,7 @@ void ENGINE_register_all_pkey_asn1_meths(void)
-         ENGINE_register_pkey_asn1_meths(e);
- }
- 
--int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
-+int __cdecl ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
- {
-     if (e->pkey_asn1_meths) {
-         const int *nids;
-@@ -71,7 +71,7 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references) for a given pkey_asn1_meth 'nid'
-  */
--ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
-+ENGINE * __cdecl ENGINE_get_pkey_asn1_meth_engine(int nid)
- {
-     return engine_table_select(&pkey_asn1_meth_table, nid);
- }
-@@ -80,7 +80,7 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid)
-  * Obtains a pkey_asn1_meth implementation from an ENGINE functional
-  * reference
-  */
--const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
- {
-     EVP_PKEY_ASN1_METHOD *ret;
-     ENGINE_PKEY_ASN1_METHS_PTR fn = ENGINE_get_pkey_asn1_meths(e);
-@@ -93,13 +93,13 @@ const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid)
- }
- 
- /* Gets the pkey_asn1_meth callback from an ENGINE structure */
--ENGINE_PKEY_ASN1_METHS_PTR ENGINE_get_pkey_asn1_meths(const ENGINE *e)
-+ENGINE_PKEY_ASN1_METHS_PTR __cdecl ENGINE_get_pkey_asn1_meths(const ENGINE *e)
- {
-     return e->pkey_asn1_meths;
- }
- 
- /* Sets the pkey_asn1_meth callback in an ENGINE structure */
--int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
-+int __cdecl ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f)
- {
-     e->pkey_asn1_meths = f;
-     return 1;
-@@ -133,7 +133,7 @@ void engine_pkey_asn1_meths_free(ENGINE *e)
-  * for speed critical operations.
-  */
- 
--const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
-                                                           const char *str,
-                                                           int len)
- {
-@@ -181,7 +181,7 @@ static void look_str_cb(int nid, STACK_OF(ENGINE) *sk, ENGINE *def, void *arg)
-     }
- }
- 
--const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_pkey_asn1_find_str(ENGINE **pe,
-                                                       const char *str,
-                                                       int len)
- {
-diff --git a/crypto/engine/tb_cipher.c b/crypto/engine/tb_cipher.c
-index faa967c475..99888b2bf8 100644
---- a/crypto/engine/tb_cipher.c
-+++ b/crypto/engine/tb_cipher.c
-@@ -11,7 +11,7 @@
- 
- static ENGINE_TABLE *cipher_table = NULL;
- 
--void ENGINE_unregister_ciphers(ENGINE *e)
-+void __cdecl ENGINE_unregister_ciphers(ENGINE *e)
- {
-     engine_table_unregister(&cipher_table, e);
- }
-@@ -21,7 +21,7 @@ static void engine_unregister_all_ciphers(void)
-     engine_table_cleanup(&cipher_table);
- }
- 
--int ENGINE_register_ciphers(ENGINE *e)
-+int __cdecl ENGINE_register_ciphers(ENGINE *e)
- {
-     if (e->ciphers) {
-         const int *nids;
-@@ -34,7 +34,7 @@ int ENGINE_register_ciphers(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_ciphers(void)
-+void __cdecl ENGINE_register_all_ciphers(void)
- {
-     ENGINE *e;
- 
-@@ -42,7 +42,7 @@ void ENGINE_register_all_ciphers(void)
-         ENGINE_register_ciphers(e);
- }
- 
--int ENGINE_set_default_ciphers(ENGINE *e)
-+int __cdecl ENGINE_set_default_ciphers(ENGINE *e)
- {
-     if (e->ciphers) {
-         const int *nids;
-@@ -60,13 +60,13 @@ int ENGINE_set_default_ciphers(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references) for a given cipher 'nid'
-  */
--ENGINE *ENGINE_get_cipher_engine(int nid)
-+ENGINE * __cdecl ENGINE_get_cipher_engine(int nid)
- {
-     return engine_table_select(&cipher_table, nid);
- }
- 
- /* Obtains a cipher implementation from an ENGINE functional reference */
--const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid)
-+const EVP_CIPHER * __cdecl ENGINE_get_cipher(ENGINE *e, int nid)
- {
-     const EVP_CIPHER *ret;
-     ENGINE_CIPHERS_PTR fn = ENGINE_get_ciphers(e);
-@@ -78,13 +78,13 @@ const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid)
- }
- 
- /* Gets the cipher callback from an ENGINE structure */
--ENGINE_CIPHERS_PTR ENGINE_get_ciphers(const ENGINE *e)
-+ENGINE_CIPHERS_PTR __cdecl ENGINE_get_ciphers(const ENGINE *e)
- {
-     return e->ciphers;
- }
- 
- /* Sets the cipher callback in an ENGINE structure */
--int ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f)
-+int __cdecl ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f)
- {
-     e->ciphers = f;
-     return 1;
-diff --git a/crypto/engine/tb_dh.c b/crypto/engine/tb_dh.c
-index 785119f65a..8824be9eca 100644
---- a/crypto/engine/tb_dh.c
-+++ b/crypto/engine/tb_dh.c
-@@ -12,7 +12,7 @@
- static ENGINE_TABLE *dh_table = NULL;
- static const int dummy_nid = 1;
- 
--void ENGINE_unregister_DH(ENGINE *e)
-+void __cdecl ENGINE_unregister_DH(ENGINE *e)
- {
-     engine_table_unregister(&dh_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_DH(void)
-     engine_table_cleanup(&dh_table);
- }
- 
--int ENGINE_register_DH(ENGINE *e)
-+int __cdecl ENGINE_register_DH(ENGINE *e)
- {
-     if (e->dh_meth)
-         return engine_table_register(&dh_table,
-@@ -31,7 +31,7 @@ int ENGINE_register_DH(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_DH(void)
-+void __cdecl ENGINE_register_all_DH(void)
- {
-     ENGINE *e;
- 
-@@ -39,7 +39,7 @@ void ENGINE_register_all_DH(void)
-         ENGINE_register_DH(e);
- }
- 
--int ENGINE_set_default_DH(ENGINE *e)
-+int __cdecl ENGINE_set_default_DH(ENGINE *e)
- {
-     if (e->dh_meth)
-         return engine_table_register(&dh_table,
-@@ -53,19 +53,19 @@ int ENGINE_set_default_DH(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references).
-  */
--ENGINE *ENGINE_get_default_DH(void)
-+ENGINE * __cdecl ENGINE_get_default_DH(void)
- {
-     return engine_table_select(&dh_table, dummy_nid);
- }
- 
- /* Obtains an DH implementation from an ENGINE functional reference */
--const DH_METHOD *ENGINE_get_DH(const ENGINE *e)
-+const DH_METHOD * __cdecl ENGINE_get_DH(const ENGINE *e)
- {
-     return e->dh_meth;
- }
- 
- /* Sets an DH implementation in an ENGINE structure */
--int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth)
-+int __cdecl ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth)
- {
-     e->dh_meth = dh_meth;
-     return 1;
-diff --git a/crypto/engine/tb_digest.c b/crypto/engine/tb_digest.c
-index d644b1b0a8..995376b3e2 100644
---- a/crypto/engine/tb_digest.c
-+++ b/crypto/engine/tb_digest.c
-@@ -11,7 +11,7 @@
- 
- static ENGINE_TABLE *digest_table = NULL;
- 
--void ENGINE_unregister_digests(ENGINE *e)
-+void __cdecl ENGINE_unregister_digests(ENGINE *e)
- {
-     engine_table_unregister(&digest_table, e);
- }
-@@ -21,7 +21,7 @@ static void engine_unregister_all_digests(void)
-     engine_table_cleanup(&digest_table);
- }
- 
--int ENGINE_register_digests(ENGINE *e)
-+int __cdecl ENGINE_register_digests(ENGINE *e)
- {
-     if (e->digests) {
-         const int *nids;
-@@ -34,7 +34,7 @@ int ENGINE_register_digests(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_digests(void)
-+void __cdecl ENGINE_register_all_digests(void)
- {
-     ENGINE *e;
- 
-@@ -42,7 +42,7 @@ void ENGINE_register_all_digests(void)
-         ENGINE_register_digests(e);
- }
- 
--int ENGINE_set_default_digests(ENGINE *e)
-+int __cdecl ENGINE_set_default_digests(ENGINE *e)
- {
-     if (e->digests) {
-         const int *nids;
-@@ -60,13 +60,13 @@ int ENGINE_set_default_digests(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references) for a given digest 'nid'
-  */
--ENGINE *ENGINE_get_digest_engine(int nid)
-+ENGINE * __cdecl ENGINE_get_digest_engine(int nid)
- {
-     return engine_table_select(&digest_table, nid);
- }
- 
- /* Obtains a digest implementation from an ENGINE functional reference */
--const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid)
-+const EVP_MD * __cdecl ENGINE_get_digest(ENGINE *e, int nid)
- {
-     const EVP_MD *ret;
-     ENGINE_DIGESTS_PTR fn = ENGINE_get_digests(e);
-@@ -78,13 +78,13 @@ const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid)
- }
- 
- /* Gets the digest callback from an ENGINE structure */
--ENGINE_DIGESTS_PTR ENGINE_get_digests(const ENGINE *e)
-+ENGINE_DIGESTS_PTR __cdecl ENGINE_get_digests(const ENGINE *e)
- {
-     return e->digests;
- }
- 
- /* Sets the digest callback in an ENGINE structure */
--int ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f)
-+int __cdecl ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f)
- {
-     e->digests = f;
-     return 1;
-diff --git a/crypto/engine/tb_dsa.c b/crypto/engine/tb_dsa.c
-index 65b6ea8d3a..f4d45d28d2 100644
---- a/crypto/engine/tb_dsa.c
-+++ b/crypto/engine/tb_dsa.c
-@@ -12,7 +12,7 @@
- static ENGINE_TABLE *dsa_table = NULL;
- static const int dummy_nid = 1;
- 
--void ENGINE_unregister_DSA(ENGINE *e)
-+void __cdecl ENGINE_unregister_DSA(ENGINE *e)
- {
-     engine_table_unregister(&dsa_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_DSA(void)
-     engine_table_cleanup(&dsa_table);
- }
- 
--int ENGINE_register_DSA(ENGINE *e)
-+int __cdecl ENGINE_register_DSA(ENGINE *e)
- {
-     if (e->dsa_meth)
-         return engine_table_register(&dsa_table,
-@@ -31,7 +31,7 @@ int ENGINE_register_DSA(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_DSA(void)
-+void __cdecl ENGINE_register_all_DSA(void)
- {
-     ENGINE *e;
- 
-@@ -39,7 +39,7 @@ void ENGINE_register_all_DSA(void)
-         ENGINE_register_DSA(e);
- }
- 
--int ENGINE_set_default_DSA(ENGINE *e)
-+int __cdecl ENGINE_set_default_DSA(ENGINE *e)
- {
-     if (e->dsa_meth)
-         return engine_table_register(&dsa_table,
-@@ -53,19 +53,19 @@ int ENGINE_set_default_DSA(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references).
-  */
--ENGINE *ENGINE_get_default_DSA(void)
-+ENGINE * __cdecl ENGINE_get_default_DSA(void)
- {
-     return engine_table_select(&dsa_table, dummy_nid);
- }
- 
- /* Obtains an DSA implementation from an ENGINE functional reference */
--const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e)
-+const DSA_METHOD * __cdecl ENGINE_get_DSA(const ENGINE *e)
- {
-     return e->dsa_meth;
- }
- 
- /* Sets an DSA implementation in an ENGINE structure */
--int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth)
-+int __cdecl ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth)
- {
-     e->dsa_meth = dsa_meth;
-     return 1;
-diff --git a/crypto/engine/tb_eckey.c b/crypto/engine/tb_eckey.c
-index 1e50736854..d558908aa7 100644
---- a/crypto/engine/tb_eckey.c
-+++ b/crypto/engine/tb_eckey.c
-@@ -12,7 +12,7 @@
- static ENGINE_TABLE *dh_table = NULL;
- static const int dummy_nid = 1;
- 
--void ENGINE_unregister_EC(ENGINE *e)
-+void __cdecl ENGINE_unregister_EC(ENGINE *e)
- {
-     engine_table_unregister(&dh_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_EC(void)
-     engine_table_cleanup(&dh_table);
- }
- 
--int ENGINE_register_EC(ENGINE *e)
-+int __cdecl ENGINE_register_EC(ENGINE *e)
- {
-     if (e->ec_meth != NULL)
-         return engine_table_register(&dh_table,
-@@ -31,7 +31,7 @@ int ENGINE_register_EC(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_EC(void)
-+void __cdecl ENGINE_register_all_EC(void)
- {
-     ENGINE *e;
- 
-@@ -39,7 +39,7 @@ void ENGINE_register_all_EC(void)
-         ENGINE_register_EC(e);
- }
- 
--int ENGINE_set_default_EC(ENGINE *e)
-+int __cdecl ENGINE_set_default_EC(ENGINE *e)
- {
-     if (e->ec_meth != NULL)
-         return engine_table_register(&dh_table,
-@@ -53,19 +53,19 @@ int ENGINE_set_default_EC(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references).
-  */
--ENGINE *ENGINE_get_default_EC(void)
-+ENGINE * __cdecl ENGINE_get_default_EC(void)
- {
-     return engine_table_select(&dh_table, dummy_nid);
- }
- 
- /* Obtains an EC_KEY implementation from an ENGINE functional reference */
--const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e)
-+const EC_KEY_METHOD * __cdecl ENGINE_get_EC(const ENGINE *e)
- {
-     return e->ec_meth;
- }
- 
- /* Sets an EC_KEY implementation in an ENGINE structure */
--int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ec_meth)
-+int __cdecl ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ec_meth)
- {
-     e->ec_meth = ec_meth;
-     return 1;
-diff --git a/crypto/engine/tb_pkmeth.c b/crypto/engine/tb_pkmeth.c
-index 03cd1e69dd..2ec8ca0288 100644
---- a/crypto/engine/tb_pkmeth.c
-+++ b/crypto/engine/tb_pkmeth.c
-@@ -12,7 +12,7 @@
- 
- static ENGINE_TABLE *pkey_meth_table = NULL;
- 
--void ENGINE_unregister_pkey_meths(ENGINE *e)
-+void __cdecl ENGINE_unregister_pkey_meths(ENGINE *e)
- {
-     engine_table_unregister(&pkey_meth_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_pkey_meths(void)
-     engine_table_cleanup(&pkey_meth_table);
- }
- 
--int ENGINE_register_pkey_meths(ENGINE *e)
-+int __cdecl ENGINE_register_pkey_meths(ENGINE *e)
- {
-     if (e->pkey_meths) {
-         const int *nids;
-@@ -35,7 +35,7 @@ int ENGINE_register_pkey_meths(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_pkey_meths(void)
-+void __cdecl ENGINE_register_all_pkey_meths(void)
- {
-     ENGINE *e;
- 
-@@ -43,7 +43,7 @@ void ENGINE_register_all_pkey_meths(void)
-         ENGINE_register_pkey_meths(e);
- }
- 
--int ENGINE_set_default_pkey_meths(ENGINE *e)
-+int __cdecl ENGINE_set_default_pkey_meths(ENGINE *e)
- {
-     if (e->pkey_meths) {
-         const int *nids;
-@@ -61,13 +61,13 @@ int ENGINE_set_default_pkey_meths(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references) for a given pkey_meth 'nid'
-  */
--ENGINE *ENGINE_get_pkey_meth_engine(int nid)
-+ENGINE * __cdecl ENGINE_get_pkey_meth_engine(int nid)
- {
-     return engine_table_select(&pkey_meth_table, nid);
- }
- 
- /* Obtains a pkey_meth implementation from an ENGINE functional reference */
--const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid)
-+const EVP_PKEY_METHOD * __cdecl ENGINE_get_pkey_meth(ENGINE *e, int nid)
- {
-     EVP_PKEY_METHOD *ret;
-     ENGINE_PKEY_METHS_PTR fn = ENGINE_get_pkey_meths(e);
-@@ -80,13 +80,13 @@ const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid)
- }
- 
- /* Gets the pkey_meth callback from an ENGINE structure */
--ENGINE_PKEY_METHS_PTR ENGINE_get_pkey_meths(const ENGINE *e)
-+ENGINE_PKEY_METHS_PTR __cdecl ENGINE_get_pkey_meths(const ENGINE *e)
- {
-     return e->pkey_meths;
- }
- 
- /* Sets the pkey_meth callback in an ENGINE structure */
--int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f)
-+int __cdecl ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f)
- {
-     e->pkey_meths = f;
-     return 1;
-diff --git a/crypto/engine/tb_rand.c b/crypto/engine/tb_rand.c
-index 98a98073cd..19f2ef0149 100644
---- a/crypto/engine/tb_rand.c
-+++ b/crypto/engine/tb_rand.c
-@@ -12,7 +12,7 @@
- static ENGINE_TABLE *rand_table = NULL;
- static const int dummy_nid = 1;
- 
--void ENGINE_unregister_RAND(ENGINE *e)
-+void __cdecl ENGINE_unregister_RAND(ENGINE *e)
- {
-     engine_table_unregister(&rand_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_RAND(void)
-     engine_table_cleanup(&rand_table);
- }
- 
--int ENGINE_register_RAND(ENGINE *e)
-+int __cdecl ENGINE_register_RAND(ENGINE *e)
- {
-     if (e->rand_meth)
-         return engine_table_register(&rand_table,
-@@ -31,7 +31,7 @@ int ENGINE_register_RAND(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_RAND(void)
-+void __cdecl ENGINE_register_all_RAND(void)
- {
-     ENGINE *e;
- 
-@@ -39,7 +39,7 @@ void ENGINE_register_all_RAND(void)
-         ENGINE_register_RAND(e);
- }
- 
--int ENGINE_set_default_RAND(ENGINE *e)
-+int __cdecl ENGINE_set_default_RAND(ENGINE *e)
- {
-     if (e->rand_meth)
-         return engine_table_register(&rand_table,
-@@ -53,19 +53,19 @@ int ENGINE_set_default_RAND(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references).
-  */
--ENGINE *ENGINE_get_default_RAND(void)
-+ENGINE * __cdecl ENGINE_get_default_RAND(void)
- {
-     return engine_table_select(&rand_table, dummy_nid);
- }
- 
- /* Obtains an RAND implementation from an ENGINE functional reference */
--const RAND_METHOD *ENGINE_get_RAND(const ENGINE *e)
-+const RAND_METHOD * __cdecl ENGINE_get_RAND(const ENGINE *e)
- {
-     return e->rand_meth;
- }
- 
- /* Sets an RAND implementation in an ENGINE structure */
--int ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth)
-+int __cdecl ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth)
- {
-     e->rand_meth = rand_meth;
-     return 1;
-diff --git a/crypto/engine/tb_rsa.c b/crypto/engine/tb_rsa.c
-index d8d2e34f84..1bb83c773e 100644
---- a/crypto/engine/tb_rsa.c
-+++ b/crypto/engine/tb_rsa.c
-@@ -12,7 +12,7 @@
- static ENGINE_TABLE *rsa_table = NULL;
- static const int dummy_nid = 1;
- 
--void ENGINE_unregister_RSA(ENGINE *e)
-+void __cdecl ENGINE_unregister_RSA(ENGINE *e)
- {
-     engine_table_unregister(&rsa_table, e);
- }
-@@ -22,7 +22,7 @@ static void engine_unregister_all_RSA(void)
-     engine_table_cleanup(&rsa_table);
- }
- 
--int ENGINE_register_RSA(ENGINE *e)
-+int __cdecl ENGINE_register_RSA(ENGINE *e)
- {
-     if (e->rsa_meth)
-         return engine_table_register(&rsa_table,
-@@ -31,7 +31,7 @@ int ENGINE_register_RSA(ENGINE *e)
-     return 1;
- }
- 
--void ENGINE_register_all_RSA(void)
-+void __cdecl ENGINE_register_all_RSA(void)
- {
-     ENGINE *e;
- 
-@@ -39,7 +39,7 @@ void ENGINE_register_all_RSA(void)
-         ENGINE_register_RSA(e);
- }
- 
--int ENGINE_set_default_RSA(ENGINE *e)
-+int __cdecl ENGINE_set_default_RSA(ENGINE *e)
- {
-     if (e->rsa_meth)
-         return engine_table_register(&rsa_table,
-@@ -53,19 +53,19 @@ int ENGINE_set_default_RSA(ENGINE *e)
-  * table (ie. try to get a functional reference from the tabled structural
-  * references).
-  */
--ENGINE *ENGINE_get_default_RSA(void)
-+ENGINE * __cdecl ENGINE_get_default_RSA(void)
- {
-     return engine_table_select(&rsa_table, dummy_nid);
- }
- 
- /* Obtains an RSA implementation from an ENGINE functional reference */
--const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e)
-+const RSA_METHOD * __cdecl ENGINE_get_RSA(const ENGINE *e)
- {
-     return e->rsa_meth;
- }
- 
- /* Sets an RSA implementation in an ENGINE structure */
--int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth)
-+int __cdecl ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth)
- {
-     e->rsa_meth = rsa_meth;
-     return 1;
-diff --git a/include/openssl/engine.h b/include/openssl/engine.h
-index 226277635a..599088da5f 100644
---- a/include/openssl/engine.h
-+++ b/include/openssl/engine.h
-@@ -308,17 +308,17 @@ typedef int (*ENGINE_PKEY_ASN1_METHS_PTR) (ENGINE *, EVP_PKEY_ASN1_METHOD **,
-  */
- 
- /* Get the first/last "ENGINE" type available. */
--ENGINE *ENGINE_get_first(void);
--ENGINE *ENGINE_get_last(void);
-+ENGINE * __cdecl ENGINE_get_first(void);
-+ENGINE * __cdecl ENGINE_get_last(void);
- /* Iterate to the next/previous "ENGINE" type (NULL = end of the list). */
--ENGINE *ENGINE_get_next(ENGINE *e);
--ENGINE *ENGINE_get_prev(ENGINE *e);
-+ENGINE * __cdecl ENGINE_get_next(ENGINE *e);
-+ENGINE * __cdecl ENGINE_get_prev(ENGINE *e);
- /* Add another "ENGINE" type into the array. */
--int ENGINE_add(ENGINE *e);
-+int __cdecl ENGINE_add(ENGINE *e);
- /* Remove an existing "ENGINE" type from the array. */
--int ENGINE_remove(ENGINE *e);
-+int __cdecl ENGINE_remove(ENGINE *e);
- /* Retrieve an engine from the list by its unique "id" value. */
--ENGINE *ENGINE_by_id(const char *id);
-+ENGINE * __cdecl ENGINE_by_id(const char *id);
- 
- #if OPENSSL_API_COMPAT < 0x10100000L
- # define ENGINE_load_openssl() \
-@@ -338,14 +338,14 @@ ENGINE *ENGINE_by_id(const char *id);
- # define ENGINE_load_rdrand() \
-     OPENSSL_init_crypto(OPENSSL_INIT_ENGINE_RDRAND, NULL)
- #endif
--void ENGINE_load_builtin_engines(void);
-+void __cdecl ENGINE_load_builtin_engines(void);
+ #  ifdef  __cplusplus
+ extern "C"
+ #  endif
+-int ERR_load_ENGINE_strings(void);
++int __cdecl ERR_load_ENGINE_strings(void);
  
  /*
-  * Get and set global flags (ENGINE_TABLE_FLAG_***) for the implementation
-  * "registry" handling.
-  */
--unsigned int ENGINE_get_table_flags(void);
--void ENGINE_set_table_flags(unsigned int flags);
-+unsigned int __cdecl ENGINE_get_table_flags(void);
-+void __cdecl ENGINE_set_table_flags(unsigned int flags);
+  * ENGINE function codes.
+diff --git a/include/openssl/err.h b/include/openssl/err.h
+index d4eec4ffcf..6c81f0ec16 100644
+--- a/include/openssl/err.h
++++ b/include/openssl/err.h
+@@ -217,20 +217,20 @@ typedef struct ERR_string_data_st {
  
- /*- Manage registration of ENGINEs per "table". For each type, there are 3
-  * functions;
-@@ -355,41 +355,41 @@ void ENGINE_set_table_flags(unsigned int flags);
-  * Cleanup is automatically registered from each table when required.
-  */
+ DEFINE_LHASH_OF(ERR_STRING_DATA);
  
--int ENGINE_register_RSA(ENGINE *e);
--void ENGINE_unregister_RSA(ENGINE *e);
--void ENGINE_register_all_RSA(void);
-+int __cdecl ENGINE_register_RSA(ENGINE *e);
-+void __cdecl ENGINE_unregister_RSA(ENGINE *e);
-+void __cdecl ENGINE_register_all_RSA(void);
+-void ERR_put_error(int lib, int func, int reason, const char *file, int line);
+-void ERR_set_error_data(char *data, int flags);
++void __cdecl ERR_put_error(int lib, int func, int reason, const char *file, int line);
++void __cdecl ERR_set_error_data(char *data, int flags);
  
--int ENGINE_register_DSA(ENGINE *e);
--void ENGINE_unregister_DSA(ENGINE *e);
--void ENGINE_register_all_DSA(void);
-+int __cdecl ENGINE_register_DSA(ENGINE *e);
-+void __cdecl ENGINE_unregister_DSA(ENGINE *e);
-+void __cdecl ENGINE_register_all_DSA(void);
+-unsigned long ERR_get_error(void);
+-unsigned long ERR_get_error_line(const char **file, int *line);
+-unsigned long ERR_get_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_get_error(void);
++unsigned long __cdecl ERR_get_error_line(const char **file, int *line);
++unsigned long __cdecl ERR_get_error_line_data(const char **file, int *line,
+                                       const char **data, int *flags);
+-unsigned long ERR_peek_error(void);
+-unsigned long ERR_peek_error_line(const char **file, int *line);
+-unsigned long ERR_peek_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_peek_error(void);
++unsigned long __cdecl ERR_peek_error_line(const char **file, int *line);
++unsigned long __cdecl ERR_peek_error_line_data(const char **file, int *line,
+                                        const char **data, int *flags);
+-unsigned long ERR_peek_last_error(void);
+-unsigned long ERR_peek_last_error_line(const char **file, int *line);
+-unsigned long ERR_peek_last_error_line_data(const char **file, int *line,
++unsigned long __cdecl ERR_peek_last_error(void);
++unsigned long __cdecl ERR_peek_last_error_line(const char **file, int *line);
++unsigned long __cdecl ERR_peek_last_error_line_data(const char **file, int *line,
+                                             const char **data, int *flags);
+ void __cdecl ERR_clear_error(void);
+ char *__cdecl ERR_error_string(unsigned long e, char *buf);
+@@ -261,11 +261,11 @@ DEPRECATEDIN_1_1_0(void ERR_remove_thread_state(void *))
+ DEPRECATEDIN_1_0_0(void ERR_remove_state(unsigned long pid))
+ ERR_STATE * __cdecl ERR_get_state(void);
  
--int ENGINE_register_EC(ENGINE *e);
--void ENGINE_unregister_EC(ENGINE *e);
--void ENGINE_register_all_EC(void);
-+int __cdecl ENGINE_register_EC(ENGINE *e);
-+void __cdecl ENGINE_unregister_EC(ENGINE *e);
-+void __cdecl ENGINE_register_all_EC(void);
+-int ERR_get_next_error_library(void);
++int __cdecl ERR_get_next_error_library(void);
  
--int ENGINE_register_DH(ENGINE *e);
--void ENGINE_unregister_DH(ENGINE *e);
--void ENGINE_register_all_DH(void);
-+int __cdecl ENGINE_register_DH(ENGINE *e);
-+void __cdecl ENGINE_unregister_DH(ENGINE *e);
-+void __cdecl ENGINE_register_all_DH(void);
+-int ERR_set_mark(void);
+-int ERR_pop_to_mark(void);
+-int ERR_clear_last_mark(void);
++int __cdecl ERR_set_mark(void);
++int __cdecl ERR_pop_to_mark(void);
++int __cdecl ERR_clear_last_mark(void);
  
--int ENGINE_register_RAND(ENGINE *e);
--void ENGINE_unregister_RAND(ENGINE *e);
--void ENGINE_register_all_RAND(void);
-+int __cdecl ENGINE_register_RAND(ENGINE *e);
-+void __cdecl ENGINE_unregister_RAND(ENGINE *e);
-+void __cdecl ENGINE_register_all_RAND(void);
- 
--int ENGINE_register_ciphers(ENGINE *e);
--void ENGINE_unregister_ciphers(ENGINE *e);
--void ENGINE_register_all_ciphers(void);
-+int __cdecl ENGINE_register_ciphers(ENGINE *e);
-+void __cdecl ENGINE_unregister_ciphers(ENGINE *e);
-+void __cdecl ENGINE_register_all_ciphers(void);
- 
--int ENGINE_register_digests(ENGINE *e);
--void ENGINE_unregister_digests(ENGINE *e);
--void ENGINE_register_all_digests(void);
-+int __cdecl ENGINE_register_digests(ENGINE *e);
-+void __cdecl ENGINE_unregister_digests(ENGINE *e);
-+void __cdecl ENGINE_register_all_digests(void);
- 
--int ENGINE_register_pkey_meths(ENGINE *e);
--void ENGINE_unregister_pkey_meths(ENGINE *e);
--void ENGINE_register_all_pkey_meths(void);
-+int __cdecl ENGINE_register_pkey_meths(ENGINE *e);
-+void __cdecl ENGINE_unregister_pkey_meths(ENGINE *e);
-+void __cdecl ENGINE_register_all_pkey_meths(void);
- 
--int ENGINE_register_pkey_asn1_meths(ENGINE *e);
--void ENGINE_unregister_pkey_asn1_meths(ENGINE *e);
--void ENGINE_register_all_pkey_asn1_meths(void);
-+int __cdecl ENGINE_register_pkey_asn1_meths(ENGINE *e);
-+void __cdecl ENGINE_unregister_pkey_asn1_meths(ENGINE *e);
-+void __cdecl ENGINE_register_all_pkey_asn1_meths(void);
- 
- /*
-  * These functions register all support from the above categories. Note, use
-@@ -397,8 +397,8 @@ void ENGINE_register_all_pkey_asn1_meths(void);
-  * may not need. If you only need a subset of functionality, consider using
-  * more selective initialisation.
-  */
--int ENGINE_register_complete(ENGINE *e);
--int ENGINE_register_all_complete(void);
-+int __cdecl ENGINE_register_complete(ENGINE *e);
-+int __cdecl ENGINE_register_all_complete(void);
- 
- /*
-  * Send parameterised control commands to the engine. The possibilities to
-@@ -410,7 +410,7 @@ int ENGINE_register_all_complete(void);
-  * commands that require an operational ENGINE, and only use functional
-  * references in such situations.
-  */
--int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
-+int __cdecl ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
- 
- /*
-  * This function tests if an ENGINE-specific command is usable as a
-@@ -418,7 +418,7 @@ int ENGINE_ctrl(ENGINE *e, int cmd, long i, void *p, void (*f) (void));
-  * ENGINE_ctrl_cmd_string(). If this returns zero, it is not available to
-  * ENGINE_ctrl_cmd_string(), only ENGINE_ctrl().
-  */
--int ENGINE_cmd_is_executable(ENGINE *e, int cmd);
-+int __cdecl ENGINE_cmd_is_executable(ENGINE *e, int cmd);
- 
- /*
-  * This function works like ENGINE_ctrl() with the exception of taking a
-@@ -426,7 +426,7 @@ int ENGINE_cmd_is_executable(ENGINE *e, int cmd);
-  * commands. See the comment on ENGINE_ctrl_cmd_string() for an explanation
-  * on how to use the cmd_name and cmd_optional.
-  */
--int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-+int __cdecl ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-                     long i, void *p, void (*f) (void), int cmd_optional);
- 
- /*
-@@ -451,7 +451,7 @@ int ENGINE_ctrl_cmd(ENGINE *e, const char *cmd_name,
-  * applications can work consistently with the same configuration for the
-  * same ENGINE-enabled devices, across applications.
-  */
--int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-+int __cdecl ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-                            int cmd_optional);
- 
- /*
-@@ -462,37 +462,37 @@ int ENGINE_ctrl_cmd_string(ENGINE *e, const char *cmd_name, const char *arg,
-  * These are also here so that the ENGINE structure doesn't have to be
-  * exposed and break binary compatibility!
-  */
--ENGINE *ENGINE_new(void);
--int ENGINE_free(ENGINE *e);
--int ENGINE_up_ref(ENGINE *e);
--int ENGINE_set_id(ENGINE *e, const char *id);
--int ENGINE_set_name(ENGINE *e, const char *name);
--int ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
--int ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
--int ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
--int ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
--int ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth);
--int ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f);
--int ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f);
--int ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f);
--int ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f);
--int ENGINE_set_load_privkey_function(ENGINE *e,
-+ENGINE * __cdecl ENGINE_new(void);
-+int __cdecl ENGINE_free(ENGINE *e);
-+int __cdecl ENGINE_up_ref(ENGINE *e);
-+int __cdecl ENGINE_set_id(ENGINE *e, const char *id);
-+int __cdecl ENGINE_set_name(ENGINE *e, const char *name);
-+int __cdecl ENGINE_set_RSA(ENGINE *e, const RSA_METHOD *rsa_meth);
-+int __cdecl ENGINE_set_DSA(ENGINE *e, const DSA_METHOD *dsa_meth);
-+int __cdecl ENGINE_set_EC(ENGINE *e, const EC_KEY_METHOD *ecdsa_meth);
-+int __cdecl ENGINE_set_DH(ENGINE *e, const DH_METHOD *dh_meth);
-+int __cdecl ENGINE_set_RAND(ENGINE *e, const RAND_METHOD *rand_meth);
-+int __cdecl ENGINE_set_destroy_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR destroy_f);
-+int __cdecl ENGINE_set_init_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR init_f);
-+int __cdecl ENGINE_set_finish_function(ENGINE *e, ENGINE_GEN_INT_FUNC_PTR finish_f);
-+int __cdecl ENGINE_set_ctrl_function(ENGINE *e, ENGINE_CTRL_FUNC_PTR ctrl_f);
-+int __cdecl ENGINE_set_load_privkey_function(ENGINE *e,
-                                      ENGINE_LOAD_KEY_PTR loadpriv_f);
--int ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
--int ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
-+int __cdecl ENGINE_set_load_pubkey_function(ENGINE *e, ENGINE_LOAD_KEY_PTR loadpub_f);
-+int __cdecl ENGINE_set_load_ssl_client_cert_function(ENGINE *e,
-                                              ENGINE_SSL_CLIENT_CERT_PTR
-                                              loadssl_f);
--int ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f);
--int ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f);
--int ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
--int ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
--int ENGINE_set_flags(ENGINE *e, int flags);
--int ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
-+int __cdecl ENGINE_set_ciphers(ENGINE *e, ENGINE_CIPHERS_PTR f);
-+int __cdecl ENGINE_set_digests(ENGINE *e, ENGINE_DIGESTS_PTR f);
-+int __cdecl ENGINE_set_pkey_meths(ENGINE *e, ENGINE_PKEY_METHS_PTR f);
-+int __cdecl ENGINE_set_pkey_asn1_meths(ENGINE *e, ENGINE_PKEY_ASN1_METHS_PTR f);
-+int __cdecl ENGINE_set_flags(ENGINE *e, int flags);
-+int __cdecl ENGINE_set_cmd_defns(ENGINE *e, const ENGINE_CMD_DEFN *defns);
- /* These functions allow control over any per-structure ENGINE data. */
- #define ENGINE_get_ex_new_index(l, p, newf, dupf, freef) \
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_ENGINE, l, p, newf, dupf, freef)
--int ENGINE_set_ex_data(ENGINE *e, int idx, void *arg);
--void *ENGINE_get_ex_data(const ENGINE *e, int idx);
-+int __cdecl ENGINE_set_ex_data(ENGINE *e, int idx, void *arg);
-+void * __cdecl ENGINE_get_ex_data(const ENGINE *e, int idx);
- 
- #if OPENSSL_API_COMPAT < 0x10100000L
- /*
-@@ -508,37 +508,37 @@ void *ENGINE_get_ex_data(const ENGINE *e, int idx);
-  * which you obtained. Using the result for functional purposes if you only
-  * obtained a structural reference may be problematic!
-  */
--const char *ENGINE_get_id(const ENGINE *e);
--const char *ENGINE_get_name(const ENGINE *e);
--const RSA_METHOD *ENGINE_get_RSA(const ENGINE *e);
--const DSA_METHOD *ENGINE_get_DSA(const ENGINE *e);
--const EC_KEY_METHOD *ENGINE_get_EC(const ENGINE *e);
--const DH_METHOD *ENGINE_get_DH(const ENGINE *e);
--const RAND_METHOD *ENGINE_get_RAND(const ENGINE *e);
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_destroy_function(const ENGINE *e);
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_init_function(const ENGINE *e);
--ENGINE_GEN_INT_FUNC_PTR ENGINE_get_finish_function(const ENGINE *e);
--ENGINE_CTRL_FUNC_PTR ENGINE_get_ctrl_function(const ENGINE *e);
--ENGINE_LOAD_KEY_PTR ENGINE_get_load_privkey_function(const ENGINE *e);
--ENGINE_LOAD_KEY_PTR ENGINE_get_load_pubkey_function(const ENGINE *e);
--ENGINE_SSL_CLIENT_CERT_PTR ENGINE_get_ssl_client_cert_function(const ENGINE
-+const char * __cdecl ENGINE_get_id(const ENGINE *e);
-+const char * __cdecl ENGINE_get_name(const ENGINE *e);
-+const RSA_METHOD * __cdecl ENGINE_get_RSA(const ENGINE *e);
-+const DSA_METHOD * __cdecl ENGINE_get_DSA(const ENGINE *e);
-+const EC_KEY_METHOD * __cdecl ENGINE_get_EC(const ENGINE *e);
-+const DH_METHOD * __cdecl ENGINE_get_DH(const ENGINE *e);
-+const RAND_METHOD * __cdecl ENGINE_get_RAND(const ENGINE *e);
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_destroy_function(const ENGINE *e);
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_init_function(const ENGINE *e);
-+ENGINE_GEN_INT_FUNC_PTR __cdecl ENGINE_get_finish_function(const ENGINE *e);
-+ENGINE_CTRL_FUNC_PTR __cdecl ENGINE_get_ctrl_function(const ENGINE *e);
-+ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_privkey_function(const ENGINE *e);
-+ENGINE_LOAD_KEY_PTR __cdecl ENGINE_get_load_pubkey_function(const ENGINE *e);
-+ENGINE_SSL_CLIENT_CERT_PTR __cdecl ENGINE_get_ssl_client_cert_function(const ENGINE
-                                                                *e);
--ENGINE_CIPHERS_PTR ENGINE_get_ciphers(const ENGINE *e);
--ENGINE_DIGESTS_PTR ENGINE_get_digests(const ENGINE *e);
--ENGINE_PKEY_METHS_PTR ENGINE_get_pkey_meths(const ENGINE *e);
--ENGINE_PKEY_ASN1_METHS_PTR ENGINE_get_pkey_asn1_meths(const ENGINE *e);
--const EVP_CIPHER *ENGINE_get_cipher(ENGINE *e, int nid);
--const EVP_MD *ENGINE_get_digest(ENGINE *e, int nid);
--const EVP_PKEY_METHOD *ENGINE_get_pkey_meth(ENGINE *e, int nid);
--const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid);
--const EVP_PKEY_ASN1_METHOD *ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
-+ENGINE_CIPHERS_PTR __cdecl ENGINE_get_ciphers(const ENGINE *e);
-+ENGINE_DIGESTS_PTR __cdecl ENGINE_get_digests(const ENGINE *e);
-+ENGINE_PKEY_METHS_PTR __cdecl ENGINE_get_pkey_meths(const ENGINE *e);
-+ENGINE_PKEY_ASN1_METHS_PTR __cdecl ENGINE_get_pkey_asn1_meths(const ENGINE *e);
-+const EVP_CIPHER * __cdecl ENGINE_get_cipher(ENGINE *e, int nid);
-+const EVP_MD * __cdecl ENGINE_get_digest(ENGINE *e, int nid);
-+const EVP_PKEY_METHOD * __cdecl ENGINE_get_pkey_meth(ENGINE *e, int nid);
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth(ENGINE *e, int nid);
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_get_pkey_asn1_meth_str(ENGINE *e,
-                                                           const char *str,
-                                                           int len);
--const EVP_PKEY_ASN1_METHOD *ENGINE_pkey_asn1_find_str(ENGINE **pe,
-+const EVP_PKEY_ASN1_METHOD * __cdecl ENGINE_pkey_asn1_find_str(ENGINE **pe,
-                                                       const char *str,
-                                                       int len);
--const ENGINE_CMD_DEFN *ENGINE_get_cmd_defns(const ENGINE *e);
--int ENGINE_get_flags(const ENGINE *e);
-+const ENGINE_CMD_DEFN * __cdecl ENGINE_get_cmd_defns(const ENGINE *e);
-+int __cdecl ENGINE_get_flags(const ENGINE *e);
- 
- /*
-  * FUNCTIONAL functions. These functions deal with ENGINE structures that
-@@ -558,24 +558,24 @@ int ENGINE_get_flags(const ENGINE *e);
-  * already in use). This will fail if the engine is not currently operational
-  * and cannot initialise.
-  */
--int ENGINE_init(ENGINE *e);
-+int __cdecl ENGINE_init(ENGINE *e);
- /*
-  * Free a functional reference to a engine type. This does not require a
-  * corresponding call to ENGINE_free as it also releases a structural
-  * reference.
-  */
--int ENGINE_finish(ENGINE *e);
-+int __cdecl ENGINE_finish(ENGINE *e);
- 
- /*
-  * The following functions handle keys that are stored in some secondary
-  * location, handled by the engine.  The storage may be on a card or
-  * whatever.
-  */
--EVP_PKEY *ENGINE_load_private_key(ENGINE *e, const char *key_id,
-+EVP_PKEY * __cdecl ENGINE_load_private_key(ENGINE *e, const char *key_id,
-                                   UI_METHOD *ui_method, void *callback_data);
--EVP_PKEY *ENGINE_load_public_key(ENGINE *e, const char *key_id,
-+EVP_PKEY * __cdecl ENGINE_load_public_key(ENGINE *e, const char *key_id,
-                                  UI_METHOD *ui_method, void *callback_data);
--int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
-+int __cdecl ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
-                                 STACK_OF(X509_NAME) *ca_dn, X509 **pcert,
-                                 EVP_PKEY **ppkey, STACK_OF(X509) **pother,
-                                 UI_METHOD *ui_method, void *callback_data);
-@@ -586,20 +586,20 @@ int ENGINE_load_ssl_client_cert(ENGINE *e, SSL *s,
-  * incremented reference, so it should be free'd (ENGINE_finish) before it is
-  * discarded.
-  */
--ENGINE *ENGINE_get_default_RSA(void);
-+ENGINE * __cdecl ENGINE_get_default_RSA(void);
- /* Same for the other "methods" */
--ENGINE *ENGINE_get_default_DSA(void);
--ENGINE *ENGINE_get_default_EC(void);
--ENGINE *ENGINE_get_default_DH(void);
--ENGINE *ENGINE_get_default_RAND(void);
-+ENGINE * __cdecl ENGINE_get_default_DSA(void);
-+ENGINE * __cdecl ENGINE_get_default_EC(void);
-+ENGINE * __cdecl ENGINE_get_default_DH(void);
-+ENGINE * __cdecl ENGINE_get_default_RAND(void);
- /*
-  * These functions can be used to get a functional reference to perform
-  * ciphering or digesting corresponding to "nid".
-  */
--ENGINE *ENGINE_get_cipher_engine(int nid);
--ENGINE *ENGINE_get_digest_engine(int nid);
--ENGINE *ENGINE_get_pkey_meth_engine(int nid);
--ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
-+ENGINE * __cdecl ENGINE_get_cipher_engine(int nid);
-+ENGINE * __cdecl ENGINE_get_digest_engine(int nid);
-+ENGINE * __cdecl ENGINE_get_pkey_meth_engine(int nid);
-+ENGINE * __cdecl ENGINE_get_pkey_asn1_meth_engine(int nid);
- 
- /*
-  * This sets a new default ENGINE structure for performing RSA operations. If
-@@ -607,17 +607,17 @@ ENGINE *ENGINE_get_pkey_asn1_meth_engine(int nid);
-  * its reference count up'd so the caller should still free their own
-  * reference 'e'.
-  */
--int ENGINE_set_default_RSA(ENGINE *e);
--int ENGINE_set_default_string(ENGINE *e, const char *def_list);
-+int __cdecl ENGINE_set_default_RSA(ENGINE *e);
-+int __cdecl ENGINE_set_default_string(ENGINE *e, const char *def_list);
- /* Same for the other "methods" */
--int ENGINE_set_default_DSA(ENGINE *e);
--int ENGINE_set_default_EC(ENGINE *e);
--int ENGINE_set_default_DH(ENGINE *e);
--int ENGINE_set_default_RAND(ENGINE *e);
--int ENGINE_set_default_ciphers(ENGINE *e);
--int ENGINE_set_default_digests(ENGINE *e);
--int ENGINE_set_default_pkey_meths(ENGINE *e);
--int ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
-+int __cdecl ENGINE_set_default_DSA(ENGINE *e);
-+int __cdecl ENGINE_set_default_EC(ENGINE *e);
-+int __cdecl ENGINE_set_default_DH(ENGINE *e);
-+int __cdecl ENGINE_set_default_RAND(ENGINE *e);
-+int __cdecl ENGINE_set_default_ciphers(ENGINE *e);
-+int __cdecl ENGINE_set_default_digests(ENGINE *e);
-+int __cdecl ENGINE_set_default_pkey_meths(ENGINE *e);
-+int __cdecl ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
- 
- /*
-  * The combination "set" - the flags are bitwise "OR"d from the
-@@ -626,9 +626,9 @@ int ENGINE_set_default_pkey_asn1_meths(ENGINE *e);
-  * application requires only specific functionality, consider using more
-  * selective functions.
-  */
--int ENGINE_set_default(ENGINE *e, unsigned int flags);
-+int __cdecl ENGINE_set_default(ENGINE *e, unsigned int flags);
- 
--void ENGINE_add_conf_module(void);
-+void __cdecl ENGINE_add_conf_module(void);
- 
- /* Deprecated functions ... */
- /* int ENGINE_clear_defaults(void); */
-@@ -737,7 +737,7 @@ typedef int (*dynamic_bind_engine) (ENGINE *e, const char *id,
-  * static data and let the loading application and loaded ENGINE compare
-  * their respective values.
-  */
--void *ENGINE_get_static_state(void);
-+void * __cdecl ENGINE_get_static_state(void);
- 
- # if defined(__OpenBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
- DEPRECATEDIN_1_1_0(void ENGINE_setup_bsd_cryptodev(void))
+ #ifdef  __cplusplus
+ }
