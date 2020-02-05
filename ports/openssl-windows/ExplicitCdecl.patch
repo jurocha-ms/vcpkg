@@ -8956,6 +8956,70 @@ index a54b468e55..1395473199 100644
  {
      int nid;
  
+diff --git a/crypto/dsa/dsa_asn1.c b/crypto/dsa/dsa_asn1.c
+index 6499e87ef3..6212c3abae 100644
+--- a/crypto/dsa/dsa_asn1.c
++++ b/crypto/dsa/dsa_asn1.c
+@@ -21,7 +21,7 @@ ASN1_SEQUENCE(DSA_SIG) = {
+ 
+ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA_SIG, DSA_SIG, DSA_SIG)
+ 
+-DSA_SIG *DSA_SIG_new(void)
++DSA_SIG * __cdecl DSA_SIG_new(void)
+ {
+     DSA_SIG *sig = OPENSSL_zalloc(sizeof(*sig));
+     if (sig == NULL)
+@@ -29,7 +29,7 @@ DSA_SIG *DSA_SIG_new(void)
+     return sig;
+ }
+ 
+-void DSA_SIG_free(DSA_SIG *sig)
++void __cdecl DSA_SIG_free(DSA_SIG *sig)
+ {
+     if (sig == NULL)
+         return;
+@@ -38,7 +38,7 @@ void DSA_SIG_free(DSA_SIG *sig)
+     OPENSSL_free(sig);
+ }
+ 
+-void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
++void __cdecl DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+ {
+     if (pr != NULL)
+         *pr = sig->r;
+@@ -46,7 +46,7 @@ void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+         *ps = sig->s;
+ }
+ 
+-int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
++int __cdecl DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
+ {
+     if (r == NULL || s == NULL)
+         return 0;
+@@ -102,12 +102,12 @@ ASN1_SEQUENCE_cb(DSAPublicKey, dsa_cb) = {
+ 
+ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA, DSAPublicKey, DSAPublicKey)
+ 
+-DSA *DSAparams_dup(DSA *dsa)
++DSA * __cdecl DSAparams_dup(DSA *dsa)
+ {
+     return ASN1_item_dup(ASN1_ITEM_rptr(DSAparams), dsa);
+ }
+ 
+-int DSA_sign(int type, const unsigned char *dgst, int dlen,
++int __cdecl DSA_sign(int type, const unsigned char *dgst, int dlen,
+              unsigned char *sig, unsigned int *siglen, DSA *dsa)
+ {
+     DSA_SIG *s;
+@@ -129,7 +129,7 @@ int DSA_sign(int type, const unsigned char *dgst, int dlen,
+  *      0: incorrect signature
+  *     -1: error
+  */
+-int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
++int __cdecl DSA_verify(int type, const unsigned char *dgst, int dgst_len,
+                const unsigned char *sigbuf, int siglen, DSA *dsa)
+ {
+     DSA_SIG *s;
 diff --git a/crypto/dsa/dsa_err.c b/crypto/dsa/dsa_err.c
 index 8dcf0548ac..5503fc2534 100644
 --- a/crypto/dsa/dsa_err.c
@@ -8969,11 +9033,37 @@ index 8dcf0548ac..5503fc2534 100644
  {
  #ifndef OPENSSL_NO_ERR
      if (ERR_func_error_string(DSA_str_functs[0].error) == NULL) {
+diff --git a/crypto/dsa/dsa_gen.c b/crypto/dsa/dsa_gen.c
+index af59a582b5..adf6d55561 100644
+--- a/crypto/dsa/dsa_gen.c
++++ b/crypto/dsa/dsa_gen.c
+@@ -23,7 +23,7 @@
+ #include <openssl/sha.h>
+ #include "dsa_locl.h"
+ 
+-int DSA_generate_parameters_ex(DSA *ret, int bits,
++int __cdecl DSA_generate_parameters_ex(DSA *ret, int bits,
+                                const unsigned char *seed_in, int seed_len,
+                                int *counter_ret, unsigned long *h_ret,
+                                BN_GENCB *cb)
+diff --git a/crypto/dsa/dsa_key.c b/crypto/dsa/dsa_key.c
+index a48af58492..7e5140c1bf 100644
+--- a/crypto/dsa/dsa_key.c
++++ b/crypto/dsa/dsa_key.c
+@@ -15,7 +15,7 @@
+ 
+ static int dsa_builtin_keygen(DSA *dsa);
+ 
+-int DSA_generate_key(DSA *dsa)
++int __cdecl DSA_generate_key(DSA *dsa)
+ {
+     if (dsa->meth->dsa_keygen)
+         return dsa->meth->dsa_keygen(dsa);
 diff --git a/crypto/dsa/dsa_lib.c b/crypto/dsa/dsa_lib.c
-index 1048601beb..85919db19f 100644
+index 1048601beb..686d1c6532 100644
 --- a/crypto/dsa/dsa_lib.c
 +++ b/crypto/dsa/dsa_lib.c
-@@ -16,7 +16,7 @@
+@@ -16,12 +16,12 @@
  #include <openssl/engine.h>
  #include <openssl/dh.h>
  
@@ -8982,6 +9072,519 @@ index 1048601beb..85919db19f 100644
  {
      return DSA_new_method(NULL);
  }
+ 
+-int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
++int __cdecl DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
+ {
+     /*
+      * NB: The caller is specifically setting a method, so it's not up to us
+@@ -41,12 +41,12 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
+     return 1;
+ }
+ 
+-const DSA_METHOD *DSA_get_method(DSA *d)
++const DSA_METHOD * __cdecl DSA_get_method(DSA *d)
+ {
+     return d->meth;
+ }
+ 
+-DSA *DSA_new_method(ENGINE *engine)
++DSA * __cdecl DSA_new_method(ENGINE *engine)
+ {
+     DSA *ret = OPENSSL_zalloc(sizeof(*ret));
+ 
+@@ -100,7 +100,7 @@ DSA *DSA_new_method(ENGINE *engine)
+     return NULL;
+ }
+ 
+-void DSA_free(DSA *r)
++void __cdecl DSA_free(DSA *r)
+ {
+     int i;
+ 
+@@ -131,7 +131,7 @@ void DSA_free(DSA *r)
+     OPENSSL_free(r);
+ }
+ 
+-int DSA_up_ref(DSA *r)
++int __cdecl DSA_up_ref(DSA *r)
+ {
+     int i;
+ 
+@@ -143,7 +143,7 @@ int DSA_up_ref(DSA *r)
+     return ((i > 1) ? 1 : 0);
+ }
+ 
+-int DSA_size(const DSA *r)
++int __cdecl DSA_size(const DSA *r)
+ {
+     int ret, i;
+     ASN1_INTEGER bs;
+@@ -165,17 +165,17 @@ int DSA_size(const DSA *r)
+     return ret;
+ }
+ 
+-int DSA_set_ex_data(DSA *d, int idx, void *arg)
++int __cdecl DSA_set_ex_data(DSA *d, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&d->ex_data, idx, arg);
+ }
+ 
+-void *DSA_get_ex_data(DSA *d, int idx)
++void * __cdecl DSA_get_ex_data(DSA *d, int idx)
+ {
+     return CRYPTO_get_ex_data(&d->ex_data, idx);
+ }
+ 
+-int DSA_security_bits(const DSA *d)
++int __cdecl DSA_security_bits(const DSA *d)
+ {
+     if (d->p && d->q)
+         return BN_security_bits(BN_num_bits(d->p), BN_num_bits(d->q));
+@@ -183,7 +183,7 @@ int DSA_security_bits(const DSA *d)
+ }
+ 
+ #ifndef OPENSSL_NO_DH
+-DH *DSA_dup_DH(const DSA *r)
++DH * __cdecl DSA_dup_DH(const DSA *r)
+ {
+     /*
+      * DSA has p, q, g, optional pub_key, optional priv_key. DH has p,
+@@ -240,7 +240,7 @@ DH *DSA_dup_DH(const DSA *r)
+ }
+ #endif
+ 
+-void DSA_get0_pqg(const DSA *d,
++void __cdecl DSA_get0_pqg(const DSA *d,
+                   const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
+ {
+     if (p != NULL)
+@@ -251,7 +251,7 @@ void DSA_get0_pqg(const DSA *d,
+         *g = d->g;
+ }
+ 
+-int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
++int __cdecl DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+ {
+     /* If the fields p, q and g in d are NULL, the corresponding input
+      * parameters MUST be non-NULL.
+@@ -277,7 +277,7 @@ int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
+     return 1;
+ }
+ 
+-void DSA_get0_key(const DSA *d,
++void __cdecl DSA_get0_key(const DSA *d,
+                   const BIGNUM **pub_key, const BIGNUM **priv_key)
+ {
+     if (pub_key != NULL)
+@@ -286,7 +286,7 @@ void DSA_get0_key(const DSA *d,
+         *priv_key = d->priv_key;
+ }
+ 
+-int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
++int __cdecl DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
+ {
+     /* If the field pub_key in d is NULL, the corresponding input
+      * parameters MUST be non-NULL.  The priv_key field may
+@@ -307,52 +307,52 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
+     return 1;
+ }
+ 
+-const BIGNUM *DSA_get0_p(const DSA *d)
++const BIGNUM * __cdecl DSA_get0_p(const DSA *d)
+ {
+     return d->p;
+ }
+ 
+-const BIGNUM *DSA_get0_q(const DSA *d)
++const BIGNUM * __cdecl DSA_get0_q(const DSA *d)
+ {
+     return d->q;
+ }
+ 
+-const BIGNUM *DSA_get0_g(const DSA *d)
++const BIGNUM * __cdecl DSA_get0_g(const DSA *d)
+ {
+     return d->g;
+ }
+ 
+-const BIGNUM *DSA_get0_pub_key(const DSA *d)
++const BIGNUM * __cdecl DSA_get0_pub_key(const DSA *d)
+ {
+     return d->pub_key;
+ }
+ 
+-const BIGNUM *DSA_get0_priv_key(const DSA *d)
++const BIGNUM * __cdecl DSA_get0_priv_key(const DSA *d)
+ {
+     return d->priv_key;
+ }
+ 
+-void DSA_clear_flags(DSA *d, int flags)
++void __cdecl DSA_clear_flags(DSA *d, int flags)
+ {
+     d->flags &= ~flags;
+ }
+ 
+-int DSA_test_flags(const DSA *d, int flags)
++int __cdecl DSA_test_flags(const DSA *d, int flags)
+ {
+     return d->flags & flags;
+ }
+ 
+-void DSA_set_flags(DSA *d, int flags)
++void __cdecl DSA_set_flags(DSA *d, int flags)
+ {
+     d->flags |= flags;
+ }
+ 
+-ENGINE *DSA_get0_engine(DSA *d)
++ENGINE * __cdecl DSA_get0_engine(DSA *d)
+ {
+     return d->engine;
+ }
+ 
+-int DSA_bits(const DSA *dsa)
++int __cdecl DSA_bits(const DSA *dsa)
+ {
+     return BN_num_bits(dsa->p);
+ }
+diff --git a/crypto/dsa/dsa_locl.h b/crypto/dsa/dsa_locl.h
+index a81a4b4978..96310a6585 100644
+--- a/crypto/dsa/dsa_locl.h
++++ b/crypto/dsa/dsa_locl.h
+@@ -40,7 +40,7 @@ struct DSA_SIG_st {
+ 
+ struct dsa_method {
+     char *name;
+-    DSA_SIG *(*dsa_do_sign) (const unsigned char *dgst, int dlen, DSA *dsa);
++    DSA_SIG *(__cdecl *dsa_do_sign) (const unsigned char *dgst, int dlen, DSA *dsa);
+     int (*dsa_sign_setup) (DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
+                            BIGNUM **rp);
+     int (*dsa_do_verify) (const unsigned char *dgst, int dgst_len,
+diff --git a/crypto/dsa/dsa_meth.c b/crypto/dsa/dsa_meth.c
+index ff4fae44a7..c7c5eae75d 100644
+--- a/crypto/dsa/dsa_meth.c
++++ b/crypto/dsa/dsa_meth.c
+@@ -19,7 +19,7 @@
+ #include <string.h>
+ #include <openssl/err.h>
+ 
+-DSA_METHOD *DSA_meth_new(const char *name, int flags)
++DSA_METHOD * __cdecl DSA_meth_new(const char *name, int flags)
+ {
+     DSA_METHOD *dsam = OPENSSL_zalloc(sizeof(*dsam));
+ 
+@@ -37,7 +37,7 @@ DSA_METHOD *DSA_meth_new(const char *name, int flags)
+     return NULL;
+ }
+ 
+-void DSA_meth_free(DSA_METHOD *dsam)
++void __cdecl DSA_meth_free(DSA_METHOD *dsam)
+ {
+     if (dsam != NULL) {
+         OPENSSL_free(dsam->name);
+@@ -45,7 +45,7 @@ void DSA_meth_free(DSA_METHOD *dsam)
+     }
+ }
+ 
+-DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam)
++DSA_METHOD * __cdecl DSA_meth_dup(const DSA_METHOD *dsam)
+ {
+     DSA_METHOD *ret = OPENSSL_malloc(sizeof(*ret));
+ 
+@@ -63,12 +63,12 @@ DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam)
+     return NULL;
+ }
+ 
+-const char *DSA_meth_get0_name(const DSA_METHOD *dsam)
++const char * __cdecl DSA_meth_get0_name(const DSA_METHOD *dsam)
+ {
+     return dsam->name;
+ }
+ 
+-int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
++int __cdecl DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
+ {
+     char *tmpname = OPENSSL_strdup(name);
+ 
+@@ -83,75 +83,75 @@ int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
+     return 1;
+ }
+ 
+-int DSA_meth_get_flags(const DSA_METHOD *dsam)
++int __cdecl DSA_meth_get_flags(const DSA_METHOD *dsam)
+ {
+     return dsam->flags;
+ }
+ 
+-int DSA_meth_set_flags(DSA_METHOD *dsam, int flags)
++int __cdecl DSA_meth_set_flags(DSA_METHOD *dsam, int flags)
+ {
+     dsam->flags = flags;
+     return 1;
+ }
+ 
+-void *DSA_meth_get0_app_data(const DSA_METHOD *dsam)
++void * __cdecl DSA_meth_get0_app_data(const DSA_METHOD *dsam)
+ {
+     return dsam->app_data;
+ }
+ 
+-int DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data)
++int __cdecl DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data)
+ {
+     dsam->app_data = app_data;
+     return 1;
+ }
+ 
+-DSA_SIG *(*DSA_meth_get_sign(const DSA_METHOD *dsam))
++DSA_SIG *(__cdecl *DSA_meth_get_sign(const DSA_METHOD *dsam))
+         (const unsigned char *, int, DSA *)
+ {
+     return dsam->dsa_do_sign;
+ }
+ 
+-int DSA_meth_set_sign(DSA_METHOD *dsam,
+-                       DSA_SIG *(*sign) (const unsigned char *, int, DSA *))
++int __cdecl DSA_meth_set_sign(DSA_METHOD *dsam,
++                       DSA_SIG *(__cdecl *sign) (const unsigned char *, int, DSA *))
+ {
+     dsam->dsa_do_sign = sign;
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
+         (DSA *, BN_CTX *, BIGNUM **, BIGNUM **)
+ {
+     return dsam->dsa_sign_setup;
+ }
+ 
+-int DSA_meth_set_sign_setup(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_sign_setup(DSA_METHOD *dsam,
+         int (*sign_setup) (DSA *, BN_CTX *, BIGNUM **, BIGNUM **))
+ {
+     dsam->dsa_sign_setup = sign_setup;
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_verify(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_verify(const DSA_METHOD *dsam))
+         (const unsigned char *, int, DSA_SIG *, DSA *)
+ {
+     return dsam->dsa_do_verify;
+ }
+ 
+-int DSA_meth_set_verify(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_verify(DSA_METHOD *dsam,
+     int (*verify) (const unsigned char *, int, DSA_SIG *, DSA *))
+ {
+     dsam->dsa_do_verify = verify;
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
+         (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
+          const BIGNUM *, const BIGNUM *, BN_CTX *, BN_MONT_CTX *)
+ {
+     return dsam->dsa_mod_exp;
+ }
+ 
+-int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_mod_exp(DSA_METHOD *dsam,
+     int (*mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
+                     const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
+                     BN_MONT_CTX *))
+@@ -160,14 +160,14 @@ int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
+     (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
+      BN_MONT_CTX *)
+ {
+     return dsam->bn_mod_exp;
+ }
+ 
+-int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
+     int (*bn_mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
+                        const BIGNUM *, BN_CTX *, BN_MONT_CTX *))
+ {
+@@ -175,36 +175,36 @@ int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *)
++int (* __cdecl DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *)
+ {
+     return dsam->init;
+ }
+ 
+-int DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *))
++int __cdecl DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *))
+ {
+     dsam->init = init;
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *)
++int (* __cdecl DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *)
+ {
+     return dsam->finish;
+ }
+ 
+-int DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *))
++int __cdecl DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *))
+ {
+     dsam->finish = finish;
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_paramgen(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_paramgen(const DSA_METHOD *dsam))
+         (DSA *, int, const unsigned char *, int, int *, unsigned long *,
+          BN_GENCB *)
+ {
+     return dsam->dsa_paramgen;
+ }
+ 
+-int DSA_meth_set_paramgen(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_paramgen(DSA_METHOD *dsam,
+         int (*paramgen) (DSA *, int, const unsigned char *, int, int *,
+                          unsigned long *, BN_GENCB *))
+ {
+@@ -212,12 +212,12 @@ int DSA_meth_set_paramgen(DSA_METHOD *dsam,
+     return 1;
+ }
+ 
+-int (*DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *)
++int (* __cdecl DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *)
+ {
+     return dsam->dsa_keygen;
+ }
+ 
+-int DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *))
++int __cdecl DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *))
+ {
+     dsam->dsa_keygen = keygen;
+     return 1;
+diff --git a/crypto/dsa/dsa_ossl.c b/crypto/dsa/dsa_ossl.c
+index 16161dcadf..3eb1be20c7 100644
+--- a/crypto/dsa/dsa_ossl.c
++++ b/crypto/dsa/dsa_ossl.c
+@@ -15,7 +15,7 @@
+ #include "dsa_locl.h"
+ #include <openssl/asn1.h>
+ 
+-static DSA_SIG *dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
++static DSA_SIG * __cdecl dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
+ static int dsa_sign_setup_no_digest(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
+                                     BIGNUM **rp);
+ static int dsa_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
+@@ -44,22 +44,22 @@ static DSA_METHOD openssl_dsa_meth = {
+ 
+ static const DSA_METHOD *default_DSA_method = &openssl_dsa_meth;
+ 
+-void DSA_set_default_method(const DSA_METHOD *meth)
++void __cdecl DSA_set_default_method(const DSA_METHOD *meth)
+ {
+     default_DSA_method = meth;
+ }
+ 
+-const DSA_METHOD *DSA_get_default_method(void)
++const DSA_METHOD * __cdecl DSA_get_default_method(void)
+ {
+     return default_DSA_method;
+ }
+ 
+-const DSA_METHOD *DSA_OpenSSL(void)
++const DSA_METHOD * __cdecl DSA_OpenSSL(void)
+ {
+     return &openssl_dsa_meth;
+ }
+ 
+-static DSA_SIG *dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
++static DSA_SIG * __cdecl dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
+ {
+     BIGNUM *kinv = NULL;
+     BIGNUM *m, *blind, *blindm, *tmp;
+diff --git a/crypto/dsa/dsa_prn.c b/crypto/dsa/dsa_prn.c
+index a4a1fd5650..da9213c59d 100644
+--- a/crypto/dsa/dsa_prn.c
++++ b/crypto/dsa/dsa_prn.c
+@@ -13,7 +13,7 @@
+ #include <openssl/dsa.h>
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int DSA_print_fp(FILE *fp, const DSA *x, int off)
++int __cdecl DSA_print_fp(FILE *fp, const DSA *x, int off)
+ {
+     BIO *b;
+     int ret;
+@@ -28,7 +28,7 @@ int DSA_print_fp(FILE *fp, const DSA *x, int off)
+     return ret;
+ }
+ 
+-int DSAparams_print_fp(FILE *fp, const DSA *x)
++int __cdecl DSAparams_print_fp(FILE *fp, const DSA *x)
+ {
+     BIO *b;
+     int ret;
+@@ -44,7 +44,7 @@ int DSAparams_print_fp(FILE *fp, const DSA *x)
+ }
+ #endif
+ 
+-int DSA_print(BIO *bp, const DSA *x, int off)
++int __cdecl DSA_print(BIO *bp, const DSA *x, int off)
+ {
+     EVP_PKEY *pk;
+     int ret;
+@@ -56,7 +56,7 @@ int DSA_print(BIO *bp, const DSA *x, int off)
+     return ret;
+ }
+ 
+-int DSAparams_print(BIO *bp, const DSA *x)
++int __cdecl DSAparams_print(BIO *bp, const DSA *x)
+ {
+     EVP_PKEY *pk;
+     int ret;
+diff --git a/crypto/dsa/dsa_sign.c b/crypto/dsa/dsa_sign.c
+index e9466b29f1..ab7988119e 100644
+--- a/crypto/dsa/dsa_sign.c
++++ b/crypto/dsa/dsa_sign.c
+@@ -11,13 +11,13 @@
+ #include "dsa_locl.h"
+ #include <openssl/bn.h>
+ 
+-DSA_SIG *DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
++DSA_SIG * __cdecl DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
+ {
+     return dsa->meth->dsa_do_sign(dgst, dlen, dsa);
+ }
+ 
+ #if OPENSSL_API_COMPAT < 0x10200000L
+-int DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
++int __cdecl DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
+ {
+     return dsa->meth->dsa_sign_setup(dsa, ctx_in, kinvp, rp);
+ }
+diff --git a/crypto/dsa/dsa_vrf.c b/crypto/dsa/dsa_vrf.c
+index 21f98cd94e..fb1091ffb4 100644
+--- a/crypto/dsa/dsa_vrf.c
++++ b/crypto/dsa/dsa_vrf.c
+@@ -10,7 +10,7 @@
+ #include "internal/cryptlib.h"
+ #include "dsa_locl.h"
+ 
+-int DSA_do_verify(const unsigned char *dgst, int dgst_len, DSA_SIG *sig,
++int __cdecl DSA_do_verify(const unsigned char *dgst, int dgst_len, DSA_SIG *sig,
+                   DSA *dsa)
+ {
+     return dsa->meth->dsa_do_verify(dgst, dgst_len, sig, dsa);
 diff --git a/crypto/ec/ec_asn1.c b/crypto/ec/ec_asn1.c
 index 1ce1181fc1..c289b805a4 100644
 --- a/crypto/ec/ec_asn1.c
@@ -13251,10 +13854,10 @@ index 5fc041bfbd..d8df52c083 100644
       FILE *fp;
       PKCS12 *p12;
 diff --git a/engines/e_capi.c b/engines/e_capi.c
-index 37202b81f3..7e466dc279 100644
+index 37202b81f3..d2c1fd145d 100644
 --- a/engines/e_capi.c
 +++ b/engines/e_capi.c
-@@ -122,14 +122,14 @@ CAPI_KEY *capi_find_key(CAPI_CTX *ctx, const char *id);
+@@ -122,17 +122,17 @@ CAPI_KEY *capi_find_key(CAPI_CTX *ctx, const char *id);
  
  static EVP_PKEY *capi_load_privkey(ENGINE *eng, const char *key_id,
                                     UI_METHOD *ui_method, void *callback_data);
@@ -13272,7 +13875,11 @@ index 37202b81f3..7e466dc279 100644
 +static int __cdecl capi_rsa_free(RSA *rsa);
  
  # ifndef OPENSSL_NO_DSA
- static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
+-static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
++static DSA_SIG * __cdecl capi_dsa_do_sign(const unsigned char *digest, int dlen,
+                                  DSA *dsa);
+ static int capi_dsa_free(DSA *dsa);
+ # endif
 @@ -808,14 +808,14 @@ static EVP_PKEY *capi_load_privkey(ENGINE *eng, const char *key_id,
  
  /* CryptoAPI RSA operations */
@@ -13308,6 +13915,15 @@ index 37202b81f3..7e466dc279 100644
  {
      CAPI_KEY *capi_key;
      capi_key = RSA_get_ex_data(rsa, rsa_capi_idx);
+@@ -989,7 +989,7 @@ static int capi_rsa_free(RSA *rsa)
+ # ifndef OPENSSL_NO_DSA
+ /* CryptoAPI DSA operations */
+ 
+-static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
++static DSA_SIG * __cdecl capi_dsa_do_sign(const unsigned char *digest, int dlen,
+                                  DSA *dsa)
+ {
+     HCRYPTHASH hash;
 diff --git a/fuzz/driver.c b/fuzz/driver.c
 index 54d67de202..b9010d6987 100644
 --- a/fuzz/driver.c
@@ -17105,32 +17721,77 @@ index 916b3bed0b..7b3098fe06 100644
  /*
   * DH function codes.
 diff --git a/include/openssl/dsa.h b/include/openssl/dsa.h
-index 822eff347a..8ac92c3c88 100644
+index 822eff347a..396c1f12e8 100644
 --- a/include/openssl/dsa.h
 +++ b/include/openssl/dsa.h
-@@ -74,8 +74,8 @@ typedef struct DSA_SIG_st DSA_SIG;
- DSA *DSAparams_dup(DSA *x);
- DSA_SIG *DSA_SIG_new(void);
- void DSA_SIG_free(DSA_SIG *a);
+@@ -71,47 +71,47 @@ typedef struct DSA_SIG_st DSA_SIG;
+ # define d2i_DSAparams_bio(bp,x) ASN1_d2i_bio_of(DSA,DSA_new,d2i_DSAparams,bp,x)
+ # define i2d_DSAparams_bio(bp,x) ASN1_i2d_bio_of_const(DSA,i2d_DSAparams,bp,x)
+ 
+-DSA *DSAparams_dup(DSA *x);
+-DSA_SIG *DSA_SIG_new(void);
+-void DSA_SIG_free(DSA_SIG *a);
 -int i2d_DSA_SIG(const DSA_SIG *a, unsigned char **pp);
 -DSA_SIG *d2i_DSA_SIG(DSA_SIG **v, const unsigned char **pp, long length);
+-void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
+-int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
+-
+-DSA_SIG *DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
+-int DSA_do_verify(const unsigned char *dgst, int dgst_len,
++DSA * __cdecl DSAparams_dup(DSA *x);
++DSA_SIG * __cdecl DSA_SIG_new(void);
++void __cdecl DSA_SIG_free(DSA_SIG *a);
 +int __cdecl i2d_DSA_SIG(const DSA_SIG *a, unsigned char **pp);
 +DSA_SIG * __cdecl d2i_DSA_SIG(DSA_SIG **v, const unsigned char **pp, long length);
- void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
- int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
++void __cdecl DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
++int __cdecl DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
++
++DSA_SIG * __cdecl DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
++int __cdecl DSA_do_verify(const unsigned char *dgst, int dgst_len,
+                   DSA_SIG *sig, DSA *dsa);
  
-@@ -90,7 +90,7 @@ const DSA_METHOD *DSA_get_default_method(void);
- int DSA_set_method(DSA *dsa, const DSA_METHOD *);
- const DSA_METHOD *DSA_get_method(DSA *d);
+-const DSA_METHOD *DSA_OpenSSL(void);
++const DSA_METHOD * __cdecl DSA_OpenSSL(void);
+ 
+-void DSA_set_default_method(const DSA_METHOD *);
+-const DSA_METHOD *DSA_get_default_method(void);
+-int DSA_set_method(DSA *dsa, const DSA_METHOD *);
+-const DSA_METHOD *DSA_get_method(DSA *d);
++void __cdecl DSA_set_default_method(const DSA_METHOD *);
++const DSA_METHOD * __cdecl DSA_get_default_method(void);
++int __cdecl DSA_set_method(DSA *dsa, const DSA_METHOD *);
++const DSA_METHOD * __cdecl DSA_get_method(DSA *d);
  
 -DSA *DSA_new(void);
+-DSA *DSA_new_method(ENGINE *engine);
+-void DSA_free(DSA *r);
 +DSA * __cdecl DSA_new(void);
- DSA *DSA_new_method(ENGINE *engine);
- void DSA_free(DSA *r);
++DSA * __cdecl DSA_new_method(ENGINE *engine);
++void __cdecl DSA_free(DSA *r);
  /* "up" the DSA object's reference count */
-@@ -109,9 +109,9 @@ int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
- int DSA_set_ex_data(DSA *d, int idx, void *arg);
- void *DSA_get_ex_data(DSA *d, int idx);
+-int DSA_up_ref(DSA *r);
+-int DSA_size(const DSA *);
+-int DSA_bits(const DSA *d);
+-int DSA_security_bits(const DSA *d);
++int __cdecl DSA_up_ref(DSA *r);
++int __cdecl DSA_size(const DSA *);
++int __cdecl DSA_bits(const DSA *d);
++int __cdecl DSA_security_bits(const DSA *d);
+         /* next 4 return -1 on error */
+-DEPRECATEDIN_1_2_0(int DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp))
+-int DSA_sign(int type, const unsigned char *dgst, int dlen,
++DEPRECATEDIN_1_2_0(int __cdecl DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp))
++int __cdecl DSA_sign(int type, const unsigned char *dgst, int dlen,
+              unsigned char *sig, unsigned int *siglen, DSA *dsa);
+-int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
++int __cdecl DSA_verify(int type, const unsigned char *dgst, int dgst_len,
+                const unsigned char *sigbuf, int siglen, DSA *dsa);
+ #define DSA_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DSA, l, p, newf, dupf, freef)
+-int DSA_set_ex_data(DSA *d, int idx, void *arg);
+-void *DSA_get_ex_data(DSA *d, int idx);
++int __cdecl DSA_set_ex_data(DSA *d, int idx, void *arg);
++void * __cdecl DSA_get_ex_data(DSA *d, int idx);
  
 -DSA *d2i_DSAPublicKey(DSA **a, const unsigned char **pp, long length);
 -DSA *d2i_DSAPrivateKey(DSA **a, const unsigned char **pp, long length);
@@ -17141,19 +17802,157 @@ index 822eff347a..8ac92c3c88 100644
  
  /* Deprecated version */
  DEPRECATEDIN_0_9_8(DSA *DSA_generate_parameters(int bits,
-@@ -130,9 +130,9 @@ int DSA_generate_parameters_ex(DSA *dsa, int bits,
+@@ -124,21 +124,21 @@ DEPRECATEDIN_0_9_8(DSA *DSA_generate_parameters(int bits,
+                                                 void *cb_arg))
+ 
+ /* New version */
+-int DSA_generate_parameters_ex(DSA *dsa, int bits,
++int __cdecl DSA_generate_parameters_ex(DSA *dsa, int bits,
+                                const unsigned char *seed, int seed_len,
+                                int *counter_ret, unsigned long *h_ret,
                                 BN_GENCB *cb);
  
- int DSA_generate_key(DSA *a);
+-int DSA_generate_key(DSA *a);
 -int i2d_DSAPublicKey(const DSA *a, unsigned char **pp);
 -int i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
 -int i2d_DSAparams(const DSA *a, unsigned char **pp);
++int __cdecl DSA_generate_key(DSA *a);
 +int __cdecl i2d_DSAPublicKey(const DSA *a, unsigned char **pp);
 +int __cdecl i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
 +int __cdecl i2d_DSAparams(const DSA *a, unsigned char **pp);
  
- int DSAparams_print(BIO *bp, const DSA *x);
- int DSA_print(BIO *bp, const DSA *x, int off);
+-int DSAparams_print(BIO *bp, const DSA *x);
+-int DSA_print(BIO *bp, const DSA *x, int off);
++int __cdecl DSAparams_print(BIO *bp, const DSA *x);
++int __cdecl DSA_print(BIO *bp, const DSA *x, int off);
+ # ifndef OPENSSL_NO_STDIO
+-int DSAparams_print_fp(FILE *fp, const DSA *x);
+-int DSA_print_fp(FILE *bp, const DSA *x, int off);
++int __cdecl DSAparams_print_fp(FILE *fp, const DSA *x);
++int __cdecl DSA_print_fp(FILE *bp, const DSA *x, int off);
+ # endif
+ 
+ # define DSS_prime_checks 64
+@@ -156,7 +156,7 @@ int DSA_print_fp(FILE *bp, const DSA *x, int off);
+  * Convert DSA structure (key or just parameters) into DH structure (be
+  * careful to avoid small subgroup attacks when using this!)
+  */
+-DH *DSA_dup_DH(const DSA *r);
++DH * __cdecl DSA_dup_DH(const DSA *r);
+ # endif
+ 
+ # define EVP_PKEY_CTX_set_dsa_paramgen_bits(ctx, nbits) \
+@@ -167,68 +167,68 @@ DH *DSA_dup_DH(const DSA *r);
+ # define EVP_PKEY_CTRL_DSA_PARAMGEN_Q_BITS       (EVP_PKEY_ALG_CTRL + 2)
+ # define EVP_PKEY_CTRL_DSA_PARAMGEN_MD           (EVP_PKEY_ALG_CTRL + 3)
+ 
+-void DSA_get0_pqg(const DSA *d,
++void __cdecl DSA_get0_pqg(const DSA *d,
+                   const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
+-int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g);
+-void DSA_get0_key(const DSA *d,
++int __cdecl DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g);
++void __cdecl DSA_get0_key(const DSA *d,
+                   const BIGNUM **pub_key, const BIGNUM **priv_key);
+-int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key);
+-const BIGNUM *DSA_get0_p(const DSA *d);
+-const BIGNUM *DSA_get0_q(const DSA *d);
+-const BIGNUM *DSA_get0_g(const DSA *d);
+-const BIGNUM *DSA_get0_pub_key(const DSA *d);
+-const BIGNUM *DSA_get0_priv_key(const DSA *d);
+-void DSA_clear_flags(DSA *d, int flags);
+-int DSA_test_flags(const DSA *d, int flags);
+-void DSA_set_flags(DSA *d, int flags);
+-ENGINE *DSA_get0_engine(DSA *d);
+-
+-DSA_METHOD *DSA_meth_new(const char *name, int flags);
+-void DSA_meth_free(DSA_METHOD *dsam);
+-DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam);
+-const char *DSA_meth_get0_name(const DSA_METHOD *dsam);
+-int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name);
+-int DSA_meth_get_flags(const DSA_METHOD *dsam);
+-int DSA_meth_set_flags(DSA_METHOD *dsam, int flags);
+-void *DSA_meth_get0_app_data(const DSA_METHOD *dsam);
+-int DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data);
+-DSA_SIG *(*DSA_meth_get_sign(const DSA_METHOD *dsam))
++int __cdecl DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key);
++const BIGNUM * __cdecl DSA_get0_p(const DSA *d);
++const BIGNUM * __cdecl DSA_get0_q(const DSA *d);
++const BIGNUM * __cdecl DSA_get0_g(const DSA *d);
++const BIGNUM * __cdecl DSA_get0_pub_key(const DSA *d);
++const BIGNUM * __cdecl DSA_get0_priv_key(const DSA *d);
++void __cdecl DSA_clear_flags(DSA *d, int flags);
++int __cdecl DSA_test_flags(const DSA *d, int flags);
++void __cdecl DSA_set_flags(DSA *d, int flags);
++ENGINE * __cdecl DSA_get0_engine(DSA *d);
++
++DSA_METHOD * __cdecl DSA_meth_new(const char *name, int flags);
++void __cdecl DSA_meth_free(DSA_METHOD *dsam);
++DSA_METHOD * __cdecl DSA_meth_dup(const DSA_METHOD *dsam);
++const char * __cdecl DSA_meth_get0_name(const DSA_METHOD *dsam);
++int __cdecl DSA_meth_set1_name(DSA_METHOD *dsam, const char *name);
++int __cdecl DSA_meth_get_flags(const DSA_METHOD *dsam);
++int __cdecl DSA_meth_set_flags(DSA_METHOD *dsam, int flags);
++void * __cdecl DSA_meth_get0_app_data(const DSA_METHOD *dsam);
++int __cdecl DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data);
++DSA_SIG *(__cdecl *DSA_meth_get_sign(const DSA_METHOD *dsam))
+         (const unsigned char *, int, DSA *);
+-int DSA_meth_set_sign(DSA_METHOD *dsam,
+-                       DSA_SIG *(*sign) (const unsigned char *, int, DSA *));
+-int (*DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
++int __cdecl DSA_meth_set_sign(DSA_METHOD *dsam,
++                       DSA_SIG *(__cdecl *sign) (const unsigned char *, int, DSA *));
++int (* __cdecl DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
+         (DSA *, BN_CTX *, BIGNUM **, BIGNUM **);
+-int DSA_meth_set_sign_setup(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_sign_setup(DSA_METHOD *dsam,
+         int (*sign_setup) (DSA *, BN_CTX *, BIGNUM **, BIGNUM **));
+-int (*DSA_meth_get_verify(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_verify(const DSA_METHOD *dsam))
+         (const unsigned char *, int, DSA_SIG *, DSA *);
+-int DSA_meth_set_verify(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_verify(DSA_METHOD *dsam,
+     int (*verify) (const unsigned char *, int, DSA_SIG *, DSA *));
+-int (*DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
+         (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
+          const BIGNUM *, const BIGNUM *, BN_CTX *, BN_MONT_CTX *);
+-int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_mod_exp(DSA_METHOD *dsam,
+     int (*mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
+                     const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
+                     BN_MONT_CTX *));
+-int (*DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
+     (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
+      BN_CTX *, BN_MONT_CTX *);
+-int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
+     int (*bn_mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
+                        const BIGNUM *, BN_CTX *, BN_MONT_CTX *));
+-int (*DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *);
+-int DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *));
+-int (*DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *);
+-int DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *));
+-int (*DSA_meth_get_paramgen(const DSA_METHOD *dsam))
++int (* __cdecl DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *);
++int __cdecl DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *));
++int (* __cdecl DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *);
++int __cdecl DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *));
++int (* __cdecl DSA_meth_get_paramgen(const DSA_METHOD *dsam))
+         (DSA *, int, const unsigned char *, int, int *, unsigned long *,
+          BN_GENCB *);
+-int DSA_meth_set_paramgen(DSA_METHOD *dsam,
++int __cdecl DSA_meth_set_paramgen(DSA_METHOD *dsam,
+         int (*paramgen) (DSA *, int, const unsigned char *, int, int *,
+                          unsigned long *, BN_GENCB *));
+-int (*DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *);
+-int DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *));
++int (* __cdecl DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *);
++int __cdecl DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *));
+ 
+ 
+ #  ifdef  __cplusplus
 diff --git a/include/openssl/dsaerr.h b/include/openssl/dsaerr.h
 index 495a1ac89d..c5e5fd2fe9 100644
 --- a/include/openssl/dsaerr.h
@@ -19050,854 +19849,2663 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/dsa/dsa_asn1.c b/crypto/dsa/dsa_asn1.c
-index 6499e87ef3..6212c3abae 100644
---- a/crypto/dsa/dsa_asn1.c
-+++ b/crypto/dsa/dsa_asn1.c
-@@ -21,7 +21,7 @@ ASN1_SEQUENCE(DSA_SIG) = {
+diff --git a/crypto/ebcdic.c b/crypto/ebcdic.c
+index 2a8ca61010..e41789a09c 100644
+--- a/crypto/ebcdic.c
++++ b/crypto/ebcdic.c
+@@ -334,7 +334,7 @@ const unsigned char os_toebcdic[256] = {
+  * memcpy(3).
+  */
  
- IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA_SIG, DSA_SIG, DSA_SIG)
- 
--DSA_SIG *DSA_SIG_new(void)
-+DSA_SIG * __cdecl DSA_SIG_new(void)
+-void *ebcdic2ascii(void *dest, const void *srce, size_t count)
++void * __cdecl ebcdic2ascii(void *dest, const void *srce, size_t count)
  {
-     DSA_SIG *sig = OPENSSL_zalloc(sizeof(*sig));
-     if (sig == NULL)
-@@ -29,7 +29,7 @@ DSA_SIG *DSA_SIG_new(void)
-     return sig;
+     unsigned char *udest = dest;
+     const unsigned char *usrce = srce;
+@@ -346,7 +346,7 @@ void *ebcdic2ascii(void *dest, const void *srce, size_t count)
+     return dest;
  }
  
--void DSA_SIG_free(DSA_SIG *sig)
-+void __cdecl DSA_SIG_free(DSA_SIG *sig)
+-void *ascii2ebcdic(void *dest, const void *srce, size_t count)
++void * __cdecl ascii2ebcdic(void *dest, const void *srce, size_t count)
  {
-     if (sig == NULL)
-         return;
-@@ -38,7 +38,7 @@ void DSA_SIG_free(DSA_SIG *sig)
+     unsigned char *udest = dest;
+     const unsigned char *usrce = srce;
+diff --git a/crypto/ec/ec2_smpl.c b/crypto/ec/ec2_smpl.c
+index 898e741fcb..7b5894dedd 100644
+--- a/crypto/ec/ec2_smpl.c
++++ b/crypto/ec/ec2_smpl.c
+@@ -903,7 +903,7 @@ static int ec_GF2m_simple_field_inv(const EC_GROUP *group, BIGNUM *r,
+     return ret;
+ }
+ 
+-const EC_METHOD *EC_GF2m_simple_method(void)
++const EC_METHOD * __cdecl EC_GF2m_simple_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ec_ameth.c b/crypto/ec/ec_ameth.c
+index c086f47ab3..4bbec3c4c0 100644
+--- a/crypto/ec/ec_ameth.c
++++ b/crypto/ec/ec_ameth.c
+@@ -616,7 +616,7 @@ const EVP_PKEY_ASN1_METHOD sm2_asn1_meth = {
+ };
+ #endif
+ 
+-int EC_KEY_print(BIO *bp, const EC_KEY *x, int off)
++int __cdecl EC_KEY_print(BIO *bp, const EC_KEY *x, int off)
+ {
+     int private = EC_KEY_get0_private_key(x) != NULL;
+ 
+@@ -624,7 +624,7 @@ int EC_KEY_print(BIO *bp, const EC_KEY *x, int off)
+                 private ? EC_KEY_PRINT_PRIVATE : EC_KEY_PRINT_PUBLIC);
+ }
+ 
+-int ECParameters_print(BIO *bp, const EC_KEY *x)
++int __cdecl ECParameters_print(BIO *bp, const EC_KEY *x)
+ {
+     return do_EC_KEY_print(bp, x, 4, EC_KEY_PRINT_PARAM);
+ }
+diff --git a/crypto/ec/ec_asn1.c b/crypto/ec/ec_asn1.c
+index c289b805a4..cbb3d725da 100644
+--- a/crypto/ec/ec_asn1.c
++++ b/crypto/ec/ec_asn1.c
+@@ -14,7 +14,7 @@
+ #include <openssl/objects.h>
+ #include "internal/nelem.h"
+ 
+-int EC_GROUP_get_basis_type(const EC_GROUP *group)
++int __cdecl EC_GROUP_get_basis_type(const EC_GROUP *group)
+ {
+     int i;
+ 
+@@ -39,7 +39,7 @@ int EC_GROUP_get_basis_type(const EC_GROUP *group)
+ }
+ 
+ #ifndef OPENSSL_NO_EC2M
+-int EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
++int __cdecl EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
+ {
+     if (group == NULL)
+         return 0;
+@@ -59,7 +59,7 @@ int EC_GROUP_get_trinomial_basis(const EC_GROUP *group, unsigned int *k)
+     return 1;
+ }
+ 
+-int EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
++int __cdecl EC_GROUP_get_pentanomial_basis(const EC_GROUP *group, unsigned int *k1,
+                                    unsigned int *k2, unsigned int *k3)
+ {
+     if (group == NULL)
+@@ -437,7 +437,7 @@ static int ec_asn1_group2curve(const EC_GROUP *group, X9_62_CURVE *curve)
+     return ok;
+ }
+ 
+-ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
++ECPARAMETERS * __cdecl EC_GROUP_get_ecparameters(const EC_GROUP *group,
+                                                ECPARAMETERS *params)
+ {
+     size_t len = 0;
+@@ -520,7 +520,7 @@ ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
+     return NULL;
+ }
+ 
+-ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
++ECPKPARAMETERS * __cdecl EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+                                             ECPKPARAMETERS *params)
+ {
+     int ok = 1, tmp;
+@@ -565,7 +565,7 @@ ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+     return ret;
+ }
+ 
+-EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
++EC_GROUP * __cdecl EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
+ {
+     int ok = 0, tmp;
+     EC_GROUP *ret = NULL, *dup = NULL;
+@@ -867,7 +867,7 @@ EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
+     return ret;
+ }
+ 
+-EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
++EC_GROUP * __cdecl EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params)
+ {
+     EC_GROUP *ret = NULL;
+     int tmp = 0;
+@@ -1103,7 +1103,7 @@ int __cdecl i2d_ECPrivateKey(EC_KEY *a, unsigned char **out)
+     return (ok ? ret : 0);
+ }
+ 
+-int i2d_ECParameters(EC_KEY *a, unsigned char **out)
++int __cdecl i2d_ECParameters(EC_KEY *a, unsigned char **out)
+ {
+     if (a == NULL) {
+         ECerr(EC_F_I2D_ECPARAMETERS, ERR_R_PASSED_NULL_PARAMETER);
+@@ -1112,7 +1112,7 @@ int i2d_ECParameters(EC_KEY *a, unsigned char **out)
+     return i2d_ECPKParameters(a->group, out);
+ }
+ 
+-EC_KEY *d2i_ECParameters(EC_KEY **a, const unsigned char **in, long len)
++EC_KEY * __cdecl d2i_ECParameters(EC_KEY **a, const unsigned char **in, long len)
+ {
+     EC_KEY *ret;
+ 
+@@ -1142,7 +1142,7 @@ EC_KEY *d2i_ECParameters(EC_KEY **a, const unsigned char **in, long len)
+     return ret;
+ }
+ 
+-EC_KEY *o2i_ECPublicKey(EC_KEY **a, const unsigned char **in, long len)
++EC_KEY * __cdecl o2i_ECPublicKey(EC_KEY **a, const unsigned char **in, long len)
+ {
+     EC_KEY *ret = NULL;
+ 
+@@ -1162,7 +1162,7 @@ EC_KEY *o2i_ECPublicKey(EC_KEY **a, const unsigned char **in, long len)
+     return ret;
+ }
+ 
+-int i2o_ECPublicKey(const EC_KEY *a, unsigned char **out)
++int __cdecl i2o_ECPublicKey(const EC_KEY *a, unsigned char **out)
+ {
+     size_t buf_len = 0;
+     int new_buffer = 0;
+@@ -1226,7 +1226,7 @@ void __cdecl ECDSA_SIG_free(ECDSA_SIG *sig)
      OPENSSL_free(sig);
  }
  
--void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
-+void __cdecl DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+-void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
++void __cdecl ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
  {
      if (pr != NULL)
          *pr = sig->r;
-@@ -46,7 +46,7 @@ void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
+@@ -1234,17 +1234,17 @@ void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps)
          *ps = sig->s;
  }
  
--int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
-+int __cdecl DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s)
+-const BIGNUM *ECDSA_SIG_get0_r(const ECDSA_SIG *sig)
++const BIGNUM * __cdecl ECDSA_SIG_get0_r(const ECDSA_SIG *sig)
+ {
+     return sig->r;
+ }
+ 
+-const BIGNUM *ECDSA_SIG_get0_s(const ECDSA_SIG *sig)
++const BIGNUM * __cdecl ECDSA_SIG_get0_s(const ECDSA_SIG *sig)
+ {
+     return sig->s;
+ }
+ 
+-int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
++int __cdecl ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
  {
      if (r == NULL || s == NULL)
          return 0;
-@@ -102,12 +102,12 @@ ASN1_SEQUENCE_cb(DSAPublicKey, dsa_cb) = {
- 
- IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(DSA, DSAPublicKey, DSAPublicKey)
- 
--DSA *DSAparams_dup(DSA *dsa)
-+DSA * __cdecl DSAparams_dup(DSA *dsa)
- {
-     return ASN1_item_dup(ASN1_ITEM_rptr(DSAparams), dsa);
- }
- 
--int DSA_sign(int type, const unsigned char *dgst, int dlen,
-+int __cdecl DSA_sign(int type, const unsigned char *dgst, int dlen,
-              unsigned char *sig, unsigned int *siglen, DSA *dsa)
- {
-     DSA_SIG *s;
-@@ -129,7 +129,7 @@ int DSA_sign(int type, const unsigned char *dgst, int dlen,
-  *      0: incorrect signature
-  *     -1: error
-  */
--int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
-+int __cdecl DSA_verify(int type, const unsigned char *dgst, int dgst_len,
-                const unsigned char *sigbuf, int siglen, DSA *dsa)
- {
-     DSA_SIG *s;
-diff --git a/crypto/dsa/dsa_gen.c b/crypto/dsa/dsa_gen.c
-index af59a582b5..adf6d55561 100644
---- a/crypto/dsa/dsa_gen.c
-+++ b/crypto/dsa/dsa_gen.c
-@@ -23,7 +23,7 @@
- #include <openssl/sha.h>
- #include "dsa_locl.h"
- 
--int DSA_generate_parameters_ex(DSA *ret, int bits,
-+int __cdecl DSA_generate_parameters_ex(DSA *ret, int bits,
-                                const unsigned char *seed_in, int seed_len,
-                                int *counter_ret, unsigned long *h_ret,
-                                BN_GENCB *cb)
-diff --git a/crypto/dsa/dsa_key.c b/crypto/dsa/dsa_key.c
-index a48af58492..7e5140c1bf 100644
---- a/crypto/dsa/dsa_key.c
-+++ b/crypto/dsa/dsa_key.c
-@@ -15,7 +15,7 @@
- 
- static int dsa_builtin_keygen(DSA *dsa);
- 
--int DSA_generate_key(DSA *dsa)
-+int __cdecl DSA_generate_key(DSA *dsa)
- {
-     if (dsa->meth->dsa_keygen)
-         return dsa->meth->dsa_keygen(dsa);
-diff --git a/crypto/dsa/dsa_lib.c b/crypto/dsa/dsa_lib.c
-index 85919db19f..686d1c6532 100644
---- a/crypto/dsa/dsa_lib.c
-+++ b/crypto/dsa/dsa_lib.c
-@@ -21,7 +21,7 @@ DSA * __cdecl DSA_new(void)
-     return DSA_new_method(NULL);
- }
- 
--int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
-+int __cdecl DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
- {
-     /*
-      * NB: The caller is specifically setting a method, so it's not up to us
-@@ -41,12 +41,12 @@ int DSA_set_method(DSA *dsa, const DSA_METHOD *meth)
+@@ -1255,7 +1255,7 @@ int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s)
      return 1;
  }
  
--const DSA_METHOD *DSA_get_method(DSA *d)
-+const DSA_METHOD * __cdecl DSA_get_method(DSA *d)
- {
-     return d->meth;
- }
- 
--DSA *DSA_new_method(ENGINE *engine)
-+DSA * __cdecl DSA_new_method(ENGINE *engine)
- {
-     DSA *ret = OPENSSL_zalloc(sizeof(*ret));
- 
-@@ -100,7 +100,7 @@ DSA *DSA_new_method(ENGINE *engine)
-     return NULL;
- }
- 
--void DSA_free(DSA *r)
-+void __cdecl DSA_free(DSA *r)
- {
-     int i;
- 
-@@ -131,7 +131,7 @@ void DSA_free(DSA *r)
-     OPENSSL_free(r);
- }
- 
--int DSA_up_ref(DSA *r)
-+int __cdecl DSA_up_ref(DSA *r)
- {
-     int i;
- 
-@@ -143,7 +143,7 @@ int DSA_up_ref(DSA *r)
-     return ((i > 1) ? 1 : 0);
- }
- 
--int DSA_size(const DSA *r)
-+int __cdecl DSA_size(const DSA *r)
+-int ECDSA_size(const EC_KEY *r)
++int __cdecl ECDSA_size(const EC_KEY *r)
  {
      int ret, i;
      ASN1_INTEGER bs;
-@@ -165,17 +165,17 @@ int DSA_size(const DSA *r)
-     return ret;
- }
- 
--int DSA_set_ex_data(DSA *d, int idx, void *arg)
-+int __cdecl DSA_set_ex_data(DSA *d, int idx, void *arg)
- {
-     return CRYPTO_set_ex_data(&d->ex_data, idx, arg);
- }
- 
--void *DSA_get_ex_data(DSA *d, int idx)
-+void * __cdecl DSA_get_ex_data(DSA *d, int idx)
- {
-     return CRYPTO_get_ex_data(&d->ex_data, idx);
- }
- 
--int DSA_security_bits(const DSA *d)
-+int __cdecl DSA_security_bits(const DSA *d)
- {
-     if (d->p && d->q)
-         return BN_security_bits(BN_num_bits(d->p), BN_num_bits(d->q));
-@@ -183,7 +183,7 @@ int DSA_security_bits(const DSA *d)
- }
- 
- #ifndef OPENSSL_NO_DH
--DH *DSA_dup_DH(const DSA *r)
-+DH * __cdecl DSA_dup_DH(const DSA *r)
- {
-     /*
-      * DSA has p, q, g, optional pub_key, optional priv_key. DH has p,
-@@ -240,7 +240,7 @@ DH *DSA_dup_DH(const DSA *r)
- }
- #endif
- 
--void DSA_get0_pqg(const DSA *d,
-+void __cdecl DSA_get0_pqg(const DSA *d,
-                   const BIGNUM **p, const BIGNUM **q, const BIGNUM **g)
- {
-     if (p != NULL)
-@@ -251,7 +251,7 @@ void DSA_get0_pqg(const DSA *d,
-         *g = d->g;
- }
- 
--int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
-+int __cdecl DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
- {
-     /* If the fields p, q and g in d are NULL, the corresponding input
-      * parameters MUST be non-NULL.
-@@ -277,7 +277,7 @@ int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g)
-     return 1;
- }
- 
--void DSA_get0_key(const DSA *d,
-+void __cdecl DSA_get0_key(const DSA *d,
-                   const BIGNUM **pub_key, const BIGNUM **priv_key)
- {
-     if (pub_key != NULL)
-@@ -286,7 +286,7 @@ void DSA_get0_key(const DSA *d,
-         *priv_key = d->priv_key;
- }
- 
--int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
-+int __cdecl DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
- {
-     /* If the field pub_key in d is NULL, the corresponding input
-      * parameters MUST be non-NULL.  The priv_key field may
-@@ -307,52 +307,52 @@ int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key)
-     return 1;
- }
- 
--const BIGNUM *DSA_get0_p(const DSA *d)
-+const BIGNUM * __cdecl DSA_get0_p(const DSA *d)
- {
-     return d->p;
- }
- 
--const BIGNUM *DSA_get0_q(const DSA *d)
-+const BIGNUM * __cdecl DSA_get0_q(const DSA *d)
- {
-     return d->q;
- }
- 
--const BIGNUM *DSA_get0_g(const DSA *d)
-+const BIGNUM * __cdecl DSA_get0_g(const DSA *d)
- {
-     return d->g;
- }
- 
--const BIGNUM *DSA_get0_pub_key(const DSA *d)
-+const BIGNUM * __cdecl DSA_get0_pub_key(const DSA *d)
- {
-     return d->pub_key;
- }
- 
--const BIGNUM *DSA_get0_priv_key(const DSA *d)
-+const BIGNUM * __cdecl DSA_get0_priv_key(const DSA *d)
- {
-     return d->priv_key;
- }
- 
--void DSA_clear_flags(DSA *d, int flags)
-+void __cdecl DSA_clear_flags(DSA *d, int flags)
- {
-     d->flags &= ~flags;
- }
- 
--int DSA_test_flags(const DSA *d, int flags)
-+int __cdecl DSA_test_flags(const DSA *d, int flags)
- {
-     return d->flags & flags;
- }
- 
--void DSA_set_flags(DSA *d, int flags)
-+void __cdecl DSA_set_flags(DSA *d, int flags)
- {
-     d->flags |= flags;
- }
- 
--ENGINE *DSA_get0_engine(DSA *d)
-+ENGINE * __cdecl DSA_get0_engine(DSA *d)
- {
-     return d->engine;
- }
- 
--int DSA_bits(const DSA *dsa)
-+int __cdecl DSA_bits(const DSA *dsa)
- {
-     return BN_num_bits(dsa->p);
- }
-diff --git a/crypto/dsa/dsa_locl.h b/crypto/dsa/dsa_locl.h
-index a81a4b4978..96310a6585 100644
---- a/crypto/dsa/dsa_locl.h
-+++ b/crypto/dsa/dsa_locl.h
-@@ -40,7 +40,7 @@ struct DSA_SIG_st {
- 
- struct dsa_method {
-     char *name;
--    DSA_SIG *(*dsa_do_sign) (const unsigned char *dgst, int dlen, DSA *dsa);
-+    DSA_SIG *(__cdecl *dsa_do_sign) (const unsigned char *dgst, int dlen, DSA *dsa);
-     int (*dsa_sign_setup) (DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
-                            BIGNUM **rp);
-     int (*dsa_do_verify) (const unsigned char *dgst, int dgst_len,
-diff --git a/crypto/dsa/dsa_meth.c b/crypto/dsa/dsa_meth.c
-index ff4fae44a7..c7c5eae75d 100644
---- a/crypto/dsa/dsa_meth.c
-+++ b/crypto/dsa/dsa_meth.c
-@@ -19,7 +19,7 @@
- #include <string.h>
+diff --git a/crypto/ec/ec_check.c b/crypto/ec/ec_check.c
+index eeb06ec1cb..ab55650b13 100644
+--- a/crypto/ec/ec_check.c
++++ b/crypto/ec/ec_check.c
+@@ -10,7 +10,7 @@
+ #include "ec_lcl.h"
  #include <openssl/err.h>
  
--DSA_METHOD *DSA_meth_new(const char *name, int flags)
-+DSA_METHOD * __cdecl DSA_meth_new(const char *name, int flags)
+-int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
++int __cdecl EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx)
  {
-     DSA_METHOD *dsam = OPENSSL_zalloc(sizeof(*dsam));
- 
-@@ -37,7 +37,7 @@ DSA_METHOD *DSA_meth_new(const char *name, int flags)
-     return NULL;
+     int ret = 0;
+     const BIGNUM *order;
+diff --git a/crypto/ec/ec_curve.c b/crypto/ec/ec_curve.c
+index 477349d441..edf394e6ca 100644
+--- a/crypto/ec/ec_curve.c
++++ b/crypto/ec/ec_curve.c
+@@ -3114,7 +3114,7 @@ static EC_GROUP *ec_group_new_from_data(const ec_list_element curve)
+     return group;
  }
  
--void DSA_meth_free(DSA_METHOD *dsam)
-+void __cdecl DSA_meth_free(DSA_METHOD *dsam)
+-EC_GROUP *EC_GROUP_new_by_curve_name(int nid)
++EC_GROUP * __cdecl EC_GROUP_new_by_curve_name(int nid)
  {
-     if (dsam != NULL) {
-         OPENSSL_free(dsam->name);
-@@ -45,7 +45,7 @@ void DSA_meth_free(DSA_METHOD *dsam)
-     }
- }
- 
--DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam)
-+DSA_METHOD * __cdecl DSA_meth_dup(const DSA_METHOD *dsam)
- {
-     DSA_METHOD *ret = OPENSSL_malloc(sizeof(*ret));
- 
-@@ -63,12 +63,12 @@ DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam)
-     return NULL;
- }
- 
--const char *DSA_meth_get0_name(const DSA_METHOD *dsam)
-+const char * __cdecl DSA_meth_get0_name(const DSA_METHOD *dsam)
- {
-     return dsam->name;
- }
- 
--int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
-+int __cdecl DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
- {
-     char *tmpname = OPENSSL_strdup(name);
- 
-@@ -83,75 +83,75 @@ int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name)
-     return 1;
- }
- 
--int DSA_meth_get_flags(const DSA_METHOD *dsam)
-+int __cdecl DSA_meth_get_flags(const DSA_METHOD *dsam)
- {
-     return dsam->flags;
- }
- 
--int DSA_meth_set_flags(DSA_METHOD *dsam, int flags)
-+int __cdecl DSA_meth_set_flags(DSA_METHOD *dsam, int flags)
- {
-     dsam->flags = flags;
-     return 1;
- }
- 
--void *DSA_meth_get0_app_data(const DSA_METHOD *dsam)
-+void * __cdecl DSA_meth_get0_app_data(const DSA_METHOD *dsam)
- {
-     return dsam->app_data;
- }
- 
--int DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data)
-+int __cdecl DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data)
- {
-     dsam->app_data = app_data;
-     return 1;
- }
- 
--DSA_SIG *(*DSA_meth_get_sign(const DSA_METHOD *dsam))
-+DSA_SIG *(__cdecl *DSA_meth_get_sign(const DSA_METHOD *dsam))
-         (const unsigned char *, int, DSA *)
- {
-     return dsam->dsa_do_sign;
- }
- 
--int DSA_meth_set_sign(DSA_METHOD *dsam,
--                       DSA_SIG *(*sign) (const unsigned char *, int, DSA *))
-+int __cdecl DSA_meth_set_sign(DSA_METHOD *dsam,
-+                       DSA_SIG *(__cdecl *sign) (const unsigned char *, int, DSA *))
- {
-     dsam->dsa_do_sign = sign;
-     return 1;
- }
- 
--int (*DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
-         (DSA *, BN_CTX *, BIGNUM **, BIGNUM **)
- {
-     return dsam->dsa_sign_setup;
- }
- 
--int DSA_meth_set_sign_setup(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_sign_setup(DSA_METHOD *dsam,
-         int (*sign_setup) (DSA *, BN_CTX *, BIGNUM **, BIGNUM **))
- {
-     dsam->dsa_sign_setup = sign_setup;
-     return 1;
- }
- 
--int (*DSA_meth_get_verify(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_verify(const DSA_METHOD *dsam))
-         (const unsigned char *, int, DSA_SIG *, DSA *)
- {
-     return dsam->dsa_do_verify;
- }
- 
--int DSA_meth_set_verify(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_verify(DSA_METHOD *dsam,
-     int (*verify) (const unsigned char *, int, DSA_SIG *, DSA *))
- {
-     dsam->dsa_do_verify = verify;
-     return 1;
- }
- 
--int (*DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
-         (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
-          const BIGNUM *, const BIGNUM *, BN_CTX *, BN_MONT_CTX *)
- {
-     return dsam->dsa_mod_exp;
- }
- 
--int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_mod_exp(DSA_METHOD *dsam,
-     int (*mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
-                     const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
-                     BN_MONT_CTX *))
-@@ -160,14 +160,14 @@ int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
-     return 1;
- }
- 
--int (*DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
-     (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
-      BN_MONT_CTX *)
- {
-     return dsam->bn_mod_exp;
- }
- 
--int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
-     int (*bn_mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
-                        const BIGNUM *, BN_CTX *, BN_MONT_CTX *))
- {
-@@ -175,36 +175,36 @@ int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
-     return 1;
- }
- 
--int (*DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *)
-+int (* __cdecl DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *)
- {
-     return dsam->init;
- }
- 
--int DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *))
-+int __cdecl DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *))
- {
-     dsam->init = init;
-     return 1;
- }
- 
--int (*DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *)
-+int (* __cdecl DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *)
- {
-     return dsam->finish;
- }
- 
--int DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *))
-+int __cdecl DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *))
- {
-     dsam->finish = finish;
-     return 1;
- }
- 
--int (*DSA_meth_get_paramgen(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_paramgen(const DSA_METHOD *dsam))
-         (DSA *, int, const unsigned char *, int, int *, unsigned long *,
-          BN_GENCB *)
- {
-     return dsam->dsa_paramgen;
- }
- 
--int DSA_meth_set_paramgen(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_paramgen(DSA_METHOD *dsam,
-         int (*paramgen) (DSA *, int, const unsigned char *, int, int *,
-                          unsigned long *, BN_GENCB *))
- {
-@@ -212,12 +212,12 @@ int DSA_meth_set_paramgen(DSA_METHOD *dsam,
-     return 1;
- }
- 
--int (*DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *)
-+int (* __cdecl DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *)
- {
-     return dsam->dsa_keygen;
- }
- 
--int DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *))
-+int __cdecl DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *))
- {
-     dsam->dsa_keygen = keygen;
-     return 1;
-diff --git a/crypto/dsa/dsa_ossl.c b/crypto/dsa/dsa_ossl.c
-index 16161dcadf..3eb1be20c7 100644
---- a/crypto/dsa/dsa_ossl.c
-+++ b/crypto/dsa/dsa_ossl.c
-@@ -15,7 +15,7 @@
- #include "dsa_locl.h"
- #include <openssl/asn1.h>
- 
--static DSA_SIG *dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
-+static DSA_SIG * __cdecl dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
- static int dsa_sign_setup_no_digest(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
-                                     BIGNUM **rp);
- static int dsa_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp,
-@@ -44,22 +44,22 @@ static DSA_METHOD openssl_dsa_meth = {
- 
- static const DSA_METHOD *default_DSA_method = &openssl_dsa_meth;
- 
--void DSA_set_default_method(const DSA_METHOD *meth)
-+void __cdecl DSA_set_default_method(const DSA_METHOD *meth)
- {
-     default_DSA_method = meth;
- }
- 
--const DSA_METHOD *DSA_get_default_method(void)
-+const DSA_METHOD * __cdecl DSA_get_default_method(void)
- {
-     return default_DSA_method;
- }
- 
--const DSA_METHOD *DSA_OpenSSL(void)
-+const DSA_METHOD * __cdecl DSA_OpenSSL(void)
- {
-     return &openssl_dsa_meth;
- }
- 
--static DSA_SIG *dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
-+static DSA_SIG * __cdecl dsa_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
- {
-     BIGNUM *kinv = NULL;
-     BIGNUM *m, *blind, *blindm, *tmp;
-diff --git a/crypto/dsa/dsa_prn.c b/crypto/dsa/dsa_prn.c
-index a4a1fd5650..da9213c59d 100644
---- a/crypto/dsa/dsa_prn.c
-+++ b/crypto/dsa/dsa_prn.c
-@@ -13,7 +13,7 @@
- #include <openssl/dsa.h>
- 
- #ifndef OPENSSL_NO_STDIO
--int DSA_print_fp(FILE *fp, const DSA *x, int off)
-+int __cdecl DSA_print_fp(FILE *fp, const DSA *x, int off)
- {
-     BIO *b;
-     int ret;
-@@ -28,7 +28,7 @@ int DSA_print_fp(FILE *fp, const DSA *x, int off)
+     size_t i;
+     EC_GROUP *ret = NULL;
+@@ -3136,7 +3136,7 @@ EC_GROUP *EC_GROUP_new_by_curve_name(int nid)
      return ret;
  }
  
--int DSAparams_print_fp(FILE *fp, const DSA *x)
-+int __cdecl DSAparams_print_fp(FILE *fp, const DSA *x)
+-size_t EC_get_builtin_curves(EC_builtin_curve *r, size_t nitems)
++size_t __cdecl EC_get_builtin_curves(EC_builtin_curve *r, size_t nitems)
  {
-     BIO *b;
-     int ret;
-@@ -44,7 +44,7 @@ int DSAparams_print_fp(FILE *fp, const DSA *x)
- }
- #endif
+     size_t i, min;
  
--int DSA_print(BIO *bp, const DSA *x, int off)
-+int __cdecl DSA_print(BIO *bp, const DSA *x, int off)
+@@ -3178,7 +3178,7 @@ static EC_NIST_NAME nist_curves[] = {
+     {"P-521", NID_secp521r1}
+ };
+ 
+-const char *EC_curve_nid2nist(int nid)
++const char * __cdecl EC_curve_nid2nist(int nid)
  {
-     EVP_PKEY *pk;
-     int ret;
-@@ -56,7 +56,7 @@ int DSA_print(BIO *bp, const DSA *x, int off)
+     size_t i;
+     for (i = 0; i < OSSL_NELEM(nist_curves); i++) {
+@@ -3188,7 +3188,7 @@ const char *EC_curve_nid2nist(int nid)
+     return NULL;
+ }
+ 
+-int EC_curve_nist2nid(const char *name)
++int __cdecl EC_curve_nist2nid(const char *name)
+ {
+     size_t i;
+     for (i = 0; i < OSSL_NELEM(nist_curves); i++) {
+diff --git a/crypto/ec/ec_cvt.c b/crypto/ec/ec_cvt.c
+index 0ec346c125..8960e873b7 100644
+--- a/crypto/ec/ec_cvt.c
++++ b/crypto/ec/ec_cvt.c
+@@ -11,7 +11,7 @@
+ #include <openssl/err.h>
+ #include "ec_lcl.h"
+ 
+-EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
++EC_GROUP * __cdecl EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
+                                  const BIGNUM *b, BN_CTX *ctx)
+ {
+     const EC_METHOD *meth;
+@@ -60,7 +60,7 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
+ }
+ 
+ #ifndef OPENSSL_NO_EC2M
+-EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
++EC_GROUP * __cdecl EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
+                                   const BIGNUM *b, BN_CTX *ctx)
+ {
+     const EC_METHOD *meth;
+diff --git a/crypto/ec/ec_key.c b/crypto/ec/ec_key.c
+index 6f306973b0..ac124a3c93 100644
+--- a/crypto/ec/ec_key.c
++++ b/crypto/ec/ec_key.c
+@@ -20,7 +20,7 @@ EC_KEY * __cdecl EC_KEY_new(void)
+     return EC_KEY_new_method(NULL);
+ }
+ 
+-EC_KEY *EC_KEY_new_by_curve_name(int nid)
++EC_KEY * __cdecl EC_KEY_new_by_curve_name(int nid)
+ {
+     EC_KEY *ret = EC_KEY_new();
+     if (ret == NULL)
+@@ -38,7 +38,7 @@ EC_KEY *EC_KEY_new_by_curve_name(int nid)
      return ret;
  }
  
--int DSAparams_print(BIO *bp, const DSA *x)
-+int __cdecl DSAparams_print(BIO *bp, const DSA *x)
+-void EC_KEY_free(EC_KEY *r)
++void __cdecl EC_KEY_free(EC_KEY *r)
  {
-     EVP_PKEY *pk;
-     int ret;
-diff --git a/crypto/dsa/dsa_sign.c b/crypto/dsa/dsa_sign.c
-index e9466b29f1..ab7988119e 100644
---- a/crypto/dsa/dsa_sign.c
-+++ b/crypto/dsa/dsa_sign.c
-@@ -11,13 +11,13 @@
- #include "dsa_locl.h"
- #include <openssl/bn.h>
+     int i;
  
--DSA_SIG *DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
-+DSA_SIG * __cdecl DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa)
+@@ -70,7 +70,7 @@ void EC_KEY_free(EC_KEY *r)
+     OPENSSL_clear_free((void *)r, sizeof(EC_KEY));
+ }
+ 
+-EC_KEY *EC_KEY_copy(EC_KEY *dest, const EC_KEY *src)
++EC_KEY * __cdecl EC_KEY_copy(EC_KEY *dest, const EC_KEY *src)
  {
-     return dsa->meth->dsa_do_sign(dgst, dlen, dsa);
+     if (dest == NULL || src == NULL) {
+         ECerr(EC_F_EC_KEY_COPY, ERR_R_PASSED_NULL_PARAMETER);
+@@ -147,7 +147,7 @@ EC_KEY *EC_KEY_copy(EC_KEY *dest, const EC_KEY *src)
+     return dest;
+ }
+ 
+-EC_KEY *EC_KEY_dup(const EC_KEY *ec_key)
++EC_KEY * __cdecl EC_KEY_dup(const EC_KEY *ec_key)
+ {
+     EC_KEY *ret = EC_KEY_new_method(ec_key->engine);
+ 
+@@ -161,7 +161,7 @@ EC_KEY *EC_KEY_dup(const EC_KEY *ec_key)
+     return ret;
+ }
+ 
+-int EC_KEY_up_ref(EC_KEY *r)
++int __cdecl EC_KEY_up_ref(EC_KEY *r)
+ {
+     int i;
+ 
+@@ -173,12 +173,12 @@ int EC_KEY_up_ref(EC_KEY *r)
+     return ((i > 1) ? 1 : 0);
+ }
+ 
+-ENGINE *EC_KEY_get0_engine(const EC_KEY *eckey)
++ENGINE * __cdecl EC_KEY_get0_engine(const EC_KEY *eckey)
+ {
+     return eckey->engine;
+ }
+ 
+-int EC_KEY_generate_key(EC_KEY *eckey)
++int __cdecl EC_KEY_generate_key(EC_KEY *eckey)
+ {
+     if (eckey == NULL || eckey->group == NULL) {
+         ECerr(EC_F_EC_KEY_GENERATE_KEY, ERR_R_PASSED_NULL_PARAMETER);
+@@ -252,7 +252,7 @@ int ec_key_simple_generate_public_key(EC_KEY *eckey)
+                         NULL, NULL);
+ }
+ 
+-int EC_KEY_check_key(const EC_KEY *eckey)
++int __cdecl EC_KEY_check_key(const EC_KEY *eckey)
+ {
+     if (eckey == NULL || eckey->group == NULL || eckey->pub_key == NULL) {
+         ECerr(EC_F_EC_KEY_CHECK_KEY, ERR_R_PASSED_NULL_PARAMETER);
+@@ -334,7 +334,7 @@ int ec_key_simple_check_key(const EC_KEY *eckey)
+     return ok;
+ }
+ 
+-int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
++int __cdecl EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
+                                              BIGNUM *y)
+ {
+     BN_CTX *ctx = NULL;
+@@ -395,12 +395,12 @@ int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
+ 
+ }
+ 
+-const EC_GROUP *EC_KEY_get0_group(const EC_KEY *key)
++const EC_GROUP * __cdecl EC_KEY_get0_group(const EC_KEY *key)
+ {
+     return key->group;
+ }
+ 
+-int EC_KEY_set_group(EC_KEY *key, const EC_GROUP *group)
++int __cdecl EC_KEY_set_group(EC_KEY *key, const EC_GROUP *group)
+ {
+     if (key->meth->set_group != NULL && key->meth->set_group(key, group) == 0)
+         return 0;
+@@ -409,12 +409,12 @@ int EC_KEY_set_group(EC_KEY *key, const EC_GROUP *group)
+     return (key->group == NULL) ? 0 : 1;
+ }
+ 
+-const BIGNUM *EC_KEY_get0_private_key(const EC_KEY *key)
++const BIGNUM * __cdecl EC_KEY_get0_private_key(const EC_KEY *key)
+ {
+     return key->priv_key;
+ }
+ 
+-int EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *priv_key)
++int __cdecl EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *priv_key)
+ {
+     if (key->group == NULL || key->group->meth == NULL)
+         return 0;
+@@ -429,12 +429,12 @@ int EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *priv_key)
+     return (key->priv_key == NULL) ? 0 : 1;
+ }
+ 
+-const EC_POINT *EC_KEY_get0_public_key(const EC_KEY *key)
++const EC_POINT * __cdecl EC_KEY_get0_public_key(const EC_KEY *key)
+ {
+     return key->pub_key;
+ }
+ 
+-int EC_KEY_set_public_key(EC_KEY *key, const EC_POINT *pub_key)
++int __cdecl EC_KEY_set_public_key(EC_KEY *key, const EC_POINT *pub_key)
+ {
+     if (key->meth->set_public != NULL
+         && key->meth->set_public(key, pub_key) == 0)
+@@ -444,57 +444,57 @@ int EC_KEY_set_public_key(EC_KEY *key, const EC_POINT *pub_key)
+     return (key->pub_key == NULL) ? 0 : 1;
+ }
+ 
+-unsigned int EC_KEY_get_enc_flags(const EC_KEY *key)
++unsigned int __cdecl EC_KEY_get_enc_flags(const EC_KEY *key)
+ {
+     return key->enc_flag;
+ }
+ 
+-void EC_KEY_set_enc_flags(EC_KEY *key, unsigned int flags)
++void __cdecl EC_KEY_set_enc_flags(EC_KEY *key, unsigned int flags)
+ {
+     key->enc_flag = flags;
+ }
+ 
+-point_conversion_form_t EC_KEY_get_conv_form(const EC_KEY *key)
++point_conversion_form_t __cdecl EC_KEY_get_conv_form(const EC_KEY *key)
+ {
+     return key->conv_form;
+ }
+ 
+-void EC_KEY_set_conv_form(EC_KEY *key, point_conversion_form_t cform)
++void __cdecl EC_KEY_set_conv_form(EC_KEY *key, point_conversion_form_t cform)
+ {
+     key->conv_form = cform;
+     if (key->group != NULL)
+         EC_GROUP_set_point_conversion_form(key->group, cform);
+ }
+ 
+-void EC_KEY_set_asn1_flag(EC_KEY *key, int flag)
++void __cdecl EC_KEY_set_asn1_flag(EC_KEY *key, int flag)
+ {
+     if (key->group != NULL)
+         EC_GROUP_set_asn1_flag(key->group, flag);
+ }
+ 
+-int EC_KEY_precompute_mult(EC_KEY *key, BN_CTX *ctx)
++int __cdecl EC_KEY_precompute_mult(EC_KEY *key, BN_CTX *ctx)
+ {
+     if (key->group == NULL)
+         return 0;
+     return EC_GROUP_precompute_mult(key->group, ctx);
+ }
+ 
+-int EC_KEY_get_flags(const EC_KEY *key)
++int __cdecl EC_KEY_get_flags(const EC_KEY *key)
+ {
+     return key->flags;
+ }
+ 
+-void EC_KEY_set_flags(EC_KEY *key, int flags)
++void __cdecl EC_KEY_set_flags(EC_KEY *key, int flags)
+ {
+     key->flags |= flags;
+ }
+ 
+-void EC_KEY_clear_flags(EC_KEY *key, int flags)
++void __cdecl EC_KEY_clear_flags(EC_KEY *key, int flags)
+ {
+     key->flags &= ~flags;
+ }
+ 
+-size_t EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
++size_t __cdecl EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
+                         unsigned char **pbuf, BN_CTX *ctx)
+ {
+     if (key == NULL || key->pub_key == NULL || key->group == NULL)
+@@ -502,7 +502,7 @@ size_t EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
+     return EC_POINT_point2buf(key->group, key->pub_key, form, pbuf, ctx);
+ }
+ 
+-int EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
++int __cdecl EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
+                    BN_CTX *ctx)
+ {
+     if (key == NULL || key->group == NULL)
+@@ -525,7 +525,7 @@ int EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
+     return 1;
+ }
+ 
+-size_t EC_KEY_priv2oct(const EC_KEY *eckey,
++size_t __cdecl EC_KEY_priv2oct(const EC_KEY *eckey,
+                        unsigned char *buf, size_t len)
+ {
+     if (eckey->group == NULL || eckey->group->meth == NULL)
+@@ -561,7 +561,7 @@ size_t ec_key_simple_priv2oct(const EC_KEY *eckey,
+     return buf_len;
+ }
+ 
+-int EC_KEY_oct2priv(EC_KEY *eckey, const unsigned char *buf, size_t len)
++int __cdecl EC_KEY_oct2priv(EC_KEY *eckey, const unsigned char *buf, size_t len)
+ {
+     if (eckey->group == NULL || eckey->group->meth == NULL)
+         return 0;
+@@ -588,7 +588,7 @@ int ec_key_simple_oct2priv(EC_KEY *eckey, const unsigned char *buf, size_t len)
+     return 1;
+ }
+ 
+-size_t EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf)
++size_t __cdecl EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf)
+ {
+     size_t len;
+     unsigned char *buf;
+@@ -609,7 +609,7 @@ size_t EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf)
+     return len;
+ }
+ 
+-int EC_KEY_can_sign(const EC_KEY *eckey)
++int __cdecl EC_KEY_can_sign(const EC_KEY *eckey)
+ {
+     if (eckey->group == NULL || eckey->group->meth == NULL
+         || (eckey->group->meth->flags & EC_FLAGS_NO_SIGN))
+diff --git a/crypto/ec/ec_kmeth.c b/crypto/ec/ec_kmeth.c
+index 64a5d20872..cab34298f9 100644
+--- a/crypto/ec/ec_kmeth.c
++++ b/crypto/ec/ec_kmeth.c
+@@ -29,17 +29,17 @@ static const EC_KEY_METHOD openssl_ec_key_method = {
+ 
+ static const EC_KEY_METHOD *default_ec_key_meth = &openssl_ec_key_method;
+ 
+-const EC_KEY_METHOD *EC_KEY_OpenSSL(void)
++const EC_KEY_METHOD * __cdecl EC_KEY_OpenSSL(void)
+ {
+     return &openssl_ec_key_method;
+ }
+ 
+-const EC_KEY_METHOD *EC_KEY_get_default_method(void)
++const EC_KEY_METHOD * __cdecl EC_KEY_get_default_method(void)
+ {
+     return default_ec_key_meth;
+ }
+ 
+-void EC_KEY_set_default_method(const EC_KEY_METHOD *meth)
++void __cdecl EC_KEY_set_default_method(const EC_KEY_METHOD *meth)
+ {
+     if (meth == NULL)
+         default_ec_key_meth = &openssl_ec_key_method;
+@@ -47,12 +47,12 @@ void EC_KEY_set_default_method(const EC_KEY_METHOD *meth)
+         default_ec_key_meth = meth;
+ }
+ 
+-const EC_KEY_METHOD *EC_KEY_get_method(const EC_KEY *key)
++const EC_KEY_METHOD * __cdecl EC_KEY_get_method(const EC_KEY *key)
+ {
+     return key->meth;
+ }
+ 
+-int EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth)
++int __cdecl EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth)
+ {
+     void (*finish)(EC_KEY *key) = key->meth->finish;
+ 
+@@ -70,7 +70,7 @@ int EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth)
+     return 1;
+ }
+ 
+-EC_KEY *EC_KEY_new_method(ENGINE *engine)
++EC_KEY * __cdecl EC_KEY_new_method(ENGINE *engine)
+ {
+     EC_KEY *ret = OPENSSL_zalloc(sizeof(*ret));
+ 
+@@ -124,7 +124,7 @@ EC_KEY *EC_KEY_new_method(ENGINE *engine)
+     return NULL;
+ }
+ 
+-int ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
++int __cdecl ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
+                      const EC_KEY *eckey,
+                      void *(*KDF) (const void *in, size_t inlen, void *out,
+                                    size_t *outlen))
+@@ -152,7 +152,7 @@ int ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
+     return outlen;
+ }
+ 
+-EC_KEY_METHOD *EC_KEY_METHOD_new(const EC_KEY_METHOD *meth)
++EC_KEY_METHOD * __cdecl EC_KEY_METHOD_new(const EC_KEY_METHOD *meth)
+ {
+     EC_KEY_METHOD *ret = OPENSSL_zalloc(sizeof(*meth));
+ 
+@@ -164,13 +164,13 @@ EC_KEY_METHOD *EC_KEY_METHOD_new(const EC_KEY_METHOD *meth)
+     return ret;
+ }
+ 
+-void EC_KEY_METHOD_free(EC_KEY_METHOD *meth)
++void __cdecl EC_KEY_METHOD_free(EC_KEY_METHOD *meth)
+ {
+     if (meth->flags & EC_KEY_METHOD_DYNAMIC)
+         OPENSSL_free(meth);
+ }
+ 
+-void EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
+                             int (*init)(EC_KEY *key),
+                             void (*finish)(EC_KEY *key),
+                             int (*copy)(EC_KEY *dest, const EC_KEY *src),
+@@ -188,13 +188,13 @@ void EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
+     meth->set_public = set_public;
+ }
+ 
+-void EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth,
+                               int (*keygen)(EC_KEY *key))
+ {
+     meth->keygen = keygen;
+ }
+ 
+-void EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
+                                    int (*ckey)(unsigned char **psec,
+                                                size_t *pseclen,
+                                                const EC_POINT *pub_key,
+@@ -203,7 +203,7 @@ void EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
+     meth->compute_key = ckey;
+ }
+ 
+-void EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
+                             int (*sign)(int type, const unsigned char *dgst,
+                                         int dlen, unsigned char *sig,
+                                         unsigned int *siglen,
+@@ -222,7 +222,7 @@ void EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
+     meth->sign_sig = sign_sig;
+ }
+ 
+-void EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
+                               int (*verify)(int type, const unsigned
+                                             char *dgst, int dgst_len,
+                                             const unsigned char *sigbuf,
+@@ -236,7 +236,7 @@ void EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
+     meth->verify_sig = verify_sig;
+ }
+ 
+-void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
+                             int (**pinit)(EC_KEY *key),
+                             void (**pfinish)(EC_KEY *key),
+                             int (**pcopy)(EC_KEY *dest, const EC_KEY *src),
+@@ -261,14 +261,14 @@ void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
+         *pset_public = meth->set_public;
+ }
+ 
+-void EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth,
+                               int (**pkeygen)(EC_KEY *key))
+ {
+     if (pkeygen != NULL)
+         *pkeygen = meth->keygen;
+ }
+ 
+-void EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
+                                    int (**pck)(unsigned char **pout,
+                                                size_t *poutlen,
+                                                const EC_POINT *pub_key,
+@@ -278,7 +278,7 @@ void EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
+         *pck = meth->compute_key;
+ }
+ 
+-void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
+                             int (**psign)(int type, const unsigned char *dgst,
+                                           int dlen, unsigned char *sig,
+                                           unsigned int *siglen,
+@@ -300,7 +300,7 @@ void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
+         *psign_sig = meth->sign_sig;
+ }
+ 
+-void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
+                               int (**pverify)(int type, const unsigned
+                                               char *dgst, int dgst_len,
+                                               const unsigned char *sigbuf,
+diff --git a/crypto/ec/ec_lib.c b/crypto/ec/ec_lib.c
+index 1289c8608e..2b5e64c2eb 100644
+--- a/crypto/ec/ec_lib.c
++++ b/crypto/ec/ec_lib.c
+@@ -17,7 +17,7 @@
+ 
+ /* functions for EC_GROUP objects */
+ 
+-EC_GROUP *EC_GROUP_new(const EC_METHOD *meth)
++EC_GROUP * __cdecl EC_GROUP_new(const EC_METHOD *meth)
+ {
+     EC_GROUP *ret;
+ 
+@@ -91,7 +91,7 @@ void EC_pre_comp_free(EC_GROUP *group)
+     group->pre_comp.ec = NULL;
+ }
+ 
+-void EC_GROUP_free(EC_GROUP *group)
++void __cdecl EC_GROUP_free(EC_GROUP *group)
+ {
+     if (!group)
+         return;
+@@ -108,7 +108,7 @@ void EC_GROUP_free(EC_GROUP *group)
+     OPENSSL_free(group);
+ }
+ 
+-void EC_GROUP_clear_free(EC_GROUP *group)
++void __cdecl EC_GROUP_clear_free(EC_GROUP *group)
+ {
+     if (!group)
+         return;
+@@ -127,7 +127,7 @@ void EC_GROUP_clear_free(EC_GROUP *group)
+     OPENSSL_clear_free(group, sizeof(*group));
+ }
+ 
+-int EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
++int __cdecl EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
+ {
+     if (dest->meth->group_copy == 0) {
+         ECerr(EC_F_EC_GROUP_COPY, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+@@ -230,7 +230,7 @@ int EC_GROUP_copy(EC_GROUP *dest, const EC_GROUP *src)
+     return dest->meth->group_copy(dest, src);
+ }
+ 
+-EC_GROUP *EC_GROUP_dup(const EC_GROUP *a)
++EC_GROUP * __cdecl EC_GROUP_dup(const EC_GROUP *a)
+ {
+     EC_GROUP *t = NULL;
+     int ok = 0;
+@@ -253,12 +253,12 @@ EC_GROUP *EC_GROUP_dup(const EC_GROUP *a)
+         return t;
+ }
+ 
+-const EC_METHOD *EC_GROUP_method_of(const EC_GROUP *group)
++const EC_METHOD * __cdecl EC_GROUP_method_of(const EC_GROUP *group)
+ {
+     return group->meth;
+ }
+ 
+-int EC_METHOD_get_field_type(const EC_METHOD *meth)
++int __cdecl EC_METHOD_get_field_type(const EC_METHOD *meth)
+ {
+     return meth->field_type;
+ }
+@@ -326,7 +326,7 @@ static int ec_guess_cofactor(EC_GROUP *group) {
+     return ret;
+ }
+ 
+-int EC_GROUP_set_generator(EC_GROUP *group, const EC_POINT *generator,
++int __cdecl EC_GROUP_set_generator(EC_GROUP *group, const EC_POINT *generator,
+                            const BIGNUM *order, const BIGNUM *cofactor)
+ {
+     if (generator == NULL) {
+@@ -396,17 +396,17 @@ int EC_GROUP_set_generator(EC_GROUP *group, const EC_POINT *generator,
+     return 1;
+ }
+ 
+-const EC_POINT *EC_GROUP_get0_generator(const EC_GROUP *group)
++const EC_POINT * __cdecl EC_GROUP_get0_generator(const EC_GROUP *group)
+ {
+     return group->generator;
+ }
+ 
+-BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group)
++BN_MONT_CTX * __cdecl EC_GROUP_get_mont_data(const EC_GROUP *group)
+ {
+     return group->mont_data;
+ }
+ 
+-int EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx)
++int __cdecl EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx)
+ {
+     if (group->order == NULL)
+         return 0;
+@@ -416,17 +416,17 @@ int EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx)
+     return !BN_is_zero(order);
+ }
+ 
+-const BIGNUM *EC_GROUP_get0_order(const EC_GROUP *group)
++const BIGNUM * __cdecl EC_GROUP_get0_order(const EC_GROUP *group)
+ {
+     return group->order;
+ }
+ 
+-int EC_GROUP_order_bits(const EC_GROUP *group)
++int __cdecl EC_GROUP_order_bits(const EC_GROUP *group)
+ {
+     return group->meth->group_order_bits(group);
+ }
+ 
+-int EC_GROUP_get_cofactor(const EC_GROUP *group, BIGNUM *cofactor,
++int __cdecl EC_GROUP_get_cofactor(const EC_GROUP *group, BIGNUM *cofactor,
+                           BN_CTX *ctx)
+ {
+ 
+@@ -438,44 +438,44 @@ int EC_GROUP_get_cofactor(const EC_GROUP *group, BIGNUM *cofactor,
+     return !BN_is_zero(group->cofactor);
+ }
+ 
+-const BIGNUM *EC_GROUP_get0_cofactor(const EC_GROUP *group)
++const BIGNUM * __cdecl EC_GROUP_get0_cofactor(const EC_GROUP *group)
+ {
+     return group->cofactor;
+ }
+ 
+-void EC_GROUP_set_curve_name(EC_GROUP *group, int nid)
++void __cdecl EC_GROUP_set_curve_name(EC_GROUP *group, int nid)
+ {
+     group->curve_name = nid;
+ }
+ 
+-int EC_GROUP_get_curve_name(const EC_GROUP *group)
++int __cdecl EC_GROUP_get_curve_name(const EC_GROUP *group)
+ {
+     return group->curve_name;
+ }
+ 
+-void EC_GROUP_set_asn1_flag(EC_GROUP *group, int flag)
++void __cdecl EC_GROUP_set_asn1_flag(EC_GROUP *group, int flag)
+ {
+     group->asn1_flag = flag;
+ }
+ 
+-int EC_GROUP_get_asn1_flag(const EC_GROUP *group)
++int __cdecl EC_GROUP_get_asn1_flag(const EC_GROUP *group)
+ {
+     return group->asn1_flag;
+ }
+ 
+-void EC_GROUP_set_point_conversion_form(EC_GROUP *group,
++void __cdecl EC_GROUP_set_point_conversion_form(EC_GROUP *group,
+                                         point_conversion_form_t form)
+ {
+     group->asn1_form = form;
+ }
+ 
+-point_conversion_form_t EC_GROUP_get_point_conversion_form(const EC_GROUP
++point_conversion_form_t __cdecl EC_GROUP_get_point_conversion_form(const EC_GROUP
+                                                            *group)
+ {
+     return group->asn1_form;
+ }
+ 
+-size_t EC_GROUP_set_seed(EC_GROUP *group, const unsigned char *p, size_t len)
++size_t __cdecl EC_GROUP_set_seed(EC_GROUP *group, const unsigned char *p, size_t len)
+ {
+     OPENSSL_free(group->seed);
+     group->seed = NULL;
+@@ -494,17 +494,17 @@ size_t EC_GROUP_set_seed(EC_GROUP *group, const unsigned char *p, size_t len)
+     return len;
+ }
+ 
+-unsigned char *EC_GROUP_get0_seed(const EC_GROUP *group)
++unsigned char * __cdecl EC_GROUP_get0_seed(const EC_GROUP *group)
+ {
+     return group->seed;
+ }
+ 
+-size_t EC_GROUP_get_seed_len(const EC_GROUP *group)
++size_t __cdecl EC_GROUP_get_seed_len(const EC_GROUP *group)
+ {
+     return group->seed_len;
+ }
+ 
+-int EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
++int __cdecl EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+                        const BIGNUM *b, BN_CTX *ctx)
+ {
+     if (group->meth->group_set_curve == 0) {
+@@ -514,7 +514,7 @@ int EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+     return group->meth->group_set_curve(group, p, a, b, ctx);
+ }
+ 
+-int EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
++int __cdecl EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
+                        BN_CTX *ctx)
+ {
+     if (group->meth->group_get_curve == NULL) {
+@@ -525,26 +525,26 @@ int EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
  }
  
  #if OPENSSL_API_COMPAT < 0x10200000L
--int DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
-+int __cdecl DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp)
+-int EC_GROUP_set_curve_GFp(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
++int __cdecl EC_GROUP_set_curve_GFp(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+                            const BIGNUM *b, BN_CTX *ctx)
  {
-     return dsa->meth->dsa_sign_setup(dsa, ctx_in, kinvp, rp);
+     return EC_GROUP_set_curve(group, p, a, b, ctx);
  }
-diff --git a/crypto/dsa/dsa_vrf.c b/crypto/dsa/dsa_vrf.c
-index 21f98cd94e..fb1091ffb4 100644
---- a/crypto/dsa/dsa_vrf.c
-+++ b/crypto/dsa/dsa_vrf.c
-@@ -10,7 +10,7 @@
- #include "internal/cryptlib.h"
- #include "dsa_locl.h"
  
--int DSA_do_verify(const unsigned char *dgst, int dgst_len, DSA_SIG *sig,
-+int __cdecl DSA_do_verify(const unsigned char *dgst, int dgst_len, DSA_SIG *sig,
-                   DSA *dsa)
+-int EC_GROUP_get_curve_GFp(const EC_GROUP *group, BIGNUM *p, BIGNUM *a,
++int __cdecl EC_GROUP_get_curve_GFp(const EC_GROUP *group, BIGNUM *p, BIGNUM *a,
+                            BIGNUM *b, BN_CTX *ctx)
  {
-     return dsa->meth->dsa_do_verify(dgst, dgst_len, sig, dsa);
-diff --git a/engines/e_capi.c b/engines/e_capi.c
-index 7e466dc279..d2c1fd145d 100644
---- a/engines/e_capi.c
-+++ b/engines/e_capi.c
-@@ -132,7 +132,7 @@ static int __cdecl capi_rsa_priv_dec(int flen, const unsigned char *from,
- static int __cdecl capi_rsa_free(RSA *rsa);
+     return EC_GROUP_get_curve(group, p, a, b, ctx);
+ }
  
- # ifndef OPENSSL_NO_DSA
--static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
-+static DSA_SIG * __cdecl capi_dsa_do_sign(const unsigned char *digest, int dlen,
-                                  DSA *dsa);
- static int capi_dsa_free(DSA *dsa);
- # endif
-@@ -989,7 +989,7 @@ static int __cdecl capi_rsa_free(RSA *rsa)
- # ifndef OPENSSL_NO_DSA
- /* CryptoAPI DSA operations */
- 
--static DSA_SIG *capi_dsa_do_sign(const unsigned char *digest, int dlen,
-+static DSA_SIG * __cdecl capi_dsa_do_sign(const unsigned char *digest, int dlen,
-                                  DSA *dsa)
+ # ifndef OPENSSL_NO_EC2M
+-int EC_GROUP_set_curve_GF2m(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
++int __cdecl EC_GROUP_set_curve_GF2m(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+                             const BIGNUM *b, BN_CTX *ctx)
  {
-     HCRYPTHASH hash;
-diff --git a/include/openssl/dsa.h b/include/openssl/dsa.h
-index 8ac92c3c88..396c1f12e8 100644
---- a/include/openssl/dsa.h
-+++ b/include/openssl/dsa.h
-@@ -71,43 +71,43 @@ typedef struct DSA_SIG_st DSA_SIG;
- # define d2i_DSAparams_bio(bp,x) ASN1_d2i_bio_of(DSA,DSA_new,d2i_DSAparams,bp,x)
- # define i2d_DSAparams_bio(bp,x) ASN1_i2d_bio_of_const(DSA,i2d_DSAparams,bp,x)
+     return EC_GROUP_set_curve(group, p, a, b, ctx);
+ }
  
--DSA *DSAparams_dup(DSA *x);
--DSA_SIG *DSA_SIG_new(void);
--void DSA_SIG_free(DSA_SIG *a);
-+DSA * __cdecl DSAparams_dup(DSA *x);
-+DSA_SIG * __cdecl DSA_SIG_new(void);
-+void __cdecl DSA_SIG_free(DSA_SIG *a);
- int __cdecl i2d_DSA_SIG(const DSA_SIG *a, unsigned char **pp);
- DSA_SIG * __cdecl d2i_DSA_SIG(DSA_SIG **v, const unsigned char **pp, long length);
--void DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
--int DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
-+void __cdecl DSA_SIG_get0(const DSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
-+int __cdecl DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s);
- 
--DSA_SIG *DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
--int DSA_do_verify(const unsigned char *dgst, int dgst_len,
-+DSA_SIG * __cdecl DSA_do_sign(const unsigned char *dgst, int dlen, DSA *dsa);
-+int __cdecl DSA_do_verify(const unsigned char *dgst, int dgst_len,
-                   DSA_SIG *sig, DSA *dsa);
- 
--const DSA_METHOD *DSA_OpenSSL(void);
-+const DSA_METHOD * __cdecl DSA_OpenSSL(void);
- 
--void DSA_set_default_method(const DSA_METHOD *);
--const DSA_METHOD *DSA_get_default_method(void);
--int DSA_set_method(DSA *dsa, const DSA_METHOD *);
--const DSA_METHOD *DSA_get_method(DSA *d);
-+void __cdecl DSA_set_default_method(const DSA_METHOD *);
-+const DSA_METHOD * __cdecl DSA_get_default_method(void);
-+int __cdecl DSA_set_method(DSA *dsa, const DSA_METHOD *);
-+const DSA_METHOD * __cdecl DSA_get_method(DSA *d);
- 
- DSA * __cdecl DSA_new(void);
--DSA *DSA_new_method(ENGINE *engine);
--void DSA_free(DSA *r);
-+DSA * __cdecl DSA_new_method(ENGINE *engine);
-+void __cdecl DSA_free(DSA *r);
- /* "up" the DSA object's reference count */
--int DSA_up_ref(DSA *r);
--int DSA_size(const DSA *);
--int DSA_bits(const DSA *d);
--int DSA_security_bits(const DSA *d);
-+int __cdecl DSA_up_ref(DSA *r);
-+int __cdecl DSA_size(const DSA *);
-+int __cdecl DSA_bits(const DSA *d);
-+int __cdecl DSA_security_bits(const DSA *d);
-         /* next 4 return -1 on error */
--DEPRECATEDIN_1_2_0(int DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp))
--int DSA_sign(int type, const unsigned char *dgst, int dlen,
-+DEPRECATEDIN_1_2_0(int __cdecl DSA_sign_setup(DSA *dsa, BN_CTX *ctx_in, BIGNUM **kinvp, BIGNUM **rp))
-+int __cdecl DSA_sign(int type, const unsigned char *dgst, int dlen,
-              unsigned char *sig, unsigned int *siglen, DSA *dsa);
--int DSA_verify(int type, const unsigned char *dgst, int dgst_len,
-+int __cdecl DSA_verify(int type, const unsigned char *dgst, int dgst_len,
-                const unsigned char *sigbuf, int siglen, DSA *dsa);
- #define DSA_get_ex_new_index(l, p, newf, dupf, freef) \
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DSA, l, p, newf, dupf, freef)
--int DSA_set_ex_data(DSA *d, int idx, void *arg);
--void *DSA_get_ex_data(DSA *d, int idx);
-+int __cdecl DSA_set_ex_data(DSA *d, int idx, void *arg);
-+void * __cdecl DSA_get_ex_data(DSA *d, int idx);
- 
- DSA * __cdecl d2i_DSAPublicKey(DSA **a, const unsigned char **pp, long length);
- DSA * __cdecl d2i_DSAPrivateKey(DSA **a, const unsigned char **pp, long length);
-@@ -124,21 +124,21 @@ DEPRECATEDIN_0_9_8(DSA *DSA_generate_parameters(int bits,
-                                                 void *cb_arg))
- 
- /* New version */
--int DSA_generate_parameters_ex(DSA *dsa, int bits,
-+int __cdecl DSA_generate_parameters_ex(DSA *dsa, int bits,
-                                const unsigned char *seed, int seed_len,
-                                int *counter_ret, unsigned long *h_ret,
-                                BN_GENCB *cb);
- 
--int DSA_generate_key(DSA *a);
-+int __cdecl DSA_generate_key(DSA *a);
- int __cdecl i2d_DSAPublicKey(const DSA *a, unsigned char **pp);
- int __cdecl i2d_DSAPrivateKey(const DSA *a, unsigned char **pp);
- int __cdecl i2d_DSAparams(const DSA *a, unsigned char **pp);
- 
--int DSAparams_print(BIO *bp, const DSA *x);
--int DSA_print(BIO *bp, const DSA *x, int off);
-+int __cdecl DSAparams_print(BIO *bp, const DSA *x);
-+int __cdecl DSA_print(BIO *bp, const DSA *x, int off);
- # ifndef OPENSSL_NO_STDIO
--int DSAparams_print_fp(FILE *fp, const DSA *x);
--int DSA_print_fp(FILE *bp, const DSA *x, int off);
-+int __cdecl DSAparams_print_fp(FILE *fp, const DSA *x);
-+int __cdecl DSA_print_fp(FILE *bp, const DSA *x, int off);
+-int EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p, BIGNUM *a,
++int __cdecl EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p, BIGNUM *a,
+                             BIGNUM *b, BN_CTX *ctx)
+ {
+     return EC_GROUP_get_curve(group, p, a, b, ctx);
+@@ -552,7 +552,7 @@ int EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p, BIGNUM *a,
  # endif
+ #endif
  
- # define DSS_prime_checks 64
-@@ -156,7 +156,7 @@ int DSA_print_fp(FILE *bp, const DSA *x, int off);
-  * Convert DSA structure (key or just parameters) into DH structure (be
-  * careful to avoid small subgroup attacks when using this!)
+-int EC_GROUP_get_degree(const EC_GROUP *group)
++int __cdecl EC_GROUP_get_degree(const EC_GROUP *group)
+ {
+     if (group->meth->group_get_degree == 0) {
+         ECerr(EC_F_EC_GROUP_GET_DEGREE, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+@@ -561,7 +561,7 @@ int EC_GROUP_get_degree(const EC_GROUP *group)
+     return group->meth->group_get_degree(group);
+ }
+ 
+-int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
++int __cdecl EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
+ {
+     if (group->meth->group_check_discriminant == 0) {
+         ECerr(EC_F_EC_GROUP_CHECK_DISCRIMINANT,
+@@ -571,7 +571,7 @@ int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx)
+     return group->meth->group_check_discriminant(group, ctx);
+ }
+ 
+-int EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx)
++int __cdecl EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx)
+ {
+     int r = 0;
+     BIGNUM *a1, *a2, *a3, *b1, *b2, *b3;
+@@ -646,7 +646,7 @@ int EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx)
+ 
+ /* functions for EC_POINT objects */
+ 
+-EC_POINT *EC_POINT_new(const EC_GROUP *group)
++EC_POINT * __cdecl EC_POINT_new(const EC_GROUP *group)
+ {
+     EC_POINT *ret;
+ 
+@@ -676,7 +676,7 @@ EC_POINT *EC_POINT_new(const EC_GROUP *group)
+     return ret;
+ }
+ 
+-void EC_POINT_free(EC_POINT *point)
++void __cdecl EC_POINT_free(EC_POINT *point)
+ {
+     if (!point)
+         return;
+@@ -686,7 +686,7 @@ void EC_POINT_free(EC_POINT *point)
+     OPENSSL_free(point);
+ }
+ 
+-void EC_POINT_clear_free(EC_POINT *point)
++void __cdecl EC_POINT_clear_free(EC_POINT *point)
+ {
+     if (!point)
+         return;
+@@ -698,7 +698,7 @@ void EC_POINT_clear_free(EC_POINT *point)
+     OPENSSL_clear_free(point, sizeof(*point));
+ }
+ 
+-int EC_POINT_copy(EC_POINT *dest, const EC_POINT *src)
++int __cdecl EC_POINT_copy(EC_POINT *dest, const EC_POINT *src)
+ {
+     if (dest->meth->point_copy == 0) {
+         ECerr(EC_F_EC_POINT_COPY, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+@@ -716,7 +716,7 @@ int EC_POINT_copy(EC_POINT *dest, const EC_POINT *src)
+     return dest->meth->point_copy(dest, src);
+ }
+ 
+-EC_POINT *EC_POINT_dup(const EC_POINT *a, const EC_GROUP *group)
++EC_POINT * __cdecl EC_POINT_dup(const EC_POINT *a, const EC_GROUP *group)
+ {
+     EC_POINT *t;
+     int r;
+@@ -735,12 +735,12 @@ EC_POINT *EC_POINT_dup(const EC_POINT *a, const EC_GROUP *group)
+     return t;
+ }
+ 
+-const EC_METHOD *EC_POINT_method_of(const EC_POINT *point)
++const EC_METHOD * __cdecl EC_POINT_method_of(const EC_POINT *point)
+ {
+     return point->meth;
+ }
+ 
+-int EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point)
++int __cdecl EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point)
+ {
+     if (group->meth->point_set_to_infinity == 0) {
+         ECerr(EC_F_EC_POINT_SET_TO_INFINITY,
+@@ -754,7 +754,7 @@ int EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point)
+     return group->meth->point_set_to_infinity(group, point);
+ }
+ 
+-int EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                              EC_POINT *point, const BIGNUM *x,
+                                              const BIGNUM *y, const BIGNUM *z,
+                                              BN_CTX *ctx)
+@@ -773,7 +773,7 @@ int EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                                               y, z, ctx);
+ }
+ 
+-int EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                              const EC_POINT *point, BIGNUM *x,
+                                              BIGNUM *y, BIGNUM *z,
+                                              BN_CTX *ctx)
+@@ -792,7 +792,7 @@ int EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                                               y, z, ctx);
+ }
+ 
+-int EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *point,
++int __cdecl EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *point,
+                                     const BIGNUM *x, const BIGNUM *y,
+                                     BN_CTX *ctx)
+ {
+@@ -816,7 +816,7 @@ int EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *point,
+ }
+ 
+ #if OPENSSL_API_COMPAT < 0x10200000L
+-int EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group,
+                                         EC_POINT *point, const BIGNUM *x,
+                                         const BIGNUM *y, BN_CTX *ctx)
+ {
+@@ -824,7 +824,7 @@ int EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group,
+ }
+ 
+ # ifndef OPENSSL_NO_EC2M
+-int EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *group,
++int __cdecl EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *group,
+                                          EC_POINT *point, const BIGNUM *x,
+                                          const BIGNUM *y, BN_CTX *ctx)
+ {
+@@ -833,7 +833,7 @@ int EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *group,
+ # endif
+ #endif
+ 
+-int EC_POINT_get_affine_coordinates(const EC_GROUP *group,
++int __cdecl EC_POINT_get_affine_coordinates(const EC_GROUP *group,
+                                     const EC_POINT *point, BIGNUM *x, BIGNUM *y,
+                                     BN_CTX *ctx)
+ {
+@@ -854,7 +854,7 @@ int EC_POINT_get_affine_coordinates(const EC_GROUP *group,
+ }
+ 
+ #if OPENSSL_API_COMPAT < 0x10200000L
+-int EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group,
+                                         const EC_POINT *point, BIGNUM *x,
+                                         BIGNUM *y, BN_CTX *ctx)
+ {
+@@ -862,7 +862,7 @@ int EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group,
+ }
+ 
+ # ifndef OPENSSL_NO_EC2M
+-int EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *group,
++int __cdecl EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *group,
+                                          const EC_POINT *point, BIGNUM *x,
+                                          BIGNUM *y, BN_CTX *ctx)
+ {
+@@ -871,7 +871,7 @@ int EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *group,
+ # endif
+ #endif
+ 
+-int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
++int __cdecl EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+                  const EC_POINT *b, BN_CTX *ctx)
+ {
+     if (group->meth->add == 0) {
+@@ -886,7 +886,7 @@ int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+     return group->meth->add(group, r, a, b, ctx);
+ }
+ 
+-int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
++int __cdecl EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+                  BN_CTX *ctx)
+ {
+     if (group->meth->dbl == 0) {
+@@ -900,7 +900,7 @@ int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+     return group->meth->dbl(group, r, a, ctx);
+ }
+ 
+-int EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx)
++int __cdecl EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx)
+ {
+     if (group->meth->invert == 0) {
+         ECerr(EC_F_EC_POINT_INVERT, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+@@ -913,7 +913,7 @@ int EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx)
+     return group->meth->invert(group, a, ctx);
+ }
+ 
+-int EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *point)
++int __cdecl EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *point)
+ {
+     if (group->meth->is_at_infinity == 0) {
+         ECerr(EC_F_EC_POINT_IS_AT_INFINITY,
+@@ -934,7 +934,7 @@ int EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *point)
+  *  0: The point is not on the curve
+  * -1: An error occurred
   */
--DH *DSA_dup_DH(const DSA *r);
-+DH * __cdecl DSA_dup_DH(const DSA *r);
+-int EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
++int __cdecl EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
+                          BN_CTX *ctx)
+ {
+     if (group->meth->is_on_curve == 0) {
+@@ -948,7 +948,7 @@ int EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
+     return group->meth->is_on_curve(group, point, ctx);
+ }
+ 
+-int EC_POINT_cmp(const EC_GROUP *group, const EC_POINT *a, const EC_POINT *b,
++int __cdecl EC_POINT_cmp(const EC_GROUP *group, const EC_POINT *a, const EC_POINT *b,
+                  BN_CTX *ctx)
+ {
+     if (group->meth->point_cmp == 0) {
+@@ -962,7 +962,7 @@ int EC_POINT_cmp(const EC_GROUP *group, const EC_POINT *a, const EC_POINT *b,
+     return group->meth->point_cmp(group, a, b, ctx);
+ }
+ 
+-int EC_POINT_make_affine(const EC_GROUP *group, EC_POINT *point, BN_CTX *ctx)
++int __cdecl EC_POINT_make_affine(const EC_GROUP *group, EC_POINT *point, BN_CTX *ctx)
+ {
+     if (group->meth->make_affine == 0) {
+         ECerr(EC_F_EC_POINT_MAKE_AFFINE, ERR_R_SHOULD_NOT_HAVE_BEEN_CALLED);
+@@ -975,7 +975,7 @@ int EC_POINT_make_affine(const EC_GROUP *group, EC_POINT *point, BN_CTX *ctx)
+     return group->meth->make_affine(group, point, ctx);
+ }
+ 
+-int EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
++int __cdecl EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
+                           EC_POINT *points[], BN_CTX *ctx)
+ {
+     size_t i;
+@@ -999,7 +999,7 @@ int EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
+  * methods.
+  */
+ 
+-int EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
++int __cdecl EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
+                   size_t num, const EC_POINT *points[],
+                   const BIGNUM *scalars[], BN_CTX *ctx)
+ {
+@@ -1037,7 +1037,7 @@ int EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *scalar,
+     return ret;
+ }
+ 
+-int EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *g_scalar,
++int __cdecl EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *g_scalar,
+                  const EC_POINT *point, const BIGNUM *p_scalar, BN_CTX *ctx)
+ {
+     /* just a convenient interface to EC_POINTs_mul() */
+@@ -1053,7 +1053,7 @@ int EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *g_scalar,
+                           && p_scalar != NULL), points, scalars, ctx);
+ }
+ 
+-int EC_GROUP_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
++int __cdecl EC_GROUP_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
+ {
+     if (group->meth->mul == 0)
+         /* use default */
+@@ -1065,7 +1065,7 @@ int EC_GROUP_precompute_mult(EC_GROUP *group, BN_CTX *ctx)
+         return 1;               /* nothing to do, so report success */
+ }
+ 
+-int EC_GROUP_have_precompute_mult(const EC_GROUP *group)
++int __cdecl EC_GROUP_have_precompute_mult(const EC_GROUP *group)
+ {
+     if (group->meth->mul == 0)
+         /* use default */
+@@ -1111,12 +1111,12 @@ static int ec_precompute_mont_data(EC_GROUP *group)
+     return ret;
+ }
+ 
+-int EC_KEY_set_ex_data(EC_KEY *key, int idx, void *arg)
++int __cdecl EC_KEY_set_ex_data(EC_KEY *key, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&key->ex_data, idx, arg);
+ }
+ 
+-void *EC_KEY_get_ex_data(const EC_KEY *key, int idx)
++void * __cdecl EC_KEY_get_ex_data(const EC_KEY *key, int idx)
+ {
+     return CRYPTO_get_ex_data(&key->ex_data, idx);
+ }
+diff --git a/crypto/ec/ec_oct.c b/crypto/ec/ec_oct.c
+index 522f79e673..8ce78e8084 100644
+--- a/crypto/ec/ec_oct.c
++++ b/crypto/ec/ec_oct.c
+@@ -15,7 +15,7 @@
+ 
+ #include "ec_lcl.h"
+ 
+-int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
++int __cdecl EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
+                                         const BIGNUM *x, int y_bit, BN_CTX *ctx)
+ {
+     if (group->meth->point_set_compressed_coordinates == NULL
+@@ -50,7 +50,7 @@ int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *point,
+ }
+ 
+ #if OPENSSL_API_COMPAT < 0x10200000L
+-int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
+                                             EC_POINT *point, const BIGNUM *x,
+                                             int y_bit, BN_CTX *ctx)
+ {
+@@ -58,7 +58,7 @@ int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
+ }
+ 
+ # ifndef OPENSSL_NO_EC2M
+-int EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
++int __cdecl EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
+                                              EC_POINT *point, const BIGNUM *x,
+                                              int y_bit, BN_CTX *ctx)
+ {
+@@ -67,7 +67,7 @@ int EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
+ # endif
+ #endif
+ 
+-size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
++size_t __cdecl EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
+                           point_conversion_form_t form, unsigned char *buf,
+                           size_t len, BN_CTX *ctx)
+ {
+@@ -98,7 +98,7 @@ size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *point,
+     return group->meth->point2oct(group, point, form, buf, len, ctx);
+ }
+ 
+-int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
++int __cdecl EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
+                        const unsigned char *buf, size_t len, BN_CTX *ctx)
+ {
+     if (group->meth->oct2point == 0
+@@ -126,7 +126,7 @@ int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *point,
+     return group->meth->oct2point(group, point, buf, len, ctx);
+ }
+ 
+-size_t EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
++size_t __cdecl EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
+                           point_conversion_form_t form,
+                           unsigned char **pbuf, BN_CTX *ctx)
+ {
+diff --git a/crypto/ec/ec_print.c b/crypto/ec/ec_print.c
+index 027a51928a..4e9ec1f2df 100644
+--- a/crypto/ec/ec_print.c
++++ b/crypto/ec/ec_print.c
+@@ -11,7 +11,7 @@
+ #include <openssl/err.h>
+ #include "ec_lcl.h"
+ 
+-BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
++BIGNUM * __cdecl EC_POINT_point2bn(const EC_GROUP *group,
+                           const EC_POINT *point,
+                           point_conversion_form_t form,
+                           BIGNUM *ret, BN_CTX *ctx)
+@@ -31,7 +31,7 @@ BIGNUM *EC_POINT_point2bn(const EC_GROUP *group,
+     return ret;
+ }
+ 
+-EC_POINT *EC_POINT_bn2point(const EC_GROUP *group,
++EC_POINT * __cdecl EC_POINT_bn2point(const EC_GROUP *group,
+                             const BIGNUM *bn, EC_POINT *point, BN_CTX *ctx)
+ {
+     size_t buf_len = 0;
+@@ -72,7 +72,7 @@ EC_POINT *EC_POINT_bn2point(const EC_GROUP *group,
+ static const char *HEX_DIGITS = "0123456789ABCDEF";
+ 
+ /* the return value must be freed (using OPENSSL_free()) */
+-char *EC_POINT_point2hex(const EC_GROUP *group,
++char * __cdecl EC_POINT_point2hex(const EC_GROUP *group,
+                          const EC_POINT *point,
+                          point_conversion_form_t form, BN_CTX *ctx)
+ {
+@@ -104,7 +104,7 @@ char *EC_POINT_point2hex(const EC_GROUP *group,
+     return ret;
+ }
+ 
+-EC_POINT *EC_POINT_hex2point(const EC_GROUP *group,
++EC_POINT * __cdecl EC_POINT_hex2point(const EC_GROUP *group,
+                              const char *buf, EC_POINT *point, BN_CTX *ctx)
+ {
+     EC_POINT *ret = NULL;
+diff --git a/crypto/ec/ecdh_kdf.c b/crypto/ec/ecdh_kdf.c
+index d686f9d897..ee9a659d30 100644
+--- a/crypto/ec/ecdh_kdf.c
++++ b/crypto/ec/ecdh_kdf.c
+@@ -72,7 +72,7 @@ int ecdh_KDF_X9_63(unsigned char *out, size_t outlen,
+  * The old name for ecdh_KDF_X9_63
+  * Retained for ABI compatibility
+  */
+-int ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
++int __cdecl ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
+                    const unsigned char *Z, size_t Zlen,
+                    const unsigned char *sinfo, size_t sinfolen,
+                    const EVP_MD *md)
+diff --git a/crypto/ec/ecdsa_sign.c b/crypto/ec/ecdsa_sign.c
+index aee06e991b..63885b23ab 100644
+--- a/crypto/ec/ecdsa_sign.c
++++ b/crypto/ec/ecdsa_sign.c
+@@ -11,12 +11,12 @@
+ #include "ec_lcl.h"
+ #include <openssl/err.h>
+ 
+-ECDSA_SIG *ECDSA_do_sign(const unsigned char *dgst, int dlen, EC_KEY *eckey)
++ECDSA_SIG * __cdecl ECDSA_do_sign(const unsigned char *dgst, int dlen, EC_KEY *eckey)
+ {
+     return ECDSA_do_sign_ex(dgst, dlen, NULL, NULL, eckey);
+ }
+ 
+-ECDSA_SIG *ECDSA_do_sign_ex(const unsigned char *dgst, int dlen,
++ECDSA_SIG * __cdecl ECDSA_do_sign_ex(const unsigned char *dgst, int dlen,
+                             const BIGNUM *kinv, const BIGNUM *rp,
+                             EC_KEY *eckey)
+ {
+@@ -26,13 +26,13 @@ ECDSA_SIG *ECDSA_do_sign_ex(const unsigned char *dgst, int dlen,
+     return NULL;
+ }
+ 
+-int ECDSA_sign(int type, const unsigned char *dgst, int dlen, unsigned char
++int __cdecl ECDSA_sign(int type, const unsigned char *dgst, int dlen, unsigned char
+                *sig, unsigned int *siglen, EC_KEY *eckey)
+ {
+     return ECDSA_sign_ex(type, dgst, dlen, sig, siglen, NULL, NULL, eckey);
+ }
+ 
+-int ECDSA_sign_ex(int type, const unsigned char *dgst, int dlen,
++int __cdecl ECDSA_sign_ex(int type, const unsigned char *dgst, int dlen,
+                   unsigned char *sig, unsigned int *siglen, const BIGNUM *kinv,
+                   const BIGNUM *r, EC_KEY *eckey)
+ {
+@@ -42,7 +42,7 @@ int ECDSA_sign_ex(int type, const unsigned char *dgst, int dlen,
+     return 0;
+ }
+ 
+-int ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in, BIGNUM **kinvp,
++int __cdecl ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx_in, BIGNUM **kinvp,
+                      BIGNUM **rp)
+ {
+     if (eckey->meth->sign_setup != NULL)
+diff --git a/crypto/ec/ecdsa_vrf.c b/crypto/ec/ecdsa_vrf.c
+index f61a20063e..1ad144e08c 100644
+--- a/crypto/ec/ecdsa_vrf.c
++++ b/crypto/ec/ecdsa_vrf.c
+@@ -17,7 +17,7 @@
+  *      0: incorrect signature
+  *     -1: error
+  */
+-int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
++int __cdecl ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
+                     const ECDSA_SIG *sig, EC_KEY *eckey)
+ {
+     if (eckey->meth->verify_sig != NULL)
+@@ -32,7 +32,7 @@ int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
+  *      0: incorrect signature
+  *     -1: error
+  */
+-int ECDSA_verify(int type, const unsigned char *dgst, int dgst_len,
++int __cdecl ECDSA_verify(int type, const unsigned char *dgst, int dgst_len,
+                  const unsigned char *sigbuf, int sig_len, EC_KEY *eckey)
+ {
+     if (eckey->meth->verify != NULL)
+diff --git a/crypto/ec/eck_prn.c b/crypto/ec/eck_prn.c
+index b538fadcb1..01c5909842 100644
+--- a/crypto/ec/eck_prn.c
++++ b/crypto/ec/eck_prn.c
+@@ -15,7 +15,7 @@
+ #include <openssl/bn.h>
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off)
++int __cdecl ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off)
+ {
+     BIO *b;
+     int ret;
+@@ -30,7 +30,7 @@ int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off)
+     return ret;
+ }
+ 
+-int EC_KEY_print_fp(FILE *fp, const EC_KEY *x, int off)
++int __cdecl EC_KEY_print_fp(FILE *fp, const EC_KEY *x, int off)
+ {
+     BIO *b;
+     int ret;
+@@ -45,7 +45,7 @@ int EC_KEY_print_fp(FILE *fp, const EC_KEY *x, int off)
+     return ret;
+ }
+ 
+-int ECParameters_print_fp(FILE *fp, const EC_KEY *x)
++int __cdecl ECParameters_print_fp(FILE *fp, const EC_KEY *x)
+ {
+     BIO *b;
+     int ret;
+@@ -64,7 +64,7 @@ int ECParameters_print_fp(FILE *fp, const EC_KEY *x)
+ static int print_bin(BIO *fp, const char *str, const unsigned char *num,
+                      size_t len, int off);
+ 
+-int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
++int __cdecl ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off)
+ {
+     int ret = 0, reason = ERR_R_BIO_LIB;
+     BN_CTX *ctx = NULL;
+diff --git a/crypto/ec/ecp_mont.c b/crypto/ec/ecp_mont.c
+index 252e66ef37..2e7a831802 100644
+--- a/crypto/ec/ecp_mont.c
++++ b/crypto/ec/ecp_mont.c
+@@ -12,7 +12,7 @@
+ 
+ #include "ec_lcl.h"
+ 
+-const EC_METHOD *EC_GFp_mont_method(void)
++const EC_METHOD * __cdecl EC_GFp_mont_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ecp_nist.c b/crypto/ec/ecp_nist.c
+index 5eaa99d840..2b0a10f17b 100644
+--- a/crypto/ec/ecp_nist.c
++++ b/crypto/ec/ecp_nist.c
+@@ -14,7 +14,7 @@
+ #include <openssl/obj_mac.h>
+ #include "ec_lcl.h"
+ 
+-const EC_METHOD *EC_GFp_nist_method(void)
++const EC_METHOD * __cdecl EC_GFp_nist_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ecp_nistp224.c b/crypto/ec/ecp_nistp224.c
+index fbbdb9d938..2634056570 100644
+--- a/crypto/ec/ecp_nistp224.c
++++ b/crypto/ec/ecp_nistp224.c
+@@ -239,7 +239,7 @@ struct nistp224_pre_comp_st {
+     CRYPTO_RWLOCK *lock;
+ };
+ 
+-const EC_METHOD *EC_GFp_nistp224_method(void)
++const EC_METHOD * __cdecl EC_GFp_nistp224_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ecp_nistp256.c b/crypto/ec/ecp_nistp256.c
+index 22ba69aa44..2af40d97eb 100644
+--- a/crypto/ec/ecp_nistp256.c
++++ b/crypto/ec/ecp_nistp256.c
+@@ -1756,7 +1756,7 @@ struct nistp256_pre_comp_st {
+     CRYPTO_RWLOCK *lock;
+ };
+ 
+-const EC_METHOD *EC_GFp_nistp256_method(void)
++const EC_METHOD * __cdecl EC_GFp_nistp256_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ecp_nistp521.c b/crypto/ec/ecp_nistp521.c
+index 6340f48279..ce6e39510b 100644
+--- a/crypto/ec/ecp_nistp521.c
++++ b/crypto/ec/ecp_nistp521.c
+@@ -1598,7 +1598,7 @@ struct nistp521_pre_comp_st {
+     CRYPTO_RWLOCK *lock;
+ };
+ 
+-const EC_METHOD *EC_GFp_nistp521_method(void)
++const EC_METHOD * __cdecl EC_GFp_nistp521_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/crypto/ec/ecp_smpl.c b/crypto/ec/ecp_smpl.c
+index e6e4c9d2cb..3aab2f0220 100644
+--- a/crypto/ec/ecp_smpl.c
++++ b/crypto/ec/ecp_smpl.c
+@@ -13,7 +13,7 @@
+ 
+ #include "ec_lcl.h"
+ 
+-const EC_METHOD *EC_GFp_simple_method(void)
++const EC_METHOD * __cdecl EC_GFp_simple_method(void)
+ {
+     static const EC_METHOD ret = {
+         EC_FLAGS_DEFAULT_OCT,
+diff --git a/include/openssl/ebcdic.h b/include/openssl/ebcdic.h
+index aa01285599..c672624cc0 100644
+--- a/include/openssl/ebcdic.h
++++ b/include/openssl/ebcdic.h
+@@ -24,8 +24,8 @@ extern "C" {
+ 
+ extern const unsigned char os_toascii[256];
+ extern const unsigned char os_toebcdic[256];
+-void *ebcdic2ascii(void *dest, const void *srce, size_t count);
+-void *ascii2ebcdic(void *dest, const void *srce, size_t count);
++void * __cdecl ebcdic2ascii(void *dest, const void *srce, size_t count);
++void * __cdecl ascii2ebcdic(void *dest, const void *srce, size_t count);
+ 
+ #ifdef  __cplusplus
+ }
+diff --git a/include/openssl/ec.h b/include/openssl/ec.h
+index 0cf364a219..1e899652c6 100644
+--- a/include/openssl/ec.h
++++ b/include/openssl/ec.h
+@@ -55,33 +55,33 @@ typedef struct ec_parameters_st ECPARAMETERS;
+  *  optimized methods.
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_simple_method(void);
++const EC_METHOD * __cdecl EC_GFp_simple_method(void);
+ 
+ /** Returns GFp methods using montgomery multiplication.
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_mont_method(void);
++const EC_METHOD * __cdecl EC_GFp_mont_method(void);
+ 
+ /** Returns GFp methods using optimized methods for NIST recommended curves
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_nist_method(void);
++const EC_METHOD * __cdecl EC_GFp_nist_method(void);
+ 
+ # ifndef OPENSSL_NO_EC_NISTP_64_GCC_128
+ /** Returns 64-bit optimized methods for nistp224
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_nistp224_method(void);
++const EC_METHOD * __cdecl EC_GFp_nistp224_method(void);
+ 
+ /** Returns 64-bit optimized methods for nistp256
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_nistp256_method(void);
++const EC_METHOD * __cdecl EC_GFp_nistp256_method(void);
+ 
+ /** Returns 64-bit optimized methods for nistp521
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GFp_nistp521_method(void);
++const EC_METHOD * __cdecl EC_GFp_nistp521_method(void);
  # endif
  
- # define EVP_PKEY_CTX_set_dsa_paramgen_bits(ctx, nbits) \
-@@ -167,68 +167,68 @@ DH *DSA_dup_DH(const DSA *r);
- # define EVP_PKEY_CTRL_DSA_PARAMGEN_Q_BITS       (EVP_PKEY_ALG_CTRL + 2)
- # define EVP_PKEY_CTRL_DSA_PARAMGEN_MD           (EVP_PKEY_ALG_CTRL + 3)
+ # ifndef OPENSSL_NO_EC2M
+@@ -92,7 +92,7 @@ const EC_METHOD *EC_GFp_nistp521_method(void);
+ /** Returns the basic GF2m ec method
+  *  \return  EC_METHOD object
+  */
+-const EC_METHOD *EC_GF2m_simple_method(void);
++const EC_METHOD * __cdecl EC_GF2m_simple_method(void);
  
--void DSA_get0_pqg(const DSA *d,
-+void __cdecl DSA_get0_pqg(const DSA *d,
-                   const BIGNUM **p, const BIGNUM **q, const BIGNUM **g);
--int DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g);
--void DSA_get0_key(const DSA *d,
-+int __cdecl DSA_set0_pqg(DSA *d, BIGNUM *p, BIGNUM *q, BIGNUM *g);
-+void __cdecl DSA_get0_key(const DSA *d,
-                   const BIGNUM **pub_key, const BIGNUM **priv_key);
--int DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key);
--const BIGNUM *DSA_get0_p(const DSA *d);
--const BIGNUM *DSA_get0_q(const DSA *d);
--const BIGNUM *DSA_get0_g(const DSA *d);
--const BIGNUM *DSA_get0_pub_key(const DSA *d);
--const BIGNUM *DSA_get0_priv_key(const DSA *d);
--void DSA_clear_flags(DSA *d, int flags);
--int DSA_test_flags(const DSA *d, int flags);
--void DSA_set_flags(DSA *d, int flags);
--ENGINE *DSA_get0_engine(DSA *d);
--
--DSA_METHOD *DSA_meth_new(const char *name, int flags);
--void DSA_meth_free(DSA_METHOD *dsam);
--DSA_METHOD *DSA_meth_dup(const DSA_METHOD *dsam);
--const char *DSA_meth_get0_name(const DSA_METHOD *dsam);
--int DSA_meth_set1_name(DSA_METHOD *dsam, const char *name);
--int DSA_meth_get_flags(const DSA_METHOD *dsam);
--int DSA_meth_set_flags(DSA_METHOD *dsam, int flags);
--void *DSA_meth_get0_app_data(const DSA_METHOD *dsam);
--int DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data);
--DSA_SIG *(*DSA_meth_get_sign(const DSA_METHOD *dsam))
-+int __cdecl DSA_set0_key(DSA *d, BIGNUM *pub_key, BIGNUM *priv_key);
-+const BIGNUM * __cdecl DSA_get0_p(const DSA *d);
-+const BIGNUM * __cdecl DSA_get0_q(const DSA *d);
-+const BIGNUM * __cdecl DSA_get0_g(const DSA *d);
-+const BIGNUM * __cdecl DSA_get0_pub_key(const DSA *d);
-+const BIGNUM * __cdecl DSA_get0_priv_key(const DSA *d);
-+void __cdecl DSA_clear_flags(DSA *d, int flags);
-+int __cdecl DSA_test_flags(const DSA *d, int flags);
-+void __cdecl DSA_set_flags(DSA *d, int flags);
-+ENGINE * __cdecl DSA_get0_engine(DSA *d);
-+
-+DSA_METHOD * __cdecl DSA_meth_new(const char *name, int flags);
-+void __cdecl DSA_meth_free(DSA_METHOD *dsam);
-+DSA_METHOD * __cdecl DSA_meth_dup(const DSA_METHOD *dsam);
-+const char * __cdecl DSA_meth_get0_name(const DSA_METHOD *dsam);
-+int __cdecl DSA_meth_set1_name(DSA_METHOD *dsam, const char *name);
-+int __cdecl DSA_meth_get_flags(const DSA_METHOD *dsam);
-+int __cdecl DSA_meth_set_flags(DSA_METHOD *dsam, int flags);
-+void * __cdecl DSA_meth_get0_app_data(const DSA_METHOD *dsam);
-+int __cdecl DSA_meth_set0_app_data(DSA_METHOD *dsam, void *app_data);
-+DSA_SIG *(__cdecl *DSA_meth_get_sign(const DSA_METHOD *dsam))
-         (const unsigned char *, int, DSA *);
--int DSA_meth_set_sign(DSA_METHOD *dsam,
--                       DSA_SIG *(*sign) (const unsigned char *, int, DSA *));
--int (*DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
-+int __cdecl DSA_meth_set_sign(DSA_METHOD *dsam,
-+                       DSA_SIG *(__cdecl *sign) (const unsigned char *, int, DSA *));
-+int (* __cdecl DSA_meth_get_sign_setup(const DSA_METHOD *dsam))
-         (DSA *, BN_CTX *, BIGNUM **, BIGNUM **);
--int DSA_meth_set_sign_setup(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_sign_setup(DSA_METHOD *dsam,
-         int (*sign_setup) (DSA *, BN_CTX *, BIGNUM **, BIGNUM **));
--int (*DSA_meth_get_verify(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_verify(const DSA_METHOD *dsam))
-         (const unsigned char *, int, DSA_SIG *, DSA *);
--int DSA_meth_set_verify(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_verify(DSA_METHOD *dsam,
-     int (*verify) (const unsigned char *, int, DSA_SIG *, DSA *));
--int (*DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_mod_exp(const DSA_METHOD *dsam))
-         (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
-          const BIGNUM *, const BIGNUM *, BN_CTX *, BN_MONT_CTX *);
--int DSA_meth_set_mod_exp(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_mod_exp(DSA_METHOD *dsam,
-     int (*mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
-                     const BIGNUM *, const BIGNUM *, const BIGNUM *, BN_CTX *,
-                     BN_MONT_CTX *));
--int (*DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_bn_mod_exp(const DSA_METHOD *dsam))
-     (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *, const BIGNUM *,
-      BN_CTX *, BN_MONT_CTX *);
--int DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_bn_mod_exp(DSA_METHOD *dsam,
-     int (*bn_mod_exp) (DSA *, BIGNUM *, const BIGNUM *, const BIGNUM *,
-                        const BIGNUM *, BN_CTX *, BN_MONT_CTX *));
--int (*DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *);
--int DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *));
--int (*DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *);
--int DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *));
--int (*DSA_meth_get_paramgen(const DSA_METHOD *dsam))
-+int (* __cdecl DSA_meth_get_init(const DSA_METHOD *dsam))(DSA *);
-+int __cdecl DSA_meth_set_init(DSA_METHOD *dsam, int (*init)(DSA *));
-+int (* __cdecl DSA_meth_get_finish(const DSA_METHOD *dsam)) (DSA *);
-+int __cdecl DSA_meth_set_finish(DSA_METHOD *dsam, int (*finish) (DSA *));
-+int (* __cdecl DSA_meth_get_paramgen(const DSA_METHOD *dsam))
-         (DSA *, int, const unsigned char *, int, int *, unsigned long *,
-          BN_GENCB *);
--int DSA_meth_set_paramgen(DSA_METHOD *dsam,
-+int __cdecl DSA_meth_set_paramgen(DSA_METHOD *dsam,
-         int (*paramgen) (DSA *, int, const unsigned char *, int, int *,
-                          unsigned long *, BN_GENCB *));
--int (*DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *);
--int DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *));
-+int (* __cdecl DSA_meth_get_keygen(const DSA_METHOD *dsam)) (DSA *);
-+int __cdecl DSA_meth_set_keygen(DSA_METHOD *dsam, int (*keygen) (DSA *));
+ # endif
  
+@@ -104,43 +104,43 @@ const EC_METHOD *EC_GF2m_simple_method(void);
+  *  \param   meth  EC_METHOD to use
+  *  \return  newly created EC_GROUP object or NULL in case of an error.
+  */
+-EC_GROUP *EC_GROUP_new(const EC_METHOD *meth);
++EC_GROUP * __cdecl EC_GROUP_new(const EC_METHOD *meth);
  
- #  ifdef  __cplusplus
+ /** Frees a EC_GROUP object
+  *  \param  group  EC_GROUP object to be freed.
+  */
+-void EC_GROUP_free(EC_GROUP *group);
++void __cdecl EC_GROUP_free(EC_GROUP *group);
+ 
+ /** Clears and frees a EC_GROUP object
+  *  \param  group  EC_GROUP object to be cleared and freed.
+  */
+-void EC_GROUP_clear_free(EC_GROUP *group);
++void __cdecl EC_GROUP_clear_free(EC_GROUP *group);
+ 
+ /** Copies EC_GROUP objects. Note: both EC_GROUPs must use the same EC_METHOD.
+  *  \param  dst  destination EC_GROUP object
+  *  \param  src  source EC_GROUP object
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_GROUP_copy(EC_GROUP *dst, const EC_GROUP *src);
++int __cdecl EC_GROUP_copy(EC_GROUP *dst, const EC_GROUP *src);
+ 
+ /** Creates a new EC_GROUP object and copies the copies the content
+  *  form src to the newly created EC_KEY object
+  *  \param  src  source EC_GROUP object
+  *  \return newly created EC_GROUP object or NULL in case of an error.
+  */
+-EC_GROUP *EC_GROUP_dup(const EC_GROUP *src);
++EC_GROUP * __cdecl EC_GROUP_dup(const EC_GROUP *src);
+ 
+ /** Returns the EC_METHOD of the EC_GROUP object.
+  *  \param  group  EC_GROUP object
+  *  \return EC_METHOD used in this EC_GROUP object.
+  */
+-const EC_METHOD *EC_GROUP_method_of(const EC_GROUP *group);
++const EC_METHOD * __cdecl EC_GROUP_method_of(const EC_GROUP *group);
+ 
+ /** Returns the field type of the EC_METHOD.
+  *  \param  meth  EC_METHOD object
+  *  \return NID of the underlying field type OID.
+  */
+-int EC_METHOD_get_field_type(const EC_METHOD *meth);
++int __cdecl EC_METHOD_get_field_type(const EC_METHOD *meth);
+ 
+ /** Sets the generator and its order/cofactor of a EC_GROUP object.
+  *  \param  group      EC_GROUP object
+@@ -150,20 +150,20 @@ int EC_METHOD_get_field_type(const EC_METHOD *meth);
+  *                     in the group of all points on the elliptic curve.
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_set_generator(EC_GROUP *group, const EC_POINT *generator,
++int __cdecl EC_GROUP_set_generator(EC_GROUP *group, const EC_POINT *generator,
+                            const BIGNUM *order, const BIGNUM *cofactor);
+ 
+ /** Returns the generator of a EC_GROUP object.
+  *  \param  group  EC_GROUP object
+  *  \return the currently used generator (possibly NULL).
+  */
+-const EC_POINT *EC_GROUP_get0_generator(const EC_GROUP *group);
++const EC_POINT * __cdecl EC_GROUP_get0_generator(const EC_GROUP *group);
+ 
+ /** Returns the montgomery data for order(Generator)
+  *  \param  group  EC_GROUP object
+  *  \return the currently used montgomery data (possibly NULL).
+ */
+-BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group);
++BN_MONT_CTX * __cdecl EC_GROUP_get_mont_data(const EC_GROUP *group);
+ 
+ /** Gets the order of a EC_GROUP
+  *  \param  group  EC_GROUP object
+@@ -171,19 +171,19 @@ BN_MONT_CTX *EC_GROUP_get_mont_data(const EC_GROUP *group);
+  *  \param  ctx    unused
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx);
++int __cdecl EC_GROUP_get_order(const EC_GROUP *group, BIGNUM *order, BN_CTX *ctx);
+ 
+ /** Gets the order of an EC_GROUP
+  *  \param  group  EC_GROUP object
+  *  \return the group order
+  */
+-const BIGNUM *EC_GROUP_get0_order(const EC_GROUP *group);
++const BIGNUM * __cdecl EC_GROUP_get0_order(const EC_GROUP *group);
+ 
+ /** Gets the number of bits of the order of an EC_GROUP
+  *  \param  group  EC_GROUP object
+  *  \return number of bits of group order.
+  */
+-int EC_GROUP_order_bits(const EC_GROUP *group);
++int __cdecl EC_GROUP_order_bits(const EC_GROUP *group);
+ 
+ /** Gets the cofactor of a EC_GROUP
+  *  \param  group     EC_GROUP object
+@@ -191,37 +191,37 @@ int EC_GROUP_order_bits(const EC_GROUP *group);
+  *  \param  ctx       unused
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_get_cofactor(const EC_GROUP *group, BIGNUM *cofactor,
++int __cdecl EC_GROUP_get_cofactor(const EC_GROUP *group, BIGNUM *cofactor,
+                           BN_CTX *ctx);
+ 
+ /** Gets the cofactor of an EC_GROUP
+  *  \param  group  EC_GROUP object
+  *  \return the group cofactor
+  */
+-const BIGNUM *EC_GROUP_get0_cofactor(const EC_GROUP *group);
++const BIGNUM * __cdecl EC_GROUP_get0_cofactor(const EC_GROUP *group);
+ 
+ /** Sets the name of a EC_GROUP object
+  *  \param  group  EC_GROUP object
+  *  \param  nid    NID of the curve name OID
+  */
+-void EC_GROUP_set_curve_name(EC_GROUP *group, int nid);
++void __cdecl EC_GROUP_set_curve_name(EC_GROUP *group, int nid);
+ 
+ /** Returns the curve name of a EC_GROUP object
+  *  \param  group  EC_GROUP object
+  *  \return NID of the curve name OID or 0 if not set.
+  */
+-int EC_GROUP_get_curve_name(const EC_GROUP *group);
++int __cdecl EC_GROUP_get_curve_name(const EC_GROUP *group);
+ 
+-void EC_GROUP_set_asn1_flag(EC_GROUP *group, int flag);
+-int EC_GROUP_get_asn1_flag(const EC_GROUP *group);
++void __cdecl EC_GROUP_set_asn1_flag(EC_GROUP *group, int flag);
++int __cdecl EC_GROUP_get_asn1_flag(const EC_GROUP *group);
+ 
+-void EC_GROUP_set_point_conversion_form(EC_GROUP *group,
++void __cdecl EC_GROUP_set_point_conversion_form(EC_GROUP *group,
+                                         point_conversion_form_t form);
+-point_conversion_form_t EC_GROUP_get_point_conversion_form(const EC_GROUP *);
++point_conversion_form_t __cdecl EC_GROUP_get_point_conversion_form(const EC_GROUP *);
+ 
+-unsigned char *EC_GROUP_get0_seed(const EC_GROUP *x);
+-size_t EC_GROUP_get_seed_len(const EC_GROUP *);
+-size_t EC_GROUP_set_seed(EC_GROUP *, const unsigned char *, size_t len);
++unsigned char * __cdecl EC_GROUP_get0_seed(const EC_GROUP *x);
++size_t __cdecl EC_GROUP_get_seed_len(const EC_GROUP *);
++size_t __cdecl EC_GROUP_set_seed(EC_GROUP *, const unsigned char *, size_t len);
+ 
+ /** Sets the parameters of a ec curve defined by y^2 = x^3 + a*x + b (for GFp)
+  *  or y^2 + x*y = x^3 + a*x^2 + b (for GF2m)
+@@ -233,7 +233,7 @@ size_t EC_GROUP_set_seed(EC_GROUP *, const unsigned char *, size_t len);
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
++int __cdecl EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+                        const BIGNUM *b, BN_CTX *ctx);
+ 
+ /** Gets the parameters of the ec curve defined by y^2 = x^3 + a*x + b (for GFp)
+@@ -246,7 +246,7 @@ int EC_GROUP_set_curve(EC_GROUP *group, const BIGNUM *p, const BIGNUM *a,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
++int __cdecl EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
+                        BN_CTX *ctx);
+ 
+ /** Sets the parameters of an ec curve. Synonym for EC_GROUP_set_curve
+@@ -258,7 +258,7 @@ int EC_GROUP_get_curve(const EC_GROUP *group, BIGNUM *p, BIGNUM *a, BIGNUM *b,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_GROUP_set_curve_GFp(EC_GROUP *group, const BIGNUM *p,
++DEPRECATEDIN_1_2_0(int __cdecl EC_GROUP_set_curve_GFp(EC_GROUP *group, const BIGNUM *p,
+                                               const BIGNUM *a, const BIGNUM *b,
+                                               BN_CTX *ctx))
+ 
+@@ -271,7 +271,7 @@ DEPRECATEDIN_1_2_0(int EC_GROUP_set_curve_GFp(EC_GROUP *group, const BIGNUM *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_GROUP_get_curve_GFp(const EC_GROUP *group, BIGNUM *p,
++DEPRECATEDIN_1_2_0(int __cdecl EC_GROUP_get_curve_GFp(const EC_GROUP *group, BIGNUM *p,
+                                               BIGNUM *a, BIGNUM *b,
+                                               BN_CTX *ctx))
+ 
+@@ -285,7 +285,7 @@ DEPRECATEDIN_1_2_0(int EC_GROUP_get_curve_GFp(const EC_GROUP *group, BIGNUM *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_GROUP_set_curve_GF2m(EC_GROUP *group, const BIGNUM *p,
++DEPRECATEDIN_1_2_0(int __cdecl EC_GROUP_set_curve_GF2m(EC_GROUP *group, const BIGNUM *p,
+                                                const BIGNUM *a, const BIGNUM *b,
+                                                BN_CTX *ctx))
+ 
+@@ -298,7 +298,7 @@ DEPRECATEDIN_1_2_0(int EC_GROUP_set_curve_GF2m(EC_GROUP *group, const BIGNUM *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p,
++DEPRECATEDIN_1_2_0(int __cdecl EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p,
+                                                BIGNUM *a, BIGNUM *b,
+                                                BN_CTX *ctx))
+ # endif
+@@ -306,21 +306,21 @@ DEPRECATEDIN_1_2_0(int EC_GROUP_get_curve_GF2m(const EC_GROUP *group, BIGNUM *p,
+  *  \param  group  EC_GROUP object
+  *  \return number of bits needed to represent a field element
+  */
+-int EC_GROUP_get_degree(const EC_GROUP *group);
++int __cdecl EC_GROUP_get_degree(const EC_GROUP *group);
+ 
+ /** Checks whether the parameter in the EC_GROUP define a valid ec group
+  *  \param  group  EC_GROUP object
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 if group is a valid ec group and 0 otherwise
+  */
+-int EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx);
++int __cdecl EC_GROUP_check(const EC_GROUP *group, BN_CTX *ctx);
+ 
+ /** Checks whether the discriminant of the elliptic curve is zero or not
+  *  \param  group  EC_GROUP object
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 if the discriminant is not zero and 0 otherwise
+  */
+-int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
++int __cdecl EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
+ 
+ /** Compares two EC_GROUP objects
+  *  \param  a    first EC_GROUP object
+@@ -328,7 +328,7 @@ int EC_GROUP_check_discriminant(const EC_GROUP *group, BN_CTX *ctx);
+  *  \param  ctx  BN_CTX object (optional)
+  *  \return 0 if the groups are equal, 1 if not, or -1 on error
+  */
+-int EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx);
++int __cdecl EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx);
+ 
+ /*
+  * EC_GROUP_new_GF*() calls EC_GROUP_new() and EC_GROUP_set_GF*() after
+@@ -343,7 +343,7 @@ int EC_GROUP_cmp(const EC_GROUP *a, const EC_GROUP *b, BN_CTX *ctx);
+  *  \param  ctx  BN_CTX object (optional)
+  *  \return newly created EC_GROUP object with the specified parameters
+  */
+-EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
++EC_GROUP * __cdecl EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
+                                  const BIGNUM *b, BN_CTX *ctx);
+ # ifndef OPENSSL_NO_EC2M
+ /** Creates a new EC_GROUP object with the specified parameters defined
+@@ -354,7 +354,7 @@ EC_GROUP *EC_GROUP_new_curve_GFp(const BIGNUM *p, const BIGNUM *a,
+  *  \param  ctx  BN_CTX object (optional)
+  *  \return newly created EC_GROUP object with the specified parameters
+  */
+-EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
++EC_GROUP * __cdecl EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
+                                   const BIGNUM *b, BN_CTX *ctx);
+ # endif
+ 
+@@ -363,14 +363,14 @@ EC_GROUP *EC_GROUP_new_curve_GF2m(const BIGNUM *p, const BIGNUM *a,
+  *  \return newly created EC_GROUP object with specified curve or NULL
+  *          if an error occurred
+  */
+-EC_GROUP *EC_GROUP_new_by_curve_name(int nid);
++EC_GROUP * __cdecl EC_GROUP_new_by_curve_name(int nid);
+ 
+ /** Creates a new EC_GROUP object from an ECPARAMETERS object
+  *  \param  params  pointer to the ECPARAMETERS object
+  *  \return newly created EC_GROUP object with specified curve or NULL
+  *          if an error occurred
+  */
+-EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
++EC_GROUP * __cdecl EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
+ 
+ /** Creates an ECPARAMETERS object for the given EC_GROUP object.
+  *  \param  group   pointer to the EC_GROUP object
+@@ -378,7 +378,7 @@ EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params);
+  *  \return pointer to the new ECPARAMETERS object or NULL
+  *          if an error occurred.
+  */
+-ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
++ECPARAMETERS * __cdecl EC_GROUP_get_ecparameters(const EC_GROUP *group,
+                                         ECPARAMETERS *params);
+ 
+ /** Creates a new EC_GROUP object from an ECPKPARAMETERS object
+@@ -386,7 +386,7 @@ ECPARAMETERS *EC_GROUP_get_ecparameters(const EC_GROUP *group,
+  *  \return newly created EC_GROUP object with specified curve, or NULL
+  *          if an error occurred
+  */
+-EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
++EC_GROUP * __cdecl EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
+ 
+ /** Creates an ECPKPARAMETERS object for the given EC_GROUP object.
+  *  \param  group   pointer to the EC_GROUP object
+@@ -394,7 +394,7 @@ EC_GROUP *EC_GROUP_new_from_ecpkparameters(const ECPKPARAMETERS *params);
+  *  \return pointer to the new ECPKPARAMETERS object or NULL
+  *          if an error occurred.
+  */
+-ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
++ECPKPARAMETERS * __cdecl EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
+                                             ECPKPARAMETERS *params);
+ 
+ /********************************************************************/
+@@ -412,10 +412,10 @@ typedef struct {
+  * nitems EC_builtin_curve structures are filled with the data of the first
+  * nitems internal groups
+  */
+-size_t EC_get_builtin_curves(EC_builtin_curve *r, size_t nitems);
++size_t __cdecl EC_get_builtin_curves(EC_builtin_curve *r, size_t nitems);
+ 
+-const char *EC_curve_nid2nist(int nid);
+-int EC_curve_nist2nid(const char *name);
++const char * __cdecl EC_curve_nid2nist(int nid);
++int __cdecl EC_curve_nist2nid(const char *name);
+ 
+ /********************************************************************/
+ /*                    EC_POINT functions                            */
+@@ -425,24 +425,24 @@ int EC_curve_nist2nid(const char *name);
+  *  \param  group  EC_GROUP the underlying EC_GROUP object
+  *  \return newly created EC_POINT object or NULL if an error occurred
+  */
+-EC_POINT *EC_POINT_new(const EC_GROUP *group);
++EC_POINT * __cdecl EC_POINT_new(const EC_GROUP *group);
+ 
+ /** Frees a EC_POINT object
+  *  \param  point  EC_POINT object to be freed
+  */
+-void EC_POINT_free(EC_POINT *point);
++void __cdecl EC_POINT_free(EC_POINT *point);
+ 
+ /** Clears and frees a EC_POINT object
+  *  \param  point  EC_POINT object to be cleared and freed
+  */
+-void EC_POINT_clear_free(EC_POINT *point);
++void __cdecl EC_POINT_clear_free(EC_POINT *point);
+ 
+ /** Copies EC_POINT object
+  *  \param  dst  destination EC_POINT object
+  *  \param  src  source EC_POINT object
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_copy(EC_POINT *dst, const EC_POINT *src);
++int __cdecl EC_POINT_copy(EC_POINT *dst, const EC_POINT *src);
+ 
+ /** Creates a new EC_POINT object and copies the content of the supplied
+  *  EC_POINT
+@@ -450,20 +450,20 @@ int EC_POINT_copy(EC_POINT *dst, const EC_POINT *src);
+  *  \param  group  underlying the EC_GROUP object
+  *  \return newly created EC_POINT object or NULL if an error occurred
+  */
+-EC_POINT *EC_POINT_dup(const EC_POINT *src, const EC_GROUP *group);
++EC_POINT * __cdecl EC_POINT_dup(const EC_POINT *src, const EC_GROUP *group);
+ 
+ /** Returns the EC_METHOD used in EC_POINT object
+  *  \param  point  EC_POINT object
+  *  \return the EC_METHOD used
+  */
+-const EC_METHOD *EC_POINT_method_of(const EC_POINT *point);
++const EC_METHOD * __cdecl EC_POINT_method_of(const EC_POINT *point);
+ 
+ /** Sets a point to infinity (neutral element)
+  *  \param  group  underlying EC_GROUP object
+  *  \param  point  EC_POINT to set to infinity
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point);
++int __cdecl EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point);
+ 
+ /** Sets the jacobian projective coordinates of a EC_POINT over GFp
+  *  \param  group  underlying EC_GROUP object
+@@ -474,7 +474,7 @@ int EC_POINT_set_to_infinity(const EC_GROUP *group, EC_POINT *point);
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                              EC_POINT *p, const BIGNUM *x,
+                                              const BIGNUM *y, const BIGNUM *z,
+                                              BN_CTX *ctx);
+@@ -488,7 +488,7 @@ int EC_POINT_set_Jprojective_coordinates_GFp(const EC_GROUP *group,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
++int __cdecl EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
+                                              const EC_POINT *p, BIGNUM *x,
+                                              BIGNUM *y, BIGNUM *z,
+                                              BN_CTX *ctx);
+@@ -501,7 +501,7 @@ int EC_POINT_get_Jprojective_coordinates_GFp(const EC_GROUP *group,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *p,
++int __cdecl EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *p,
+                                     const BIGNUM *x, const BIGNUM *y,
+                                     BN_CTX *ctx);
+ 
+@@ -513,7 +513,7 @@ int EC_POINT_set_affine_coordinates(const EC_GROUP *group, EC_POINT *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_get_affine_coordinates(const EC_GROUP *group, const EC_POINT *p,
++int __cdecl EC_POINT_get_affine_coordinates(const EC_GROUP *group, const EC_POINT *p,
+                                     BIGNUM *x, BIGNUM *y, BN_CTX *ctx);
+ 
+ /** Sets the affine coordinates of an EC_POINT. A synonym of
+@@ -525,7 +525,7 @@ int EC_POINT_get_affine_coordinates(const EC_GROUP *group, const EC_POINT *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group,
+                                                            EC_POINT *p,
+                                                            const BIGNUM *x,
+                                                            const BIGNUM *y,
+@@ -540,7 +540,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_set_affine_coordinates_GFp(const EC_GROUP *group
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group,
+                                                            const EC_POINT *p,
+                                                            BIGNUM *x,
+                                                            BIGNUM *y,
+@@ -554,7 +554,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_get_affine_coordinates_GFp(const EC_GROUP *group
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *p,
++int __cdecl EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *p,
+                                         const BIGNUM *x, int y_bit,
+                                         BN_CTX *ctx);
+ 
+@@ -567,7 +567,7 @@ int EC_POINT_set_compressed_coordinates(const EC_GROUP *group, EC_POINT *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *group,
+                                                                EC_POINT *p,
+                                                                const BIGNUM *x,
+                                                                int y_bit,
+@@ -582,7 +582,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_set_compressed_coordinates_GFp(const EC_GROUP *g
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *group,
+                                                             EC_POINT *p,
+                                                             const BIGNUM *x,
+                                                             const BIGNUM *y,
+@@ -597,7 +597,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_set_affine_coordinates_GF2m(const EC_GROUP *grou
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *group,
+                                                             const EC_POINT *p,
+                                                             BIGNUM *x,
+                                                             BIGNUM *y,
+@@ -612,7 +612,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_get_affine_coordinates_GF2m(const EC_GROUP *grou
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-DEPRECATEDIN_1_2_0(int EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
++DEPRECATEDIN_1_2_0(int __cdecl EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *group,
+                                                                 EC_POINT *p,
+                                                                 const BIGNUM *x,
+                                                                 int y_bit,
+@@ -628,7 +628,7 @@ DEPRECATEDIN_1_2_0(int EC_POINT_set_compressed_coordinates_GF2m(const EC_GROUP *
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return the length of the encoded octet string or 0 if an error occurred
+  */
+-size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *p,
++size_t __cdecl EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *p,
+                           point_conversion_form_t form,
+                           unsigned char *buf, size_t len, BN_CTX *ctx);
+ 
+@@ -640,7 +640,7 @@ size_t EC_POINT_point2oct(const EC_GROUP *group, const EC_POINT *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *p,
++int __cdecl EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *p,
+                        const unsigned char *buf, size_t len, BN_CTX *ctx);
+ 
+ /** Encodes an EC_POINT object to an allocated octet string
+@@ -651,18 +651,18 @@ int EC_POINT_oct2point(const EC_GROUP *group, EC_POINT *p,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return the length of the encoded octet string or 0 if an error occurred
+  */
+-size_t EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
++size_t __cdecl EC_POINT_point2buf(const EC_GROUP *group, const EC_POINT *point,
+                           point_conversion_form_t form,
+                           unsigned char **pbuf, BN_CTX *ctx);
+ 
+ /* other interfaces to point2oct/oct2point: */
+-BIGNUM *EC_POINT_point2bn(const EC_GROUP *, const EC_POINT *,
++BIGNUM * __cdecl EC_POINT_point2bn(const EC_GROUP *, const EC_POINT *,
+                           point_conversion_form_t form, BIGNUM *, BN_CTX *);
+-EC_POINT *EC_POINT_bn2point(const EC_GROUP *, const BIGNUM *,
++EC_POINT * __cdecl EC_POINT_bn2point(const EC_GROUP *, const BIGNUM *,
+                             EC_POINT *, BN_CTX *);
+-char *EC_POINT_point2hex(const EC_GROUP *, const EC_POINT *,
++char * __cdecl EC_POINT_point2hex(const EC_GROUP *, const EC_POINT *,
+                          point_conversion_form_t form, BN_CTX *);
+-EC_POINT *EC_POINT_hex2point(const EC_GROUP *, const char *,
++EC_POINT * __cdecl EC_POINT_hex2point(const EC_GROUP *, const char *,
+                              EC_POINT *, BN_CTX *);
+ 
+ /********************************************************************/
+@@ -677,7 +677,7 @@ EC_POINT *EC_POINT_hex2point(const EC_GROUP *, const char *,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
++int __cdecl EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+                  const EC_POINT *b, BN_CTX *ctx);
+ 
+ /** Computes the double of a EC_POINT
+@@ -687,7 +687,7 @@ int EC_POINT_add(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
++int __cdecl EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+                  BN_CTX *ctx);
+ 
+ /** Computes the inverse of a EC_POINT
+@@ -696,14 +696,14 @@ int EC_POINT_dbl(const EC_GROUP *group, EC_POINT *r, const EC_POINT *a,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx);
++int __cdecl EC_POINT_invert(const EC_GROUP *group, EC_POINT *a, BN_CTX *ctx);
+ 
+ /** Checks whether the point is the neutral element of the group
+  *  \param  group  the underlying EC_GROUP object
+  *  \param  p      EC_POINT object
+  *  \return 1 if the point is the neutral element and 0 otherwise
+  */
+-int EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *p);
++int __cdecl EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *p);
+ 
+ /** Checks whether the point is on the curve
+  *  \param  group  underlying EC_GROUP object
+@@ -711,7 +711,7 @@ int EC_POINT_is_at_infinity(const EC_GROUP *group, const EC_POINT *p);
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 if the point is on the curve, 0 if not, or -1 on error
+  */
+-int EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
++int __cdecl EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
+                          BN_CTX *ctx);
+ 
+ /** Compares two EC_POINTs
+@@ -721,11 +721,11 @@ int EC_POINT_is_on_curve(const EC_GROUP *group, const EC_POINT *point,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 if the points are not equal, 0 if they are, or -1 on error
+  */
+-int EC_POINT_cmp(const EC_GROUP *group, const EC_POINT *a, const EC_POINT *b,
++int __cdecl EC_POINT_cmp(const EC_GROUP *group, const EC_POINT *a, const EC_POINT *b,
+                  BN_CTX *ctx);
+ 
+-int EC_POINT_make_affine(const EC_GROUP *group, EC_POINT *point, BN_CTX *ctx);
+-int EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
++int __cdecl EC_POINT_make_affine(const EC_GROUP *group, EC_POINT *point, BN_CTX *ctx);
++int __cdecl EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
+                           EC_POINT *points[], BN_CTX *ctx);
+ 
+ /** Computes r = generator * n + sum_{i=0}^{num-1} p[i] * m[i]
+@@ -738,7 +738,7 @@ int EC_POINTs_make_affine(const EC_GROUP *group, size_t num,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
++int __cdecl EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
+                   size_t num, const EC_POINT *p[], const BIGNUM *m[],
+                   BN_CTX *ctx);
+ 
+@@ -751,7 +751,7 @@ int EC_POINTs_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
++int __cdecl EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
+                  const EC_POINT *q, const BIGNUM *m, BN_CTX *ctx);
+ 
+ /** Stores multiples of generator for faster point multiplication
+@@ -759,13 +759,13 @@ int EC_POINT_mul(const EC_GROUP *group, EC_POINT *r, const BIGNUM *n,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_GROUP_precompute_mult(EC_GROUP *group, BN_CTX *ctx);
++int __cdecl EC_GROUP_precompute_mult(EC_GROUP *group, BN_CTX *ctx);
+ 
+ /** Reports whether a precomputation has been done
+  *  \param  group  EC_GROUP object
+  *  \return 1 if a pre-computation has been done and 0 otherwise
+  */
+-int EC_GROUP_have_precompute_mult(const EC_GROUP *group);
++int __cdecl EC_GROUP_have_precompute_mult(const EC_GROUP *group);
+ 
+ /********************************************************************/
+ /*                       ASN1 stuff                                 */
+@@ -780,10 +780,10 @@ DECLARE_ASN1_ALLOC_FUNCTIONS(ECPARAMETERS)
+  * EC_GROUP_get_basis_type() returns the NID of the basis type used to
+  * represent the field elements
+  */
+-int EC_GROUP_get_basis_type(const EC_GROUP *);
++int __cdecl EC_GROUP_get_basis_type(const EC_GROUP *);
+ # ifndef OPENSSL_NO_EC2M
+-int EC_GROUP_get_trinomial_basis(const EC_GROUP *, unsigned int *k);
+-int EC_GROUP_get_pentanomial_basis(const EC_GROUP *, unsigned int *k1,
++int __cdecl EC_GROUP_get_trinomial_basis(const EC_GROUP *, unsigned int *k);
++int __cdecl EC_GROUP_get_pentanomial_basis(const EC_GROUP *, unsigned int *k1,
+                                    unsigned int *k2, unsigned int *k3);
+ # endif
+ 
+@@ -800,9 +800,9 @@ int __cdecl i2d_ECPKParameters(const EC_GROUP *, unsigned char **out);
+ # define i2d_ECPKParameters_fp(fp,x) ASN1_i2d_fp(i2d_ECPKParameters,(fp), \
+                 (unsigned char *)(x))
+ 
+-int ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off);
++int __cdecl ECPKParameters_print(BIO *bp, const EC_GROUP *x, int off);
+ # ifndef OPENSSL_NO_STDIO
+-int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off);
++int __cdecl ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off);
+ # endif
+ 
+ /********************************************************************/
+@@ -823,54 +823,54 @@ int ECPKParameters_print_fp(FILE *fp, const EC_GROUP *x, int off);
+  */
+ EC_KEY * __cdecl EC_KEY_new(void);
+ 
+-int EC_KEY_get_flags(const EC_KEY *key);
++int __cdecl EC_KEY_get_flags(const EC_KEY *key);
+ 
+-void EC_KEY_set_flags(EC_KEY *key, int flags);
++void __cdecl EC_KEY_set_flags(EC_KEY *key, int flags);
+ 
+-void EC_KEY_clear_flags(EC_KEY *key, int flags);
++void __cdecl EC_KEY_clear_flags(EC_KEY *key, int flags);
+ 
+ /** Creates a new EC_KEY object using a named curve as underlying
+  *  EC_GROUP object.
+  *  \param  nid  NID of the named curve.
+  *  \return EC_KEY object or NULL if an error occurred.
+  */
+-EC_KEY *EC_KEY_new_by_curve_name(int nid);
++EC_KEY * __cdecl EC_KEY_new_by_curve_name(int nid);
+ 
+ /** Frees a EC_KEY object.
+  *  \param  key  EC_KEY object to be freed.
+  */
+-void EC_KEY_free(EC_KEY *key);
++void __cdecl EC_KEY_free(EC_KEY *key);
+ 
+ /** Copies a EC_KEY object.
+  *  \param  dst  destination EC_KEY object
+  *  \param  src  src EC_KEY object
+  *  \return dst or NULL if an error occurred.
+  */
+-EC_KEY *EC_KEY_copy(EC_KEY *dst, const EC_KEY *src);
++EC_KEY * __cdecl EC_KEY_copy(EC_KEY *dst, const EC_KEY *src);
+ 
+ /** Creates a new EC_KEY object and copies the content from src to it.
+  *  \param  src  the source EC_KEY object
+  *  \return newly created EC_KEY object or NULL if an error occurred.
+  */
+-EC_KEY *EC_KEY_dup(const EC_KEY *src);
++EC_KEY * __cdecl EC_KEY_dup(const EC_KEY *src);
+ 
+ /** Increases the internal reference count of a EC_KEY object.
+  *  \param  key  EC_KEY object
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_up_ref(EC_KEY *key);
++int __cdecl EC_KEY_up_ref(EC_KEY *key);
+ 
+ /** Returns the ENGINE object of a EC_KEY object
+  *  \param  eckey  EC_KEY object
+  *  \return the ENGINE object (possibly NULL).
+  */
+-ENGINE *EC_KEY_get0_engine(const EC_KEY *eckey);
++ENGINE * __cdecl EC_KEY_get0_engine(const EC_KEY *eckey);
+ 
+ /** Returns the EC_GROUP object of a EC_KEY object
+  *  \param  key  EC_KEY object
+  *  \return the EC_GROUP object (possibly NULL).
+  */
+-const EC_GROUP *EC_KEY_get0_group(const EC_KEY *key);
++const EC_GROUP * __cdecl EC_KEY_get0_group(const EC_KEY *key);
+ 
+ /** Sets the EC_GROUP of a EC_KEY object.
+  *  \param  key    EC_KEY object
+@@ -878,13 +878,13 @@ const EC_GROUP *EC_KEY_get0_group(const EC_KEY *key);
+  *                 object will use an own copy of the EC_GROUP).
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_set_group(EC_KEY *key, const EC_GROUP *group);
++int __cdecl EC_KEY_set_group(EC_KEY *key, const EC_GROUP *group);
+ 
+ /** Returns the private key of a EC_KEY object.
+  *  \param  key  EC_KEY object
+  *  \return a BIGNUM with the private key (possibly NULL).
+  */
+-const BIGNUM *EC_KEY_get0_private_key(const EC_KEY *key);
++const BIGNUM * __cdecl EC_KEY_get0_private_key(const EC_KEY *key);
+ 
+ /** Sets the private key of a EC_KEY object.
+  *  \param  key  EC_KEY object
+@@ -892,13 +892,13 @@ const BIGNUM *EC_KEY_get0_private_key(const EC_KEY *key);
+  *               will use an own copy of the BIGNUM).
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *prv);
++int __cdecl EC_KEY_set_private_key(EC_KEY *key, const BIGNUM *prv);
+ 
+ /** Returns the public key of a EC_KEY object.
+  *  \param  key  the EC_KEY object
+  *  \return a EC_POINT object with the public key (possibly NULL)
+  */
+-const EC_POINT *EC_KEY_get0_public_key(const EC_KEY *key);
++const EC_POINT * __cdecl EC_KEY_get0_public_key(const EC_KEY *key);
+ 
+ /** Sets the public key of a EC_KEY object.
+  *  \param  key  EC_KEY object
+@@ -906,20 +906,20 @@ const EC_POINT *EC_KEY_get0_public_key(const EC_KEY *key);
+  *               will use an own copy of the EC_POINT object).
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_set_public_key(EC_KEY *key, const EC_POINT *pub);
++int __cdecl EC_KEY_set_public_key(EC_KEY *key, const EC_POINT *pub);
+ 
+-unsigned EC_KEY_get_enc_flags(const EC_KEY *key);
+-void EC_KEY_set_enc_flags(EC_KEY *eckey, unsigned int flags);
+-point_conversion_form_t EC_KEY_get_conv_form(const EC_KEY *key);
+-void EC_KEY_set_conv_form(EC_KEY *eckey, point_conversion_form_t cform);
++unsigned __cdecl EC_KEY_get_enc_flags(const EC_KEY *key);
++void __cdecl EC_KEY_set_enc_flags(EC_KEY *eckey, unsigned int flags);
++point_conversion_form_t __cdecl EC_KEY_get_conv_form(const EC_KEY *key);
++void __cdecl EC_KEY_set_conv_form(EC_KEY *eckey, point_conversion_form_t cform);
+ 
+ #define EC_KEY_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_EC_KEY, l, p, newf, dupf, freef)
+-int EC_KEY_set_ex_data(EC_KEY *key, int idx, void *arg);
+-void *EC_KEY_get_ex_data(const EC_KEY *key, int idx);
++int __cdecl EC_KEY_set_ex_data(EC_KEY *key, int idx, void *arg);
++void * __cdecl EC_KEY_get_ex_data(const EC_KEY *key, int idx);
+ 
+ /* wrapper functions for the underlying EC_GROUP object */
+-void EC_KEY_set_asn1_flag(EC_KEY *eckey, int asn1_flag);
++void __cdecl EC_KEY_set_asn1_flag(EC_KEY *eckey, int asn1_flag);
+ 
+ /** Creates a table of pre-computed multiples of the generator to
+  *  accelerate further EC_KEY operations.
+@@ -927,25 +927,25 @@ void EC_KEY_set_asn1_flag(EC_KEY *eckey, int asn1_flag);
+  *  \param  ctx  BN_CTX object (optional)
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_precompute_mult(EC_KEY *key, BN_CTX *ctx);
++int __cdecl EC_KEY_precompute_mult(EC_KEY *key, BN_CTX *ctx);
+ 
+ /** Creates a new ec private (and optional a new public) key.
+  *  \param  key  EC_KEY object
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int EC_KEY_generate_key(EC_KEY *key);
++int __cdecl EC_KEY_generate_key(EC_KEY *key);
+ 
+ /** Verifies that a private and/or public key is valid.
+  *  \param  key  the EC_KEY object
+  *  \return 1 on success and 0 otherwise.
+  */
+-int EC_KEY_check_key(const EC_KEY *key);
++int __cdecl EC_KEY_check_key(const EC_KEY *key);
+ 
+ /** Indicates if an EC_KEY can be used for signing.
+  *  \param  eckey  the EC_KEY object
+  *  \return 1 if can can sign and 0 otherwise.
+  */
+-int EC_KEY_can_sign(const EC_KEY *eckey);
++int __cdecl EC_KEY_can_sign(const EC_KEY *eckey);
+ 
+ /** Sets a public key from affine coordinates performing
+  *  necessary NIST PKV tests.
+@@ -954,7 +954,7 @@ int EC_KEY_can_sign(const EC_KEY *eckey);
+  *  \param  y    public key y coordinate
+  *  \return 1 on success and 0 otherwise.
+  */
+-int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
++int __cdecl EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
+                                              BIGNUM *y);
+ 
+ /** Encodes an EC_KEY public key to an allocated octet string
+@@ -964,7 +964,7 @@ int EC_KEY_set_public_key_affine_coordinates(EC_KEY *key, BIGNUM *x,
+  *  \param  ctx    BN_CTX object (optional)
+  *  \return the length of the encoded octet string or 0 if an error occurred
+  */
+-size_t EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
++size_t __cdecl EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
+                       unsigned char **pbuf, BN_CTX *ctx);
+ 
+ /** Decodes a EC_KEY public key from a octet string
+@@ -975,7 +975,7 @@ size_t EC_KEY_key2buf(const EC_KEY *key, point_conversion_form_t form,
+  *  \return 1 on success and 0 if an error occurred
+  */
+ 
+-int EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
++int __cdecl EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
+                    BN_CTX *ctx);
+ 
+ /** Decodes an EC_KEY private key from an octet string
+@@ -985,7 +985,7 @@ int EC_KEY_oct2key(EC_KEY *key, const unsigned char *buf, size_t len,
+  *  \return 1 on success and 0 if an error occurred
+  */
+ 
+-int EC_KEY_oct2priv(EC_KEY *key, const unsigned char *buf, size_t len);
++int __cdecl EC_KEY_oct2priv(EC_KEY *key, const unsigned char *buf, size_t len);
+ 
+ /** Encodes a EC_KEY private key to an octet string
+  *  \param  key    key to encode
+@@ -995,14 +995,14 @@ int EC_KEY_oct2priv(EC_KEY *key, const unsigned char *buf, size_t len);
+  *  \return the length of the encoded octet string or 0 if an error occurred
+  */
+ 
+-size_t EC_KEY_priv2oct(const EC_KEY *key, unsigned char *buf, size_t len);
++size_t __cdecl EC_KEY_priv2oct(const EC_KEY *key, unsigned char *buf, size_t len);
+ 
+ /** Encodes an EC_KEY private key to an allocated octet string
+  *  \param  eckey  key to encode
+  *  \param  pbuf   returns pointer to allocated buffer
+  *  \return the length of the encoded octet string or 0 if an error occurred
+  */
+-size_t EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf);
++size_t __cdecl EC_KEY_priv2buf(const EC_KEY *eckey, unsigned char **pbuf);
+ 
+ /********************************************************************/
+ /*        de- and encoding functions for SEC1 ECPrivateKey          */
+@@ -1035,7 +1035,7 @@ int __cdecl i2d_ECPrivateKey(EC_KEY *key, unsigned char **out);
+  *  \return a EC_KEY object with the decoded parameters or NULL if an error
+  *          occurred.
+  */
+-EC_KEY *d2i_ECParameters(EC_KEY **key, const unsigned char **in, long len);
++EC_KEY * __cdecl d2i_ECParameters(EC_KEY **key, const unsigned char **in, long len);
+ 
+ /** Encodes ec parameter and stores the result in a buffer.
+  *  \param  key  the EC_KEY object with ec parameters to encode
+@@ -1043,7 +1043,7 @@ EC_KEY *d2i_ECParameters(EC_KEY **key, const unsigned char **in, long len);
+  *               of bytes needed).
+  *  \return 1 on success and 0 if an error occurred.
+  */
+-int i2d_ECParameters(EC_KEY *key, unsigned char **out);
++int __cdecl i2d_ECParameters(EC_KEY *key, unsigned char **out);
+ 
+ /********************************************************************/
+ /*         de- and encoding functions for EC public key             */
+@@ -1057,7 +1057,7 @@ int i2d_ECParameters(EC_KEY *key, unsigned char **out);
+  *  \return EC_KEY object with decoded public key or NULL if an error
+  *          occurred.
+  */
+-EC_KEY *o2i_ECPublicKey(EC_KEY **key, const unsigned char **in, long len);
++EC_KEY * __cdecl o2i_ECPublicKey(EC_KEY **key, const unsigned char **in, long len);
+ 
+ /** Encodes a ec public key in an octet string.
+  *  \param  key  the EC_KEY object with the public key
+@@ -1065,14 +1065,14 @@ EC_KEY *o2i_ECPublicKey(EC_KEY **key, const unsigned char **in, long len);
+  *               of bytes needed).
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int i2o_ECPublicKey(const EC_KEY *key, unsigned char **out);
++int __cdecl i2o_ECPublicKey(const EC_KEY *key, unsigned char **out);
+ 
+ /** Prints out the ec parameters on human readable form.
+  *  \param  bp   BIO object to which the information is printed
+  *  \param  key  EC_KEY object
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int ECParameters_print(BIO *bp, const EC_KEY *key);
++int __cdecl ECParameters_print(BIO *bp, const EC_KEY *key);
+ 
+ /** Prints out the contents of a EC_KEY object
+  *  \param  bp   BIO object to which the information is printed
+@@ -1080,7 +1080,7 @@ int ECParameters_print(BIO *bp, const EC_KEY *key);
+  *  \param  off  line offset
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_KEY_print(BIO *bp, const EC_KEY *key, int off);
++int __cdecl EC_KEY_print(BIO *bp, const EC_KEY *key, int off);
+ 
+ # ifndef OPENSSL_NO_STDIO
+ /** Prints out the ec parameters on human readable form.
+@@ -1088,7 +1088,7 @@ int EC_KEY_print(BIO *bp, const EC_KEY *key, int off);
+  *  \param  key  EC_KEY object
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int ECParameters_print_fp(FILE *fp, const EC_KEY *key);
++int __cdecl ECParameters_print_fp(FILE *fp, const EC_KEY *key);
+ 
+ /** Prints out the contents of a EC_KEY object
+  *  \param  fp   file descriptor to which the information is printed
+@@ -1096,28 +1096,28 @@ int ECParameters_print_fp(FILE *fp, const EC_KEY *key);
+  *  \param  off  line offset
+  *  \return 1 on success and 0 if an error occurred
+  */
+-int EC_KEY_print_fp(FILE *fp, const EC_KEY *key, int off);
++int __cdecl EC_KEY_print_fp(FILE *fp, const EC_KEY *key, int off);
+ 
+ # endif
+ 
+-const EC_KEY_METHOD *EC_KEY_OpenSSL(void);
+-const EC_KEY_METHOD *EC_KEY_get_default_method(void);
+-void EC_KEY_set_default_method(const EC_KEY_METHOD *meth);
+-const EC_KEY_METHOD *EC_KEY_get_method(const EC_KEY *key);
+-int EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth);
+-EC_KEY *EC_KEY_new_method(ENGINE *engine);
++const EC_KEY_METHOD * __cdecl EC_KEY_OpenSSL(void);
++const EC_KEY_METHOD * __cdecl EC_KEY_get_default_method(void);
++void __cdecl EC_KEY_set_default_method(const EC_KEY_METHOD *meth);
++const EC_KEY_METHOD * __cdecl EC_KEY_get_method(const EC_KEY *key);
++int __cdecl EC_KEY_set_method(EC_KEY *key, const EC_KEY_METHOD *meth);
++EC_KEY * __cdecl EC_KEY_new_method(ENGINE *engine);
+ 
+ /** The old name for ecdh_KDF_X9_63
+  *  The ECDH KDF specification has been mistakingly attributed to ANSI X9.62,
+  *  it is actually specified in ANSI X9.63.
+  *  This identifier is retained for backwards compatibility
+  */
+-int ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
++int __cdecl ECDH_KDF_X9_62(unsigned char *out, size_t outlen,
+                    const unsigned char *Z, size_t Zlen,
+                    const unsigned char *sinfo, size_t sinfolen,
+                    const EVP_MD *md);
+ 
+-int ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
++int __cdecl ECDH_compute_key(void *out, size_t outlen, const EC_POINT *pub_key,
+                      const EC_KEY *ecdh,
+                      void *(*KDF) (const void *in, size_t inlen,
+                                    void *out, size_t *outlen));
+@@ -1157,24 +1157,24 @@ ECDSA_SIG * __cdecl d2i_ECDSA_SIG(ECDSA_SIG **sig, const unsigned char **pp, lon
+  *  \param  pr   pointer to BIGNUM pointer for r (may be NULL)
+  *  \param  ps   pointer to BIGNUM pointer for s (may be NULL)
+  */
+-void ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
++void __cdecl ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps);
+ 
+ /** Accessor for r field of ECDSA_SIG
+  *  \param  sig  pointer to ECDSA_SIG structure
+  */
+-const BIGNUM *ECDSA_SIG_get0_r(const ECDSA_SIG *sig);
++const BIGNUM * __cdecl ECDSA_SIG_get0_r(const ECDSA_SIG *sig);
+ 
+ /** Accessor for s field of ECDSA_SIG
+  *  \param  sig  pointer to ECDSA_SIG structure
+  */
+-const BIGNUM *ECDSA_SIG_get0_s(const ECDSA_SIG *sig);
++const BIGNUM * __cdecl ECDSA_SIG_get0_s(const ECDSA_SIG *sig);
+ 
+ /** Setter for r and s fields of ECDSA_SIG
+  *  \param  sig  pointer to ECDSA_SIG structure
+  *  \param  r    pointer to BIGNUM for r (may be NULL)
+  *  \param  s    pointer to BIGNUM for s (may be NULL)
+  */
+-int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s);
++int __cdecl ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s);
+ 
+ /** Computes the ECDSA signature of the given hash value using
+  *  the supplied private key and returns the created signature.
+@@ -1183,7 +1183,7 @@ int ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s);
+  *  \param  eckey     EC_KEY object containing a private EC key
+  *  \return pointer to a ECDSA_SIG structure or NULL if an error occurred
+  */
+-ECDSA_SIG *ECDSA_do_sign(const unsigned char *dgst, int dgst_len,
++ECDSA_SIG * __cdecl ECDSA_do_sign(const unsigned char *dgst, int dgst_len,
+                          EC_KEY *eckey);
+ 
+ /** Computes ECDSA signature of a given hash value using the supplied
+@@ -1196,7 +1196,7 @@ ECDSA_SIG *ECDSA_do_sign(const unsigned char *dgst, int dgst_len,
+  *  \param  eckey    EC_KEY object containing a private EC key
+  *  \return pointer to a ECDSA_SIG structure or NULL if an error occurred
+  */
+-ECDSA_SIG *ECDSA_do_sign_ex(const unsigned char *dgst, int dgstlen,
++ECDSA_SIG * __cdecl ECDSA_do_sign_ex(const unsigned char *dgst, int dgstlen,
+                             const BIGNUM *kinv, const BIGNUM *rp,
+                             EC_KEY *eckey);
+ 
+@@ -1209,7 +1209,7 @@ ECDSA_SIG *ECDSA_do_sign_ex(const unsigned char *dgst, int dgstlen,
+  *  \return 1 if the signature is valid, 0 if the signature is invalid
+  *          and -1 on error
+  */
+-int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
++int __cdecl ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
+                     const ECDSA_SIG *sig, EC_KEY *eckey);
+ 
+ /** Precompute parts of the signing operation
+@@ -1219,7 +1219,7 @@ int ECDSA_do_verify(const unsigned char *dgst, int dgst_len,
+  *  \param  rp     BIGNUM pointer for x coordinate of k * generator
+  *  \return 1 on success and 0 otherwise
+  */
+-int ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **rp);
++int __cdecl ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **rp);
+ 
+ /** Computes ECDSA signature of a given hash value using the supplied
+  *  private key (note: sig must point to ECDSA_size(eckey) bytes of memory).
+@@ -1231,7 +1231,7 @@ int ECDSA_sign_setup(EC_KEY *eckey, BN_CTX *ctx, BIGNUM **kinv, BIGNUM **rp);
+  *  \param  eckey    EC_KEY object containing a private EC key
+  *  \return 1 on success and 0 otherwise
+  */
+-int ECDSA_sign(int type, const unsigned char *dgst, int dgstlen,
++int __cdecl ECDSA_sign(int type, const unsigned char *dgst, int dgstlen,
+                unsigned char *sig, unsigned int *siglen, EC_KEY *eckey);
+ 
+ /** Computes ECDSA signature of a given hash value using the supplied
+@@ -1247,7 +1247,7 @@ int ECDSA_sign(int type, const unsigned char *dgst, int dgstlen,
+  *  \param  eckey    EC_KEY object containing a private EC key
+  *  \return 1 on success and 0 otherwise
+  */
+-int ECDSA_sign_ex(int type, const unsigned char *dgst, int dgstlen,
++int __cdecl ECDSA_sign_ex(int type, const unsigned char *dgst, int dgstlen,
+                   unsigned char *sig, unsigned int *siglen,
+                   const BIGNUM *kinv, const BIGNUM *rp, EC_KEY *eckey);
+ 
+@@ -1262,22 +1262,22 @@ int ECDSA_sign_ex(int type, const unsigned char *dgst, int dgstlen,
+  *  \return 1 if the signature is valid, 0 if the signature is invalid
+  *          and -1 on error
+  */
+-int ECDSA_verify(int type, const unsigned char *dgst, int dgstlen,
++int __cdecl ECDSA_verify(int type, const unsigned char *dgst, int dgstlen,
+                  const unsigned char *sig, int siglen, EC_KEY *eckey);
+ 
+ /** Returns the maximum length of the DER encoded signature
+  *  \param  eckey  EC_KEY object
+  *  \return numbers of bytes required for the DER encoded signature
+  */
+-int ECDSA_size(const EC_KEY *eckey);
++int __cdecl ECDSA_size(const EC_KEY *eckey);
+ 
+ /********************************************************************/
+ /*  EC_KEY_METHOD constructors, destructors, writers and accessors  */
+ /********************************************************************/
+ 
+-EC_KEY_METHOD *EC_KEY_METHOD_new(const EC_KEY_METHOD *meth);
+-void EC_KEY_METHOD_free(EC_KEY_METHOD *meth);
+-void EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
++EC_KEY_METHOD * __cdecl EC_KEY_METHOD_new(const EC_KEY_METHOD *meth);
++void __cdecl EC_KEY_METHOD_free(EC_KEY_METHOD *meth);
++void __cdecl EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
+                             int (*init)(EC_KEY *key),
+                             void (*finish)(EC_KEY *key),
+                             int (*copy)(EC_KEY *dest, const EC_KEY *src),
+@@ -1287,16 +1287,16 @@ void EC_KEY_METHOD_set_init(EC_KEY_METHOD *meth,
+                             int (*set_public)(EC_KEY *key,
+                                               const EC_POINT *pub_key));
+ 
+-void EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_keygen(EC_KEY_METHOD *meth,
+                               int (*keygen)(EC_KEY *key));
+ 
+-void EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_compute_key(EC_KEY_METHOD *meth,
+                                    int (*ckey)(unsigned char **psec,
+                                                size_t *pseclen,
+                                                const EC_POINT *pub_key,
+                                                const EC_KEY *ecdh));
+ 
+-void EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
+                             int (*sign)(int type, const unsigned char *dgst,
+                                         int dlen, unsigned char *sig,
+                                         unsigned int *siglen,
+@@ -1310,7 +1310,7 @@ void EC_KEY_METHOD_set_sign(EC_KEY_METHOD *meth,
+                                                    const BIGNUM *in_r,
+                                                    EC_KEY *eckey));
+ 
+-void EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
+                               int (*verify)(int type, const unsigned
+                                             char *dgst, int dgst_len,
+                                             const unsigned char *sigbuf,
+@@ -1320,7 +1320,7 @@ void EC_KEY_METHOD_set_verify(EC_KEY_METHOD *meth,
+                                                 const ECDSA_SIG *sig,
+                                                 EC_KEY *eckey));
+ 
+-void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
+                             int (**pinit)(EC_KEY *key),
+                             void (**pfinish)(EC_KEY *key),
+                             int (**pcopy)(EC_KEY *dest, const EC_KEY *src),
+@@ -1331,16 +1331,16 @@ void EC_KEY_METHOD_get_init(const EC_KEY_METHOD *meth,
+                             int (**pset_public)(EC_KEY *key,
+                                                 const EC_POINT *pub_key));
+ 
+-void EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_keygen(const EC_KEY_METHOD *meth,
+                               int (**pkeygen)(EC_KEY *key));
+ 
+-void EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_compute_key(const EC_KEY_METHOD *meth,
+                                    int (**pck)(unsigned char **psec,
+                                                size_t *pseclen,
+                                                const EC_POINT *pub_key,
+                                                const EC_KEY *ecdh));
+ 
+-void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
+                             int (**psign)(int type, const unsigned char *dgst,
+                                           int dlen, unsigned char *sig,
+                                           unsigned int *siglen,
+@@ -1354,7 +1354,7 @@ void EC_KEY_METHOD_get_sign(const EC_KEY_METHOD *meth,
+                                                      const BIGNUM *in_r,
+                                                      EC_KEY *eckey));
+ 
+-void EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
++void __cdecl EC_KEY_METHOD_get_verify(const EC_KEY_METHOD *meth,
+                               int (**pverify)(int type, const unsigned
+                                               char *dgst, int dgst_len,
+                                               const unsigned char *sigbuf,
