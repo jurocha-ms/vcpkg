@@ -17216,6 +17216,495 @@ index 9e0f6702f4..ec7000fd8c 100644
  {
  #ifdef OPENSSL_SECURE_MEMORY
      size_t actual_size;
+diff --git a/crypto/modes/cbc128.c b/crypto/modes/cbc128.c
+index 4ce5eb2ae3..4d31026624 100644
+--- a/crypto/modes/cbc128.c
++++ b/crypto/modes/cbc128.c
+@@ -15,7 +15,7 @@
+ # define STRICT_ALIGNMENT 0
+ #endif
+ 
+-void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block)
+ {
+@@ -66,7 +66,7 @@ void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+     memcpy(ivec, iv, 16);
+ }
+ 
+-void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block)
+ {
+diff --git a/crypto/modes/ccm128.c b/crypto/modes/ccm128.c
+index 05a33239f5..a0cec976f6 100644
+--- a/crypto/modes/ccm128.c
++++ b/crypto/modes/ccm128.c
+@@ -15,7 +15,7 @@
+  * First you setup M and L parameters and pass the key schedule. This is
+  * called once per session setup...
+  */
+-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+                         unsigned int M, unsigned int L, void *key,
+                         block128_f block)
+ {
+@@ -29,7 +29,7 @@ void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+ /* !!! Following interfaces are to be called *once* per packet !!! */
+ 
+ /* Then you setup per-message nonce and pass the length of the message */
+-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
+                         const unsigned char *nonce, size_t nlen, size_t mlen)
+ {
+     unsigned int L = ctx->nonce.c[0] & 7; /* the L parameter */
+@@ -57,7 +57,7 @@ int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
+ }
+ 
+ /* Then you pass additional authentication data, this is optional */
+-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
+                        const unsigned char *aad, size_t alen)
+ {
+     unsigned int i;
+@@ -126,7 +126,7 @@ static void ctr64_inc(unsigned char *counter)
+     } while (n);
+ }
+ 
+-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len)
+ {
+@@ -210,7 +210,7 @@ int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
+     return 0;
+ }
+ 
+-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len)
+ {
+@@ -297,7 +297,7 @@ static void ctr64_add(unsigned char *counter, size_t inc)
+     } while (n && (inc || val));
+ }
+ 
+-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
+                                 const unsigned char *inp, unsigned char *out,
+                                 size_t len, ccm128_f stream)
+ {
+@@ -361,7 +361,7 @@ int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
+     return 0;
+ }
+ 
+-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
+                                 const unsigned char *inp, unsigned char *out,
+                                 size_t len, ccm128_f stream)
+ {
+@@ -419,7 +419,7 @@ int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
+     return 0;
+ }
+ 
+-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
++size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ {
+     unsigned int M = (ctx->nonce.c[0] >> 3) & 7; /* the M parameter */
+ 
+diff --git a/crypto/modes/cfb128.c b/crypto/modes/cfb128.c
+index e439567fe5..14a3acf830 100644
+--- a/crypto/modes/cfb128.c
++++ b/crypto/modes/cfb128.c
+@@ -16,7 +16,7 @@
+  * The extra state information to record how much of the 128bit block we have
+  * used is contained in *num;
+  */
+-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            int enc, block128_f block)
+@@ -170,7 +170,7 @@ static void cfbr_encrypt_block(const unsigned char *in, unsigned char *out,
+ }
+ 
+ /* N.B. This expects the input to be packed, MS bit first */
+-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t bits, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block)
+@@ -186,7 +186,7 @@ void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+     }
+ }
+ 
+-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block)
+diff --git a/crypto/modes/ctr128.c b/crypto/modes/ctr128.c
+index 03920b4473..1a588415cc 100644
+--- a/crypto/modes/ctr128.c
++++ b/crypto/modes/ctr128.c
+@@ -68,7 +68,7 @@ static void ctr128_inc_aligned(unsigned char *counter)
+  * implementation takes NO responsibility for checking that the counter
+  * doesn't overflow into the rest of the IV when incremented.
+  */
+-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16],
+                            unsigned char ecount_buf[16], unsigned int *num,
+@@ -144,7 +144,7 @@ static void ctr96_inc(unsigned char *counter)
+     } while (n);
+ }
+ 
+-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16],
+                                  unsigned char ecount_buf[16],
+diff --git a/crypto/modes/cts128.c b/crypto/modes/cts128.c
+index 93826a1e2f..bcbaa65081 100644
+--- a/crypto/modes/cts128.c
++++ b/crypto/modes/cts128.c
+@@ -24,7 +24,7 @@
+  * compliant with the NIST proposal, both extending CBC mode.
+  */
+ 
+-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block)
+@@ -53,7 +53,7 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
+     return len + residue;
+ }
+ 
+-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+@@ -84,7 +84,7 @@ size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+     return len + residue;
+ }
+ 
+-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc)
+ {
+@@ -120,7 +120,7 @@ size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+     return len + residue;
+ }
+ 
+-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc)
+ {
+@@ -155,7 +155,7 @@ size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+     return len + residue;
+ }
+ 
+-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block)
+@@ -197,7 +197,7 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
+     return 16 + len + residue;
+ }
+ 
+-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+@@ -245,7 +245,7 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+     return 16 + len + residue;
+ }
+ 
+-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc)
+ {
+@@ -285,7 +285,7 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+     return 16 + len + residue;
+ }
+ 
+-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc)
+ {
+diff --git a/crypto/modes/gcm128.c b/crypto/modes/gcm128.c
+index 15f76e3e86..8fd5f4d0af 100644
+--- a/crypto/modes/gcm128.c
++++ b/crypto/modes/gcm128.c
+@@ -710,7 +710,7 @@ void gcm_ghash_p8(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+ # endif
+ #endif
+ 
+-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
++void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+ {
+     const union {
+         long one;
+@@ -824,7 +824,7 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+ #endif
+ }
+ 
+-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
++void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+                          size_t len)
+ {
+     const union {
+@@ -917,7 +917,7 @@ void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+         ctx->Yi.d[3] = ctr;
+ }
+ 
+-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len)
+ {
+     size_t i;
+@@ -978,7 +978,7 @@ int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+     return 0;
+ }
+ 
+-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -1213,7 +1213,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+     return 0;
+ }
+ 
+-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -1456,7 +1456,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+     return 0;
+ }
+ 
+-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream)
+ {
+@@ -1620,7 +1620,7 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+ #endif
+ }
+ 
+-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream)
+ {
+@@ -1791,7 +1791,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+ #endif
+ }
+ 
+-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len)
+ {
+     const union {
+@@ -1865,14 +1865,14 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+         return -1;
+ }
+ 
+-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
++void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ {
+     CRYPTO_gcm128_finish(ctx, NULL, 0);
+     memcpy(tag, ctx->Xi.c,
+            len <= sizeof(ctx->Xi.c) ? len : sizeof(ctx->Xi.c));
+ }
+ 
+-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
++GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block)
+ {
+     GCM128_CONTEXT *ret;
+ 
+@@ -1882,7 +1882,7 @@ GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
+     return ret;
+ }
+ 
+-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
++void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
+ {
+     OPENSSL_clear_free(ctx, sizeof(*ctx));
+ }
+diff --git a/crypto/modes/ocb128.c b/crypto/modes/ocb128.c
+index 713b9aaf19..8510da9784 100644
+--- a/crypto/modes/ocb128.c
++++ b/crypto/modes/ocb128.c
+@@ -127,7 +127,7 @@ static OCB_BLOCK *ocb_lookup_l(OCB128_CONTEXT *ctx, size_t idx)
+ /*
+  * Create a new OCB128_CONTEXT
+  */
+-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
++OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
+                                   block128_f encrypt, block128_f decrypt,
+                                   ocb128_f stream)
+ {
+@@ -148,7 +148,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
+ /*
+  * Initialise an existing OCB128_CONTEXT
+  */
+-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
++int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+                        block128_f encrypt, block128_f decrypt,
+                        ocb128_f stream)
+ {
+@@ -193,7 +193,7 @@ int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+ /*
+  * Copy an OCB128_CONTEXT object
+  */
+-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
++int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+                            void *keyenc, void *keydec)
+ {
+     memcpy(dest, src, sizeof(OCB128_CONTEXT));
+@@ -214,7 +214,7 @@ int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+ /*
+  * Set the IV to be used for this operation. Must be 1 - 15 bytes.
+  */
+-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
++int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+                         size_t len, size_t taglen)
+ {
+     unsigned char ktop[16], tmp[16], mask;
+@@ -265,7 +265,7 @@ int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+  * Provide any AAD. This can be called multiple times. Only the final time can
+  * have a partial block
+  */
+-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len)
+ {
+     u64 i, all_num_blocks;
+@@ -326,7 +326,7 @@ int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+  * Provide any data to be encrypted. This can be called multiple times. Only
+  * the final time can have a partial block
+  */
+-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
++int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -418,7 +418,7 @@ int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+  * Provide any data to be decrypted. This can be called multiple times. Only
+  * the final time can have a partial block
+  */
+-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
++int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -534,7 +534,7 @@ static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
+ /*
+  * Calculate the tag and verify it against the supplied tag
+  */
+-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len)
+ {
+     return ocb_finish(ctx, (unsigned char*)tag, len, 0);
+@@ -543,7 +543,7 @@ int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+ /*
+  * Retrieve the calculated tag
+  */
+-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
++int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ {
+     return ocb_finish(ctx, tag, len, 1);
+ }
+@@ -551,7 +551,7 @@ int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ /*
+  * Release all resources
+  */
+-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
++void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+ {
+     if (ctx) {
+         OPENSSL_clear_free(ctx->l, ctx->max_l_index * 16);
+diff --git a/crypto/modes/ofb128.c b/crypto/modes/ofb128.c
+index 83092564c6..4548c6edbc 100644
+--- a/crypto/modes/ofb128.c
++++ b/crypto/modes/ofb128.c
+@@ -16,7 +16,7 @@
+  * The extra state information to record how much of the 128bit block we have
+  * used is contained in *num;
+  */
+-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num, block128_f block)
+ {
+diff --git a/crypto/modes/wrap128.c b/crypto/modes/wrap128.c
+index d7e56cc260..f773869d37 100644
+--- a/crypto/modes/wrap128.c
++++ b/crypto/modes/wrap128.c
+@@ -45,7 +45,7 @@ static const unsigned char default_aiv[] = {
+  *                     or if inlen > CRYPTO128_WRAP_MAX.
+  *                     Output length if wrapping succeeded.
+  */
+-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
+                        unsigned char *out,
+                        const unsigned char *in, size_t inlen,
+                        block128_f block)
+@@ -147,7 +147,7 @@ static size_t crypto_128_unwrap_raw(void *key, unsigned char *iv,
+  *                     or if IV doesn't match expected value.
+  *                     Output length otherwise.
+  */
+-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+                          unsigned char *out, const unsigned char *in,
+                          size_t inlen, block128_f block)
+ {
+@@ -180,7 +180,7 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+  *  @return            0 if inlen is out of range [1, CRYPTO128_WRAP_MAX].
+  *                     Output length if wrapping succeeded.
+  */
+-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+                            unsigned char *out,
+                            const unsigned char *in, size_t inlen,
+                            block128_f block)
+@@ -248,7 +248,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+  *                     or if IV and message length indicator doesn't match.
+  *                     Output length if unwrapping succeeded and IV matches.
+  */
+-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+                              unsigned char *out,
+                              const unsigned char *in, size_t inlen,
+                              block128_f block)
+diff --git a/crypto/modes/xts128.c b/crypto/modes/xts128.c
+index 81b1eacd59..095b9229c2 100644
+--- a/crypto/modes/xts128.c
++++ b/crypto/modes/xts128.c
+@@ -11,7 +11,7 @@
+ #include "modes_lcl.h"
+ #include <string.h>
+ 
+-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
++int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+                           const unsigned char iv[16],
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len, int enc)
 diff --git a/crypto/o_fips.c b/crypto/o_fips.c
 index 050ea9c216..f3a1755872 100644
 --- a/crypto/o_fips.c
@@ -28510,6 +28999,229 @@ index aabd2bfaad..d10b60aa7b 100644
  
  # ifdef  __cplusplus
  }
+diff --git a/include/openssl/modes.h b/include/openssl/modes.h
+index d544f98d55..e15ef42843 100644
+--- a/include/openssl/modes.h
++++ b/include/openssl/modes.h
+@@ -31,141 +31,141 @@ typedef void (*ccm128_f) (const unsigned char *in, unsigned char *out,
+                           const unsigned char ivec[16],
+                           unsigned char cmac[16]);
+ 
+-void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block);
+-void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block);
+ 
+-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16],
+                            unsigned char ecount_buf[16], unsigned int *num,
+                            block128_f block);
+ 
+-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16],
+                                  unsigned char ecount_buf[16],
+                                  unsigned int *num, ctr128_f ctr);
+ 
+-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            block128_f block);
+ 
+-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            int enc, block128_f block);
+-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block);
+-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t bits, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block);
+ 
+-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block);
+-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block);
+-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+ 
+-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+                                        block128_f block);
+-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc);
+-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+                                        block128_f block);
+-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc);
+ 
+ typedef struct gcm128_context GCM128_CONTEXT;
+ 
+-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block);
+-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
+-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
++GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block);
++void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
++void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+                          size_t len);
+-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len);
+-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len);
+-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len);
+-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream);
+-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream);
+-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len);
+-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
++void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
++void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
+ 
+ typedef struct ccm128_context CCM128_CONTEXT;
+ 
+-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+                         unsigned int M, unsigned int L, void *key,
+                         block128_f block);
+-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
++int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
+                         size_t nlen, size_t mlen);
+-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
++void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
+                        size_t alen);
+-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                                 unsigned char *out, size_t len,
+                                 ccm128_f stream);
+-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                                 unsigned char *out, size_t len,
+                                 ccm128_f stream);
+-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
++size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+ 
+ typedef struct xts128_context XTS128_CONTEXT;
+ 
+-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
++int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+                           const unsigned char iv[16],
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len, int enc);
+ 
+-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
+                        unsigned char *out,
+                        const unsigned char *in, size_t inlen,
+                        block128_f block);
+ 
+-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+                          unsigned char *out,
+                          const unsigned char *in, size_t inlen,
+                          block128_f block);
+-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+                            unsigned char *out, const unsigned char *in,
+                            size_t inlen, block128_f block);
+-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+                              unsigned char *out, const unsigned char *in,
+                              size_t inlen, block128_f block);
+ 
+@@ -179,26 +179,26 @@ typedef void (*ocb128_f) (const unsigned char *in, unsigned char *out,
+                           const unsigned char L_[][16],
+                           unsigned char checksum[16]);
+ 
+-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
++OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
+                                   block128_f encrypt, block128_f decrypt,
+                                   ocb128_f stream);
+-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
++int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+                        block128_f encrypt, block128_f decrypt,
+                        ocb128_f stream);
+-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
++int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+                            void *keyenc, void *keydec);
+-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
++int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+                         size_t len, size_t taglen);
+-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len);
+-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
++int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
++int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len);
+-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
+-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
++int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
++void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
+ # endif                          /* OPENSSL_NO_OCB */
+ 
+ # ifdef  __cplusplus
 diff --git a/include/openssl/objects.h b/include/openssl/objects.h
 index 5e8b5762f8..c7e8ce2d0d 100644
 --- a/include/openssl/objects.h
@@ -30283,715 +30995,437 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/modes/cbc128.c b/crypto/modes/cbc128.c
-index 4ce5eb2ae3..4d31026624 100644
---- a/crypto/modes/cbc128.c
-+++ b/crypto/modes/cbc128.c
-@@ -15,7 +15,7 @@
- # define STRICT_ALIGNMENT 0
- #endif
+diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
+index 9f9d815e87..1f86b5d16f 100644
+--- a/crypto/objects/o_names.c
++++ b/crypto/objects/o_names.c
+@@ -73,12 +73,12 @@ DEFINE_RUN_ONCE_STATIC(o_names_init)
+     return names_lh != NULL && obj_lock != NULL;
+ }
  
--void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], block128_f block)
+-int OBJ_NAME_init(void)
++int __cdecl OBJ_NAME_init(void)
  {
-@@ -66,7 +66,7 @@ void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
-     memcpy(ivec, iv, 16);
+     return RUN_ONCE(&init, o_names_init);
  }
  
--void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], block128_f block)
+-int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
++int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+                        int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *))
  {
-diff --git a/crypto/modes/ccm128.c b/crypto/modes/ccm128.c
-index 05a33239f5..a0cec976f6 100644
---- a/crypto/modes/ccm128.c
-+++ b/crypto/modes/ccm128.c
-@@ -15,7 +15,7 @@
-  * First you setup M and L parameters and pass the key schedule. This is
-  * called once per session setup...
-  */
--void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
-+void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
-                         unsigned int M, unsigned int L, void *key,
-                         block128_f block)
- {
-@@ -29,7 +29,7 @@ void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
- /* !!! Following interfaces are to be called *once* per packet !!! */
- 
- /* Then you setup per-message nonce and pass the length of the message */
--int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
-                         const unsigned char *nonce, size_t nlen, size_t mlen)
- {
-     unsigned int L = ctx->nonce.c[0] & 7; /* the L parameter */
-@@ -57,7 +57,7 @@ int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
- }
- 
- /* Then you pass additional authentication data, this is optional */
--void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
-+void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
-                        const unsigned char *aad, size_t alen)
- {
-     unsigned int i;
-@@ -126,7 +126,7 @@ static void ctr64_inc(unsigned char *counter)
-     } while (n);
- }
- 
--int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
-                           const unsigned char *inp, unsigned char *out,
-                           size_t len)
- {
-@@ -210,7 +210,7 @@ int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
-     return 0;
- }
- 
--int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
-                           const unsigned char *inp, unsigned char *out,
-                           size_t len)
- {
-@@ -297,7 +297,7 @@ static void ctr64_add(unsigned char *counter, size_t inc)
-     } while (n && (inc || val));
- }
- 
--int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
-                                 const unsigned char *inp, unsigned char *out,
-                                 size_t len, ccm128_f stream)
- {
-@@ -361,7 +361,7 @@ int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
-     return 0;
- }
- 
--int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
-                                 const unsigned char *inp, unsigned char *out,
-                                 size_t len, ccm128_f stream)
- {
-@@ -419,7 +419,7 @@ int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
-     return 0;
- }
- 
--size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
-+size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
- {
-     unsigned int M = (ctx->nonce.c[0] >> 3) & 7; /* the M parameter */
- 
-diff --git a/crypto/modes/cfb128.c b/crypto/modes/cfb128.c
-index e439567fe5..14a3acf830 100644
---- a/crypto/modes/cfb128.c
-+++ b/crypto/modes/cfb128.c
-@@ -16,7 +16,7 @@
-  * The extra state information to record how much of the 128bit block we have
-  * used is contained in *num;
-  */
--void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], int *num,
-                            int enc, block128_f block)
-@@ -170,7 +170,7 @@ static void cfbr_encrypt_block(const unsigned char *in, unsigned char *out,
- }
- 
- /* N.B. This expects the input to be packed, MS bit first */
--void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t bits, const void *key,
-                              unsigned char ivec[16], int *num,
-                              int enc, block128_f block)
-@@ -186,7 +186,7 @@ void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
-     }
- }
- 
--void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t length, const void *key,
-                              unsigned char ivec[16], int *num,
-                              int enc, block128_f block)
-diff --git a/crypto/modes/ctr128.c b/crypto/modes/ctr128.c
-index 03920b4473..1a588415cc 100644
---- a/crypto/modes/ctr128.c
-+++ b/crypto/modes/ctr128.c
-@@ -68,7 +68,7 @@ static void ctr128_inc_aligned(unsigned char *counter)
-  * implementation takes NO responsibility for checking that the counter
-  * doesn't overflow into the rest of the IV when incremented.
-  */
--void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16],
-                            unsigned char ecount_buf[16], unsigned int *num,
-@@ -144,7 +144,7 @@ static void ctr96_inc(unsigned char *counter)
-     } while (n);
- }
- 
--void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16],
-                                  unsigned char ecount_buf[16],
-diff --git a/crypto/modes/cts128.c b/crypto/modes/cts128.c
-index 93826a1e2f..bcbaa65081 100644
---- a/crypto/modes/cts128.c
-+++ b/crypto/modes/cts128.c
-@@ -24,7 +24,7 @@
-  * compliant with the NIST proposal, both extending CBC mode.
-  */
- 
--size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
-                                    unsigned char *out, size_t len,
-                                    const void *key, unsigned char ivec[16],
-                                    block128_f block)
-@@ -53,7 +53,7 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
-     return len + residue;
- }
- 
--size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-                                        unsigned char *out, size_t len,
-                                        const void *key,
-                                        unsigned char ivec[16],
-@@ -84,7 +84,7 @@ size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-     return len + residue;
- }
- 
--size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc)
- {
-@@ -120,7 +120,7 @@ size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-     return len + residue;
- }
- 
--size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16], cbc128_f cbc)
- {
-@@ -155,7 +155,7 @@ size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-     return len + residue;
- }
- 
--size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
-                                    unsigned char *out, size_t len,
-                                    const void *key, unsigned char ivec[16],
-                                    block128_f block)
-@@ -197,7 +197,7 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
-     return 16 + len + residue;
- }
- 
--size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-                                        unsigned char *out, size_t len,
-                                        const void *key,
-                                        unsigned char ivec[16],
-@@ -245,7 +245,7 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-     return 16 + len + residue;
- }
- 
--size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc)
- {
-@@ -285,7 +285,7 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-     return 16 + len + residue;
- }
- 
--size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16], cbc128_f cbc)
- {
-diff --git a/crypto/modes/gcm128.c b/crypto/modes/gcm128.c
-index 15f76e3e86..8fd5f4d0af 100644
---- a/crypto/modes/gcm128.c
-+++ b/crypto/modes/gcm128.c
-@@ -710,7 +710,7 @@ void gcm_ghash_p8(u64 Xi[2], const u128 Htable[16], const u8 *inp,
- # endif
- #endif
- 
--void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
-+void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
- {
-     const union {
-         long one;
-@@ -824,7 +824,7 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
- #endif
- }
- 
--void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
-+void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
-                          size_t len)
- {
-     const union {
-@@ -917,7 +917,7 @@ void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
-         ctx->Yi.d[3] = ctr;
- }
- 
--int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
-+int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
-                       size_t len)
- {
-     size_t i;
-@@ -978,7 +978,7 @@ int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
-     return 0;
- }
- 
--int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len)
- {
-@@ -1213,7 +1213,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
-     return 0;
- }
- 
--int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len)
- {
-@@ -1456,7 +1456,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
-     return 0;
- }
- 
--int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
-                                 const unsigned char *in, unsigned char *out,
-                                 size_t len, ctr128_f stream)
- {
-@@ -1620,7 +1620,7 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
- #endif
- }
- 
--int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
-                                 const unsigned char *in, unsigned char *out,
-                                 size_t len, ctr128_f stream)
- {
-@@ -1791,7 +1791,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
- #endif
- }
- 
--int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
-+int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
-                          size_t len)
- {
-     const union {
-@@ -1865,14 +1865,14 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
-         return -1;
- }
- 
--void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
-+void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
- {
-     CRYPTO_gcm128_finish(ctx, NULL, 0);
-     memcpy(tag, ctx->Xi.c,
-            len <= sizeof(ctx->Xi.c) ? len : sizeof(ctx->Xi.c));
- }
- 
--GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
-+GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block)
- {
-     GCM128_CONTEXT *ret;
- 
-@@ -1882,7 +1882,7 @@ GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
+@@ -169,7 +169,7 @@ static unsigned long obj_name_hash(const OBJ_NAME *a)
      return ret;
  }
  
--void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
-+void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
+-const char *OBJ_NAME_get(const char *name, int type)
++const char * __cdecl OBJ_NAME_get(const char *name, int type)
  {
-     OPENSSL_clear_free(ctx, sizeof(*ctx));
+     OBJ_NAME on, *ret;
+     int num = 0, alias;
+@@ -205,7 +205,7 @@ const char *OBJ_NAME_get(const char *name, int type)
+     return value;
  }
-diff --git a/crypto/modes/ocb128.c b/crypto/modes/ocb128.c
-index 713b9aaf19..8510da9784 100644
---- a/crypto/modes/ocb128.c
-+++ b/crypto/modes/ocb128.c
-@@ -127,7 +127,7 @@ static OCB_BLOCK *ocb_lookup_l(OCB128_CONTEXT *ctx, size_t idx)
- /*
-  * Create a new OCB128_CONTEXT
-  */
--OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
-+OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
-                                   block128_f encrypt, block128_f decrypt,
-                                   ocb128_f stream)
+ 
+-int OBJ_NAME_add(const char *name, int type, const char *data)
++int __cdecl OBJ_NAME_add(const char *name, int type, const char *data)
  {
-@@ -148,7 +148,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
- /*
-  * Initialise an existing OCB128_CONTEXT
-  */
--int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
-+int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
-                        block128_f encrypt, block128_f decrypt,
-                        ocb128_f stream)
- {
-@@ -193,7 +193,7 @@ int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
- /*
-  * Copy an OCB128_CONTEXT object
-  */
--int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
-+int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
-                            void *keyenc, void *keydec)
- {
-     memcpy(dest, src, sizeof(OCB128_CONTEXT));
-@@ -214,7 +214,7 @@ int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
- /*
-  * Set the IV to be used for this operation. Must be 1 - 15 bytes.
-  */
--int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
-+int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
-                         size_t len, size_t taglen)
- {
-     unsigned char ktop[16], tmp[16], mask;
-@@ -265,7 +265,7 @@ int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
-  * Provide any AAD. This can be called multiple times. Only the final time can
-  * have a partial block
-  */
--int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
-+int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
-                       size_t len)
- {
-     u64 i, all_num_blocks;
-@@ -326,7 +326,7 @@ int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
-  * Provide any data to be encrypted. This can be called multiple times. Only
-  * the final time can have a partial block
-  */
--int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len)
- {
-@@ -418,7 +418,7 @@ int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
-  * Provide any data to be decrypted. This can be called multiple times. Only
-  * the final time can have a partial block
-  */
--int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
-+int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len)
- {
-@@ -534,7 +534,7 @@ static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
- /*
-  * Calculate the tag and verify it against the supplied tag
-  */
--int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
-+int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
-                          size_t len)
- {
-     return ocb_finish(ctx, (unsigned char*)tag, len, 0);
-@@ -543,7 +543,7 @@ int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
- /*
-  * Retrieve the calculated tag
-  */
--int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
-+int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
- {
-     return ocb_finish(ctx, tag, len, 1);
+     OBJ_NAME *onp, *ret;
+     int alias, ok = 0;
+@@ -258,7 +258,7 @@ unlock:
+     return ok;
  }
-@@ -551,7 +551,7 @@ int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
- /*
-  * Release all resources
-  */
--void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
-+void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+ 
+-int OBJ_NAME_remove(const char *name, int type)
++int __cdecl OBJ_NAME_remove(const char *name, int type)
  {
-     if (ctx) {
-         OPENSSL_clear_free(ctx->l, ctx->max_l_index * 16);
-diff --git a/crypto/modes/ofb128.c b/crypto/modes/ofb128.c
-index 83092564c6..4548c6edbc 100644
---- a/crypto/modes/ofb128.c
-+++ b/crypto/modes/ofb128.c
-@@ -16,7 +16,7 @@
-  * The extra state information to record how much of the 128bit block we have
-  * used is contained in *num;
-  */
--void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], int *num, block128_f block)
+     OBJ_NAME on, *ret;
+     int ok = 0;
+@@ -306,7 +306,7 @@ static void do_all_fn(const OBJ_NAME *name, OBJ_DOALL *d)
+ 
+ IMPLEMENT_LHASH_DOALL_ARG_CONST(OBJ_NAME, OBJ_DOALL);
+ 
+-void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
++void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
+                      void *arg)
  {
-diff --git a/crypto/modes/wrap128.c b/crypto/modes/wrap128.c
-index d7e56cc260..f773869d37 100644
---- a/crypto/modes/wrap128.c
-+++ b/crypto/modes/wrap128.c
-@@ -45,7 +45,7 @@ static const unsigned char default_aiv[] = {
-  *                     or if inlen > CRYPTO128_WRAP_MAX.
-  *                     Output length if wrapping succeeded.
-  */
--size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
-+size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
-                        unsigned char *out,
-                        const unsigned char *in, size_t inlen,
-                        block128_f block)
-@@ -147,7 +147,7 @@ static size_t crypto_128_unwrap_raw(void *key, unsigned char *iv,
-  *                     or if IV doesn't match expected value.
-  *                     Output length otherwise.
-  */
--size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
-+size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
-                          unsigned char *out, const unsigned char *in,
-                          size_t inlen, block128_f block)
+     OBJ_DOALL d;
+@@ -342,7 +342,7 @@ static int __cdecl do_all_sorted_cmp(const void *n1_, const void *n2_)
+     return strcmp((*n1)->name, (*n2)->name);
+ }
+ 
+-void OBJ_NAME_do_all_sorted(int type,
++void __cdecl OBJ_NAME_do_all_sorted(int type,
+                             void (*fn) (const OBJ_NAME *, void *arg),
+                             void *arg)
  {
-@@ -180,7 +180,7 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
-  *  @return            0 if inlen is out of range [1, CRYPTO128_WRAP_MAX].
-  *                     Output length if wrapping succeeded.
+@@ -382,7 +382,7 @@ static void __cdecl name_funcs_free(NAME_FUNCS *ptr)
+     OPENSSL_free(ptr);
+ }
+ 
+-void OBJ_NAME_cleanup(int type)
++void __cdecl OBJ_NAME_cleanup(int type)
+ {
+     unsigned long down_load;
+ 
+diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
+index 93489b2520..35921e3223 100644
+--- a/crypto/objects/obj_dat.c
++++ b/crypto/objects/obj_dat.c
+@@ -162,7 +162,7 @@ void obj_cleanup_int(void)
+     added = NULL;
+ }
+ 
+-int OBJ_new_nid(int num)
++int __cdecl OBJ_new_nid(int num)
+ {
+     int i;
+ 
+@@ -171,7 +171,7 @@ int OBJ_new_nid(int num)
+     return i;
+ }
+ 
+-int OBJ_add_object(const ASN1_OBJECT *obj)
++int __cdecl OBJ_add_object(const ASN1_OBJECT *obj)
+ {
+     ASN1_OBJECT *o;
+     ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop;
+@@ -217,7 +217,7 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
+     return NID_undef;
+ }
+ 
+-ASN1_OBJECT *OBJ_nid2obj(int n)
++ASN1_OBJECT * __cdecl OBJ_nid2obj(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
+@@ -244,7 +244,7 @@ ASN1_OBJECT *OBJ_nid2obj(int n)
+     }
+ }
+ 
+-const char *OBJ_nid2sn(int n)
++const char * __cdecl OBJ_nid2sn(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
+@@ -271,7 +271,7 @@ const char *OBJ_nid2sn(int n)
+     }
+ }
+ 
+-const char *OBJ_nid2ln(int n)
++const char * __cdecl OBJ_nid2ln(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
+@@ -314,7 +314,7 @@ static int __cdecl obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, obj);
+ 
+-int OBJ_obj2nid(const ASN1_OBJECT *a)
++int __cdecl OBJ_obj2nid(const ASN1_OBJECT *a)
+ {
+     const unsigned int *op;
+     ADDED_OBJ ad, *adp;
+@@ -347,7 +347,7 @@ int OBJ_obj2nid(const ASN1_OBJECT *a)
+  * just registered ones.
   */
--size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
-+size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
-                            unsigned char *out,
-                            const unsigned char *in, size_t inlen,
-                            block128_f block)
-@@ -248,7 +248,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
-  *                     or if IV and message length indicator doesn't match.
-  *                     Output length if unwrapping succeeded and IV matches.
+ 
+-ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
++ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name)
+ {
+     int nid = NID_undef;
+     ASN1_OBJECT *op;
+@@ -393,7 +393,7 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
+     return op;
+ }
+ 
+-int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
++int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
+ {
+     int i, n = 0, len, nid, first, use_bn;
+     BIGNUM *bl;
+@@ -527,7 +527,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
+     return -1;
+ }
+ 
+-int OBJ_txt2nid(const char *s)
++int __cdecl OBJ_txt2nid(const char *s)
+ {
+     ASN1_OBJECT *obj;
+     int nid;
+@@ -537,7 +537,7 @@ int OBJ_txt2nid(const char *s)
+     return nid;
+ }
+ 
+-int OBJ_ln2nid(const char *s)
++int __cdecl OBJ_ln2nid(const char *s)
+ {
+     ASN1_OBJECT o;
+     const ASN1_OBJECT *oo = &o;
+@@ -558,7 +558,7 @@ int OBJ_ln2nid(const char *s)
+     return nid_objs[*op].nid;
+ }
+ 
+-int OBJ_sn2nid(const char *s)
++int __cdecl OBJ_sn2nid(const char *s)
+ {
+     ASN1_OBJECT o;
+     const ASN1_OBJECT *oo = &o;
+@@ -579,13 +579,13 @@ int OBJ_sn2nid(const char *s)
+     return nid_objs[*op].nid;
+ }
+ 
+-const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
++const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
+                          int (__cdecl *cmp) (const void *, const void *))
+ {
+     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
+ }
+ 
+-const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
++const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+                             int size,
+                             int (__cdecl *cmp) (const void *, const void *),
+                             int flags)
+@@ -638,7 +638,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+  * Parse a BIO sink to create some extra oid's objects.
+  * Line format:<OID:isdigit or '.']><isspace><SN><isspace><LN>
   */
--size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
-+size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
-                              unsigned char *out,
-                              const unsigned char *in, size_t inlen,
-                              block128_f block)
-diff --git a/crypto/modes/xts128.c b/crypto/modes/xts128.c
-index 81b1eacd59..095b9229c2 100644
---- a/crypto/modes/xts128.c
-+++ b/crypto/modes/xts128.c
-@@ -11,7 +11,7 @@
- #include "modes_lcl.h"
- #include <string.h>
+-int OBJ_create_objects(BIO *in)
++int __cdecl OBJ_create_objects(BIO *in)
+ {
+     char buf[512];
+     int i, num = 0;
+@@ -687,7 +687,7 @@ int OBJ_create_objects(BIO *in)
+     }
+ }
  
--int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
-+int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
-                           const unsigned char iv[16],
-                           const unsigned char *inp, unsigned char *out,
-                           size_t len, int enc)
-diff --git a/include/openssl/modes.h b/include/openssl/modes.h
-index d544f98d55..e15ef42843 100644
---- a/include/openssl/modes.h
-+++ b/include/openssl/modes.h
-@@ -31,141 +31,141 @@ typedef void (*ccm128_f) (const unsigned char *in, unsigned char *out,
-                           const unsigned char ivec[16],
-                           unsigned char cmac[16]);
+-int OBJ_create(const char *oid, const char *sn, const char *ln)
++int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln)
+ {
+     ASN1_OBJECT *tmpoid = NULL;
+     int ok = 0;
+@@ -724,14 +724,14 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
+     return ok;
+ }
  
--void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], block128_f block);
--void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], block128_f block);
+-size_t OBJ_length(const ASN1_OBJECT *obj)
++size_t __cdecl OBJ_length(const ASN1_OBJECT *obj)
+ {
+     if (obj == NULL)
+         return 0;
+     return obj->length;
+ }
  
--void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16],
-                            unsigned char ecount_buf[16], unsigned int *num,
-                            block128_f block);
+-const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj)
++const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj)
+ {
+     if (obj == NULL)
+         return NULL;
+diff --git a/crypto/objects/obj_err.c b/crypto/objects/obj_err.c
+index be4f11ca20..a223310a61 100644
+--- a/crypto/objects/obj_err.c
++++ b/crypto/objects/obj_err.c
+@@ -34,7 +34,7 @@ static const ERR_STRING_DATA OBJ_str_reasons[] = {
  
--void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16],
-                                  unsigned char ecount_buf[16],
-                                  unsigned int *num, ctr128_f ctr);
+ #endif
  
--void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], int *num,
-                            block128_f block);
+-int ERR_load_OBJ_strings(void)
++int __cdecl ERR_load_OBJ_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(OBJ_str_functs[0].error) == NULL) {
+diff --git a/crypto/objects/obj_lib.c b/crypto/objects/obj_lib.c
+index acbdeec2c9..373d462235 100644
+--- a/crypto/objects/obj_lib.c
++++ b/crypto/objects/obj_lib.c
+@@ -13,7 +13,7 @@
+ #include <openssl/buffer.h>
+ #include "internal/asn1_int.h"
  
--void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-                            size_t len, const void *key,
-                            unsigned char ivec[16], int *num,
-                            int enc, block128_f block);
--void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t length, const void *key,
-                              unsigned char ivec[16], int *num,
-                              int enc, block128_f block);
--void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t bits, const void *key,
-                              unsigned char ivec[16], int *num,
-                              int enc, block128_f block);
+-ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
++ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o)
+ {
+     ASN1_OBJECT *r;
  
--size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
-                                    unsigned char *out, size_t len,
-                                    const void *key, unsigned char ivec[16],
-                                    block128_f block);
--size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
--size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
-                                    unsigned char *out, size_t len,
-                                    const void *key, unsigned char ivec[16],
-                                    block128_f block);
--size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
+@@ -54,7 +54,7 @@ ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
+     return NULL;
+ }
  
--size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
-                                        unsigned char *out, size_t len,
-                                        const void *key,
-                                        unsigned char ivec[16],
-                                        block128_f block);
--size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16], cbc128_f cbc);
--size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-+size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
-                                        unsigned char *out, size_t len,
-                                        const void *key,
-                                        unsigned char ivec[16],
-                                        block128_f block);
--size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
-+size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
-                                  size_t len, const void *key,
-                                  unsigned char ivec[16], cbc128_f cbc);
+-int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
++int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
+ {
+     int ret;
  
- typedef struct gcm128_context GCM128_CONTEXT;
+diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
+index b9218cd74c..495b9e821b 100644
+--- a/crypto/objects/obj_xref.c
++++ b/crypto/objects/obj_xref.c
+@@ -40,7 +40,7 @@ static int __cdecl sigx_cmp(const nid_triple *const *a, const nid_triple *const
  
--GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block);
--void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
--void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
-+GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block);
-+void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
-+void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
-                          size_t len);
--int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
-+int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
-                       size_t len);
--int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len);
--int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
-                           const unsigned char *in, unsigned char *out,
-                           size_t len);
--int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
-                                 const unsigned char *in, unsigned char *out,
-                                 size_t len, ctr128_f stream);
--int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
-+int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
-                                 const unsigned char *in, unsigned char *out,
-                                 size_t len, ctr128_f stream);
--int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
-+int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
-                          size_t len);
--void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
--void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
-+void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
-+void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
  
- typedef struct ccm128_context CCM128_CONTEXT;
+-int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
++int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+ {
+     nid_triple tmp;
+     const nid_triple *rv = NULL;
+@@ -64,7 +64,7 @@ int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+     return 1;
+ }
  
--void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
-+void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
-                         unsigned int M, unsigned int L, void *key,
-                         block128_f block);
--int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
-+int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
-                         size_t nlen, size_t mlen);
--void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
-+void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
-                        size_t alen);
--int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
-+int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
-                           unsigned char *out, size_t len);
--int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
-+int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
-                           unsigned char *out, size_t len);
--int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
-+int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
-                                 unsigned char *out, size_t len,
-                                 ccm128_f stream);
--int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
-+int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
-                                 unsigned char *out, size_t len,
-                                 ccm128_f stream);
--size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
-+size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+-int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
++int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+ {
+     nid_triple tmp;
+     const nid_triple *t = &tmp;
+@@ -92,7 +92,7 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+     return 1;
+ }
  
- typedef struct xts128_context XTS128_CONTEXT;
+-int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
++int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+ {
+     nid_triple *ntr;
+     if (sig_app == NULL)
+@@ -130,7 +130,7 @@ static void __cdecl sid_free(nid_triple *tt)
+     OPENSSL_free(tt);
+ }
  
--int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
-+int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
-                           const unsigned char iv[16],
-                           const unsigned char *inp, unsigned char *out,
-                           size_t len, int enc);
+-void OBJ_sigid_free(void)
++void __cdecl OBJ_sigid_free(void)
+ {
+     sk_nid_triple_pop_free(sig_app, sid_free);
+     sig_app = NULL;
+diff --git a/include/openssl/objects.h b/include/openssl/objects.h
+index c7e8ce2d0d..af71998db9 100644
+--- a/include/openssl/objects.h
++++ b/include/openssl/objects.h
+@@ -41,34 +41,34 @@ typedef struct obj_name_st {
  
--size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
-+size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
-                        unsigned char *out,
-                        const unsigned char *in, size_t inlen,
-                        block128_f block);
+ # define         OBJ_create_and_add_object(a,b,c) OBJ_create(a,b,c)
  
--size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
-+size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
-                          unsigned char *out,
-                          const unsigned char *in, size_t inlen,
-                          block128_f block);
--size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
-+size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
-                            unsigned char *out, const unsigned char *in,
-                            size_t inlen, block128_f block);
--size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
-+size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
-                              unsigned char *out, const unsigned char *in,
-                              size_t inlen, block128_f block);
+-int OBJ_NAME_init(void);
+-int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
++int __cdecl OBJ_NAME_init(void);
++int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+                        int (__cdecl *cmp_func) (const char *, const char *),
+                        void (*free_func) (const char *, int, const char *));
+-const char *OBJ_NAME_get(const char *name, int type);
+-int OBJ_NAME_add(const char *name, int type, const char *data);
+-int OBJ_NAME_remove(const char *name, int type);
+-void OBJ_NAME_cleanup(int type); /* -1 for everything */
+-void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
++const char * __cdecl OBJ_NAME_get(const char *name, int type);
++int __cdecl OBJ_NAME_add(const char *name, int type, const char *data);
++int __cdecl OBJ_NAME_remove(const char *name, int type);
++void __cdecl OBJ_NAME_cleanup(int type); /* -1 for everything */
++void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
+                      void *arg);
+-void OBJ_NAME_do_all_sorted(int type,
++void __cdecl OBJ_NAME_do_all_sorted(int type,
+                             void (*fn) (const OBJ_NAME *, void *arg),
+                             void *arg);
  
-@@ -179,26 +179,26 @@ typedef void (*ocb128_f) (const unsigned char *in, unsigned char *out,
-                           const unsigned char L_[][16],
-                           unsigned char checksum[16]);
+-ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o);
+-ASN1_OBJECT *OBJ_nid2obj(int n);
+-const char *OBJ_nid2ln(int n);
+-const char *OBJ_nid2sn(int n);
+-int OBJ_obj2nid(const ASN1_OBJECT *o);
+-ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name);
+-int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
+-int OBJ_txt2nid(const char *s);
+-int OBJ_ln2nid(const char *s);
+-int OBJ_sn2nid(const char *s);
+-int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+-const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
++ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o);
++ASN1_OBJECT * __cdecl OBJ_nid2obj(int n);
++const char * __cdecl OBJ_nid2ln(int n);
++const char * __cdecl OBJ_nid2sn(int n);
++int __cdecl OBJ_obj2nid(const ASN1_OBJECT *o);
++ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name);
++int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
++int __cdecl OBJ_txt2nid(const char *s);
++int __cdecl OBJ_ln2nid(const char *s);
++int __cdecl OBJ_sn2nid(const char *s);
++int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
++const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
+                          int (__cdecl *cmp) (const void *, const void *));
+-const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
++const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                             int size,
+                             int (__cdecl *cmp) (const void *, const void *),
+                             int flags);
+@@ -152,21 +152,21 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                           (void)type_2=CHECKED_PTR_OF(type2,cmp##_type_2), \
+                           cmp##_BSEARCH_CMP_FN)),flags)
  
--OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
-+OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
-                                   block128_f encrypt, block128_f decrypt,
-                                   ocb128_f stream);
--int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
-+int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
-                        block128_f encrypt, block128_f decrypt,
-                        ocb128_f stream);
--int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
-+int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
-                            void *keyenc, void *keydec);
--int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
-+int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
-                         size_t len, size_t taglen);
--int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
-+int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
-                       size_t len);
--int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
-+int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
-                           unsigned char *out, size_t len);
--int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
-+int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
-                           unsigned char *out, size_t len);
--int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
-+int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
-                          size_t len);
--int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
--void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
-+int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
-+void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
- # endif                          /* OPENSSL_NO_OCB */
+-int OBJ_new_nid(int num);
+-int OBJ_add_object(const ASN1_OBJECT *obj);
+-int OBJ_create(const char *oid, const char *sn, const char *ln);
++int __cdecl OBJ_new_nid(int num);
++int __cdecl OBJ_add_object(const ASN1_OBJECT *obj);
++int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln);
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ # define OBJ_cleanup() while(0) continue
+ #endif
+-int OBJ_create_objects(BIO *in);
++int __cdecl OBJ_create_objects(BIO *in);
+ 
+-size_t OBJ_length(const ASN1_OBJECT *obj);
+-const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj);
++size_t __cdecl OBJ_length(const ASN1_OBJECT *obj);
++const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj);
+ 
+-int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
+-int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
+-int OBJ_add_sigid(int signid, int dig_id, int pkey_id);
+-void OBJ_sigid_free(void);
++int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
++int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
++int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id);
++void __cdecl OBJ_sigid_free(void);
+ 
  
  # ifdef  __cplusplus
+diff --git a/include/openssl/objectserr.h b/include/openssl/objectserr.h
+index 02e166f1ac..7888b96790 100644
+--- a/include/openssl/objectserr.h
++++ b/include/openssl/objectserr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_OBJ_strings(void);
++int __cdecl ERR_load_OBJ_strings(void);
+ 
+ /*
+  * OBJ function codes.
+diff --git a/test/modes_internal_test.c b/test/modes_internal_test.c
+index e0f1adf6af..89f7b76696 100644
+--- a/test/modes_internal_test.c
++++ b/test/modes_internal_test.c
+@@ -127,18 +127,18 @@ typedef struct {
+     const char *case_name;
+     size_t (*last_blocks_correction)(const unsigned char *in,
+                                      unsigned char *out, size_t len);
+-    size_t (*encrypt_block)(const unsigned char *in,
++    size_t (__cdecl *encrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*encrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *encrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+-    size_t (*decrypt_block)(const unsigned char *in,
++    size_t (__cdecl *decrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*decrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *decrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+ } CTS128_FIXTURE;
