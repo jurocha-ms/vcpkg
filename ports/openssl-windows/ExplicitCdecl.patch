@@ -22439,6 +22439,89 @@ index e7ac476bb4..339ff0bccd 100644
                               BN_GENCB *cb)
  {
      int ok = 0;
+diff --git a/crypto/seed/seed.c b/crypto/seed/seed.c
+index d62da91ede..26fb50f491 100644
+--- a/crypto/seed/seed.c
++++ b/crypto/seed/seed.c
+@@ -437,7 +437,7 @@ static const seed_word KC[] = {
+ };
+ # endif
+ 
+-void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
++void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+                   SEED_KEY_SCHEDULE *ks)
+ {
+     seed_word x1, x2, x3, x4;
+@@ -496,7 +496,7 @@ void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+ # endif
+ }
+ 
+-void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks)
+ {
+@@ -541,7 +541,7 @@ void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+     word2char(x2, d + 12);
+ }
+ 
+-void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks)
+ {
+diff --git a/crypto/seed/seed_cbc.c b/crypto/seed/seed_cbc.c
+index c9a4fe217b..08d3e13b2f 100644
+--- a/crypto/seed/seed_cbc.c
++++ b/crypto/seed/seed_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t len, const SEED_KEY_SCHEDULE *ks,
+                       unsigned char ivec[SEED_BLOCK_SIZE], int enc)
+ {
+diff --git a/crypto/seed/seed_cfb.c b/crypto/seed/seed_cfb.c
+index 2aee1ffe39..69b08634f5 100644
+--- a/crypto/seed/seed_cfb.c
++++ b/crypto/seed/seed_cfb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
+                          int enc)
+diff --git a/crypto/seed/seed_ecb.c b/crypto/seed/seed_ecb.c
+index b6e301ccda..97f43eade7 100644
+--- a/crypto/seed/seed_ecb.c
++++ b/crypto/seed/seed_ecb.c
+@@ -9,7 +9,7 @@
+ 
+ #include <openssl/seed.h>
+ 
+-void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       const SEED_KEY_SCHEDULE *ks, int enc)
+ {
+     if (enc)
+diff --git a/crypto/seed/seed_ofb.c b/crypto/seed/seed_ofb.c
+index b455540585..c492e24486 100644
+--- a/crypto/seed/seed_ofb.c
++++ b/crypto/seed/seed_ofb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num)
+ {
 diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
 index 55a44023d5..9e3e805b1b 100644
 --- a/crypto/sha/keccak1600.c
@@ -22466,9 +22549,18 @@ index e5b38211d2..5807649c8f 100644
      SHA_CTX c;
      static unsigned char m[SHA_DIGEST_LENGTH];
 diff --git a/crypto/sha/sha256.c b/crypto/sha/sha256.c
-index bf78f075ee..cde44fb98d 100644
+index bf78f075ee..840ae90b65 100644
 --- a/crypto/sha/sha256.c
 +++ b/crypto/sha/sha256.c
+@@ -16,7 +16,7 @@
+ #include <openssl/sha.h>
+ #include <openssl/opensslv.h>
+ 
+-int SHA224_Init(SHA256_CTX *c)
++int __cdecl SHA224_Init(SHA256_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->h[0] = 0xc1059ed8UL;
 @@ -31,7 +31,7 @@ int SHA224_Init(SHA256_CTX *c)
      return 1;
  }
@@ -22478,6 +22570,15 @@ index bf78f075ee..cde44fb98d 100644
  {
      memset(c, 0, sizeof(*c));
      c->h[0] = 0x6a09e667UL;
+@@ -46,7 +46,7 @@ int SHA256_Init(SHA256_CTX *c)
+     return 1;
+ }
+ 
+-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA256_CTX c;
+     static unsigned char m[SHA224_DIGEST_LENGTH];
 @@ -60,7 +60,7 @@ unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
      return md;
  }
@@ -22487,6 +22588,100 @@ index bf78f075ee..cde44fb98d 100644
  {
      SHA256_CTX c;
      static unsigned char m[SHA256_DIGEST_LENGTH];
+@@ -74,12 +74,12 @@ unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
+     return md;
+ }
+ 
+-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
++int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
+ {
+     return SHA256_Update(c, data, len);
+ }
+ 
+-int SHA224_Final(unsigned char *md, SHA256_CTX *c)
++int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c)
+ {
+     return SHA256_Final(md, c);
+ }
+diff --git a/crypto/sha/sha512.c b/crypto/sha/sha512.c
+index 50b65ee811..70fb22e657 100644
+--- a/crypto/sha/sha512.c
++++ b/crypto/sha/sha512.c
+@@ -96,7 +96,7 @@ int sha512_256_init(SHA512_CTX *c)
+     return 1;
+ }
+ 
+-int SHA384_Init(SHA512_CTX *c)
++int __cdecl SHA384_Init(SHA512_CTX *c)
+ {
+     c->h[0] = U64(0xcbbb9d5dc1059ed8);
+     c->h[1] = U64(0x629a292a367cd507);
+@@ -114,7 +114,7 @@ int SHA384_Init(SHA512_CTX *c)
+     return 1;
+ }
+ 
+-int SHA512_Init(SHA512_CTX *c)
++int __cdecl SHA512_Init(SHA512_CTX *c)
+ {
+     c->h[0] = U64(0x6a09e667f3bcc908);
+     c->h[1] = U64(0xbb67ae8584caa73b);
+@@ -137,7 +137,7 @@ static
+ #endif
+ void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
+ 
+-int SHA512_Final(unsigned char *md, SHA512_CTX *c)
++int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c)
+ {
+     unsigned char *p = (unsigned char *)c->u.p;
+     size_t n = c->num;
+@@ -256,12 +256,12 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
+     return 1;
+ }
+ 
+-int SHA384_Final(unsigned char *md, SHA512_CTX *c)
++int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c)
+ {
+     return SHA512_Final(md, c);
+ }
+ 
+-int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
++int __cdecl SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
+ {
+     SHA_LONG64 l;
+     unsigned char *p = c->u.p;
+@@ -309,12 +309,12 @@ int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
+     return 1;
+ }
+ 
+-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
++int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
+ {
+     return SHA512_Update(c, data, len);
+ }
+ 
+-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
++void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
+ {
+ #ifndef SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
+     if ((size_t)data % sizeof(c->u.d[0]) != 0)
+@@ -323,7 +323,7 @@ void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
+     sha512_block_data_order(c, data, 1);
+ }
+ 
+-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA512_CTX c;
+     static unsigned char m[SHA384_DIGEST_LENGTH];
+@@ -337,7 +337,7 @@ unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
+     return md;
+ }
+ 
+-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA512_CTX c;
+     static unsigned char m[SHA512_DIGEST_LENGTH];
 diff --git a/crypto/sha/sha_locl.h b/crypto/sha/sha_locl.h
 index 4e5a090382..20df4dc95f 100644
 --- a/crypto/sha/sha_locl.h
@@ -34970,8 +35165,46 @@ index 38b5578978..0d317b8a56 100644
      static ossl_unused ossl_inline int sk_##t1##_num(const STACK_OF(t1) *sk) \
      { \
          return OPENSSL_sk_num((const OPENSSL_STACK *)sk); \
+diff --git a/include/openssl/seed.h b/include/openssl/seed.h
+index de10b08572..471f8f40ea 100644
+--- a/include/openssl/seed.h
++++ b/include/openssl/seed.h
+@@ -65,26 +65,26 @@ typedef struct seed_key_st {
+ # endif
+ } SEED_KEY_SCHEDULE;
+ 
+-void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
++void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+                   SEED_KEY_SCHEDULE *ks);
+ 
+-void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks);
+-void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks);
+ 
+-void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       const SEED_KEY_SCHEDULE *ks, int enc);
+-void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
++void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
+                       const SEED_KEY_SCHEDULE *ks,
+                       unsigned char ivec[SEED_BLOCK_SIZE], int enc);
+-void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
+                          int enc);
+-void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num);
+ 
 diff --git a/include/openssl/sha.h b/include/openssl/sha.h
-index 6a1eb0de8b..e2ee74e392 100644
+index 6a1eb0de8b..0fc7a42b1e 100644
 --- a/include/openssl/sha.h
 +++ b/include/openssl/sha.h
 @@ -38,11 +38,11 @@ typedef struct SHAstate_st {
@@ -34991,15 +35224,23 @@ index 6a1eb0de8b..e2ee74e392 100644
  
  # define SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
                                          * contiguous array of 32 bit wide
-@@ -59,11 +59,11 @@ int SHA224_Init(SHA256_CTX *c);
- int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
- int SHA224_Final(unsigned char *md, SHA256_CTX *c);
- unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
+@@ -55,15 +55,15 @@ typedef struct SHA256state_st {
+     unsigned int num, md_len;
+ } SHA256_CTX;
+ 
+-int SHA224_Init(SHA256_CTX *c);
+-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
+-int SHA224_Final(unsigned char *md, SHA256_CTX *c);
+-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
 -int SHA256_Init(SHA256_CTX *c);
 -int SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
 -int SHA256_Final(unsigned char *md, SHA256_CTX *c);
 -unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
 -void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
++int __cdecl SHA224_Init(SHA256_CTX *c);
++int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
++int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c);
++unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md);
 +int __cdecl SHA256_Init(SHA256_CTX *c);
 +int __cdecl SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
 +int __cdecl SHA256_Final(unsigned char *md, SHA256_CTX *c);
@@ -35008,6 +35249,31 @@ index 6a1eb0de8b..e2ee74e392 100644
  
  # define SHA224_DIGEST_LENGTH    28
  # define SHA256_DIGEST_LENGTH    32
+@@ -102,15 +102,15 @@ typedef struct SHA512state_st {
+     unsigned int num, md_len;
+ } SHA512_CTX;
+ 
+-int SHA384_Init(SHA512_CTX *c);
+-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
+-int SHA384_Final(unsigned char *md, SHA512_CTX *c);
+-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md);
+-int SHA512_Init(SHA512_CTX *c);
+-int SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
+-int SHA512_Final(unsigned char *md, SHA512_CTX *c);
+-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md);
+-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
++int __cdecl SHA384_Init(SHA512_CTX *c);
++int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
++int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c);
++unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md);
++int __cdecl SHA512_Init(SHA512_CTX *c);
++int __cdecl SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
++int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c);
++unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
+ 
+ #ifdef  __cplusplus
+ }
 diff --git a/include/openssl/srp.h b/include/openssl/srp.h
 index aaf13558e3..6fbf8aee4d 100644
 --- a/include/openssl/srp.h
@@ -36514,284 +36780,258 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/seed/seed.c b/crypto/seed/seed.c
-index d62da91ede..26fb50f491 100644
---- a/crypto/seed/seed.c
-+++ b/crypto/seed/seed.c
-@@ -437,7 +437,7 @@ static const seed_word KC[] = {
- };
+diff --git a/crypto/srp/srp_lib.c b/crypto/srp/srp_lib.c
+index ca20f6d097..8a5697622f 100644
+--- a/crypto/srp/srp_lib.c
++++ b/crypto/srp/srp_lib.c
+@@ -49,13 +49,13 @@ static BIGNUM *srp_Calc_k(const BIGNUM *N, const BIGNUM *g)
+     return srp_Calc_xy(N, g, N);
+ }
+ 
+-BIGNUM *SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N)
++BIGNUM * __cdecl SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N)
+ {
+     /* k = SHA1(PAD(A) || PAD(B) ) -- tls-srp draft 8 */
+     return srp_Calc_xy(A, B, N);
+ }
+ 
+-BIGNUM *SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
++BIGNUM * __cdecl SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
+                             const BIGNUM *b, const BIGNUM *N)
+ {
+     BIGNUM *tmp = NULL, *S = NULL;
+@@ -85,7 +85,7 @@ BIGNUM *SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
+     return S;
+ }
+ 
+-BIGNUM *SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
++BIGNUM * __cdecl SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
+                    const BIGNUM *v)
+ {
+     BIGNUM *kv = NULL, *gb = NULL;
+@@ -117,7 +117,7 @@ BIGNUM *SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
+     return B;
+ }
+ 
+-BIGNUM *SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
++BIGNUM * __cdecl SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
+ {
+     unsigned char dig[SHA_DIGEST_LENGTH];
+     EVP_MD_CTX *ctxt;
+@@ -157,7 +157,7 @@ BIGNUM *SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass)
+     return res;
+ }
+ 
+-BIGNUM *SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g)
++BIGNUM * __cdecl SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g)
+ {
+     BN_CTX *bn_ctx;
+     BIGNUM *A = NULL;
+@@ -173,7 +173,7 @@ BIGNUM *SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g)
+     return A;
+ }
+ 
+-BIGNUM *SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
++BIGNUM * __cdecl SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
+                             const BIGNUM *x, const BIGNUM *a, const BIGNUM *u)
+ {
+     BIGNUM *tmp = NULL, *tmp2 = NULL, *tmp3 = NULL, *k = NULL, *K = NULL;
+@@ -236,7 +236,7 @@ int SRP_Verify_B_mod_N(const BIGNUM *B, const BIGNUM *N)
+     return ret;
+ }
+ 
+-int SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N)
++int __cdecl SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N)
+ {
+     /* Checks if A % N == 0 */
+     return SRP_Verify_B_mod_N(A, N);
+@@ -258,7 +258,7 @@ static SRP_gN knowngN[] = {
+  * Check if G and N are known parameters. The values have been generated
+  * from the ietf-tls-srp draft version 8
+  */
+-char *SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N)
++char * __cdecl SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N)
+ {
+     size_t i;
+     if ((g == NULL) || (N == NULL))
+@@ -271,7 +271,7 @@ char *SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N)
+     return NULL;
+ }
+ 
+-SRP_gN *SRP_get_default_gN(const char *id)
++SRP_gN * __cdecl SRP_get_default_gN(const char *id)
+ {
+     size_t i;
+ 
+diff --git a/crypto/srp/srp_vfy.c b/crypto/srp/srp_vfy.c
+index 68e177db22..0762cdf97c 100644
+--- a/crypto/srp/srp_vfy.c
++++ b/crypto/srp/srp_vfy.c
+@@ -268,7 +268,7 @@ static SRP_user_pwd *srp_user_pwd_dup(SRP_user_pwd *src)
+     return ret;
+ }
+ 
+-SRP_VBASE *SRP_VBASE_new(char *seed_key)
++SRP_VBASE * __cdecl SRP_VBASE_new(char *seed_key)
+ {
+     SRP_VBASE *vb = OPENSSL_malloc(sizeof(*vb));
+ 
+@@ -291,7 +291,7 @@ SRP_VBASE *SRP_VBASE_new(char *seed_key)
+     return vb;
+ }
+ 
+-void SRP_VBASE_free(SRP_VBASE *vb)
++void __cdecl SRP_VBASE_free(SRP_VBASE *vb)
+ {
+     if (!vb)
+         return;
+@@ -379,7 +379,7 @@ static BIGNUM *SRP_gN_place_bn(STACK_OF(SRP_gN_cache) *gN_cache, char *ch)
+  * string(username):base64(v):base64(salt):int(index)
+  */
+ 
+-int SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file)
++int __cdecl SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file)
+ {
+     int error_code;
+     STACK_OF(SRP_gN) *SRP_gN_tab = sk_SRP_gN_new_null();
+@@ -526,7 +526,7 @@ SRP_user_pwd *SRP_VBASE_get_by_user(SRP_VBASE *vb, char *username)
+  * Ownership of the returned pointer is released to the caller.
+  * In other words, caller must free the result once done.
+  */
+-SRP_user_pwd *SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username)
++SRP_user_pwd * __cdecl SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username)
+ {
+     SRP_user_pwd *user;
+     unsigned char digv[SHA_DIGEST_LENGTH];
+@@ -578,7 +578,7 @@ SRP_user_pwd *SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username)
+ /*
+  * create a verifier (*salt,*verifier,g and N are in base64)
+  */
+-char *SRP_create_verifier(const char *user, const char *pass, char **salt,
++char * __cdecl SRP_create_verifier(const char *user, const char *pass, char **salt,
+                           char **verifier, const char *N, const char *g)
+ {
+     int len;
+@@ -676,7 +676,7 @@ char *SRP_create_verifier(const char *user, const char *pass, char **salt,
+  * The caller is responsible for freeing the allocated *salt and *verifier
+  * BIGNUMS.
+  */
+-int SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
++int __cdecl SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
+                            BIGNUM **verifier, const BIGNUM *N,
+                            const BIGNUM *g)
+ {
+diff --git a/include/openssl/srp.h b/include/openssl/srp.h
+index 6fbf8aee4d..b5c32dd5e7 100644
+--- a/include/openssl/srp.h
++++ b/include/openssl/srp.h
+@@ -71,18 +71,18 @@ typedef struct SRP_gN_st {
+ 
+ DEFINE_STACK_OF(SRP_gN)
+ 
+-SRP_VBASE *SRP_VBASE_new(char *seed_key);
+-void SRP_VBASE_free(SRP_VBASE *vb);
+-int SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file);
++SRP_VBASE * __cdecl SRP_VBASE_new(char *seed_key);
++void __cdecl SRP_VBASE_free(SRP_VBASE *vb);
++int __cdecl SRP_VBASE_init(SRP_VBASE *vb, char *verifier_file);
+ 
+ /* This method ignores the configured seed and fails for an unknown user. */
+ DEPRECATEDIN_1_1_0(SRP_user_pwd *SRP_VBASE_get_by_user(SRP_VBASE *vb, char *username))
+ /* NOTE: unlike in SRP_VBASE_get_by_user, caller owns the returned pointer.*/
+-SRP_user_pwd *SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username);
++SRP_user_pwd * __cdecl SRP_VBASE_get1_by_user(SRP_VBASE *vb, char *username);
+ 
+-char *SRP_create_verifier(const char *user, const char *pass, char **salt,
++char * __cdecl SRP_create_verifier(const char *user, const char *pass, char **salt,
+                           char **verifier, const char *N, const char *g);
+-int SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
++int __cdecl SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
+                            BIGNUM **verifier, const BIGNUM *N,
+                            const BIGNUM *g);
+ 
+@@ -107,21 +107,21 @@ int SRP_create_verifier_BN(const char *user, const char *pass, BIGNUM **salt,
+ # define DB_SRP_MODIF    'v'
+ 
+ /* see srp.c */
+-char *SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N);
+-SRP_gN *SRP_get_default_gN(const char *id);
++char * __cdecl SRP_check_known_gN_param(const BIGNUM *g, const BIGNUM *N);
++SRP_gN * __cdecl SRP_get_default_gN(const char *id);
+ 
+ /* server side .... */
+-BIGNUM *SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
++BIGNUM * __cdecl SRP_Calc_server_key(const BIGNUM *A, const BIGNUM *v, const BIGNUM *u,
+                             const BIGNUM *b, const BIGNUM *N);
+-BIGNUM *SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
++BIGNUM * __cdecl SRP_Calc_B(const BIGNUM *b, const BIGNUM *N, const BIGNUM *g,
+                    const BIGNUM *v);
+-int SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N);
+-BIGNUM *SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N);
++int __cdecl SRP_Verify_A_mod_N(const BIGNUM *A, const BIGNUM *N);
++BIGNUM * __cdecl SRP_Calc_u(const BIGNUM *A, const BIGNUM *B, const BIGNUM *N);
+ 
+ /* client side .... */
+-BIGNUM *SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass);
+-BIGNUM *SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g);
+-BIGNUM *SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
++BIGNUM * __cdecl SRP_Calc_x(const BIGNUM *s, const char *user, const char *pass);
++BIGNUM * __cdecl SRP_Calc_A(const BIGNUM *a, const BIGNUM *N, const BIGNUM *g);
++BIGNUM * __cdecl SRP_Calc_client_key(const BIGNUM *N, const BIGNUM *B, const BIGNUM *g,
+                             const BIGNUM *x, const BIGNUM *a, const BIGNUM *u);
+ int SRP_Verify_B_mod_N(const BIGNUM *B, const BIGNUM *N);
+ 
+diff --git a/include/openssl/srtp.h b/include/openssl/srtp.h
+index 0b57c2356c..6bad149e05 100644
+--- a/include/openssl/srtp.h
++++ b/include/openssl/srtp.h
+@@ -35,11 +35,11 @@ extern "C" {
+ 
+ # ifndef OPENSSL_NO_SRTP
+ 
+-__owur int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles);
+-__owur int SSL_set_tlsext_use_srtp(SSL *ssl, const char *profiles);
++__owur int __cdecl SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles);
++__owur int __cdecl SSL_set_tlsext_use_srtp(SSL *ssl, const char *profiles);
+ 
+-__owur STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *ssl);
+-__owur SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s);
++__owur STACK_OF(SRTP_PROTECTION_PROFILE) * __cdecl SSL_get_srtp_profiles(SSL *ssl);
++__owur SRTP_PROTECTION_PROFILE * __cdecl SSL_get_selected_srtp_profile(SSL *s);
+ 
  # endif
  
--void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
-+void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
-                   SEED_KEY_SCHEDULE *ks)
- {
-     seed_word x1, x2, x3, x4;
-@@ -496,7 +496,7 @@ void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
- # endif
- }
- 
--void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
-+void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
-                   unsigned char d[SEED_BLOCK_SIZE],
-                   const SEED_KEY_SCHEDULE *ks)
- {
-@@ -541,7 +541,7 @@ void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
-     word2char(x2, d + 12);
- }
- 
--void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
-+void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
-                   unsigned char d[SEED_BLOCK_SIZE],
-                   const SEED_KEY_SCHEDULE *ks)
- {
-diff --git a/crypto/seed/seed_cbc.c b/crypto/seed/seed_cbc.c
-index c9a4fe217b..08d3e13b2f 100644
---- a/crypto/seed/seed_cbc.c
-+++ b/crypto/seed/seed_cbc.c
-@@ -10,7 +10,7 @@
- #include <openssl/seed.h>
- #include <openssl/modes.h>
- 
--void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                       size_t len, const SEED_KEY_SCHEDULE *ks,
-                       unsigned char ivec[SEED_BLOCK_SIZE], int enc)
- {
-diff --git a/crypto/seed/seed_cfb.c b/crypto/seed/seed_cfb.c
-index 2aee1ffe39..69b08634f5 100644
---- a/crypto/seed/seed_cfb.c
-+++ b/crypto/seed/seed_cfb.c
-@@ -10,7 +10,7 @@
- #include <openssl/seed.h>
- #include <openssl/modes.h>
- 
--void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-                          size_t len, const SEED_KEY_SCHEDULE *ks,
-                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
-                          int enc)
-diff --git a/crypto/seed/seed_ecb.c b/crypto/seed/seed_ecb.c
-index b6e301ccda..97f43eade7 100644
---- a/crypto/seed/seed_ecb.c
-+++ b/crypto/seed/seed_ecb.c
-@@ -9,7 +9,7 @@
- 
- #include <openssl/seed.h>
- 
--void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                       const SEED_KEY_SCHEDULE *ks, int enc)
- {
-     if (enc)
-diff --git a/crypto/seed/seed_ofb.c b/crypto/seed/seed_ofb.c
-index b455540585..c492e24486 100644
---- a/crypto/seed/seed_ofb.c
-+++ b/crypto/seed/seed_ofb.c
-@@ -10,7 +10,7 @@
- #include <openssl/seed.h>
- #include <openssl/modes.h>
- 
--void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-                          size_t len, const SEED_KEY_SCHEDULE *ks,
-                          unsigned char ivec[SEED_BLOCK_SIZE], int *num)
- {
-diff --git a/crypto/sha/sha256.c b/crypto/sha/sha256.c
-index cde44fb98d..840ae90b65 100644
---- a/crypto/sha/sha256.c
-+++ b/crypto/sha/sha256.c
-@@ -16,7 +16,7 @@
- #include <openssl/sha.h>
- #include <openssl/opensslv.h>
- 
--int SHA224_Init(SHA256_CTX *c)
-+int __cdecl SHA224_Init(SHA256_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->h[0] = 0xc1059ed8UL;
-@@ -46,7 +46,7 @@ int __cdecl SHA256_Init(SHA256_CTX *c)
+diff --git a/ssl/d1_srtp.c b/ssl/d1_srtp.c
+index ff8f0c5712..d49168d6de 100644
+--- a/ssl/d1_srtp.c
++++ b/ssl/d1_srtp.c
+@@ -109,17 +109,17 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
      return 1;
  }
  
--unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md)
+-int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
++int __cdecl SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
  {
-     SHA256_CTX c;
-     static unsigned char m[SHA224_DIGEST_LENGTH];
-@@ -74,12 +74,12 @@ unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *
-     return md;
+     return ssl_ctx_make_profiles(profiles, &ctx->srtp_profiles);
  }
  
--int SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
-+int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
+-int SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
++int __cdecl SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
  {
-     return SHA256_Update(c, data, len);
+     return ssl_ctx_make_profiles(profiles, &s->srtp_profiles);
  }
  
--int SHA224_Final(unsigned char *md, SHA256_CTX *c)
-+int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c)
+-STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
++STACK_OF(SRTP_PROTECTION_PROFILE) * __cdecl SSL_get_srtp_profiles(SSL *s)
  {
-     return SHA256_Final(md, c);
- }
-diff --git a/crypto/sha/sha512.c b/crypto/sha/sha512.c
-index 50b65ee811..70fb22e657 100644
---- a/crypto/sha/sha512.c
-+++ b/crypto/sha/sha512.c
-@@ -96,7 +96,7 @@ int sha512_256_init(SHA512_CTX *c)
-     return 1;
+     if (s != NULL) {
+         if (s->srtp_profiles != NULL) {
+@@ -132,7 +132,7 @@ STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
+     return NULL;
  }
  
--int SHA384_Init(SHA512_CTX *c)
-+int __cdecl SHA384_Init(SHA512_CTX *c)
+-SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s)
++SRTP_PROTECTION_PROFILE * __cdecl SSL_get_selected_srtp_profile(SSL *s)
  {
-     c->h[0] = U64(0xcbbb9d5dc1059ed8);
-     c->h[1] = U64(0x629a292a367cd507);
-@@ -114,7 +114,7 @@ int SHA384_Init(SHA512_CTX *c)
-     return 1;
- }
- 
--int SHA512_Init(SHA512_CTX *c)
-+int __cdecl SHA512_Init(SHA512_CTX *c)
- {
-     c->h[0] = U64(0x6a09e667f3bcc908);
-     c->h[1] = U64(0xbb67ae8584caa73b);
-@@ -137,7 +137,7 @@ static
- #endif
- void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
- 
--int SHA512_Final(unsigned char *md, SHA512_CTX *c)
-+int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c)
- {
-     unsigned char *p = (unsigned char *)c->u.p;
-     size_t n = c->num;
-@@ -256,12 +256,12 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
-     return 1;
- }
- 
--int SHA384_Final(unsigned char *md, SHA512_CTX *c)
-+int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c)
- {
-     return SHA512_Final(md, c);
- }
- 
--int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
-+int __cdecl SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
- {
-     SHA_LONG64 l;
-     unsigned char *p = c->u.p;
-@@ -309,12 +309,12 @@ int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
-     return 1;
- }
- 
--int SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
-+int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
- {
-     return SHA512_Update(c, data, len);
- }
- 
--void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
-+void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
- {
- #ifndef SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
-     if ((size_t)data % sizeof(c->u.d[0]) != 0)
-@@ -323,7 +323,7 @@ void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
-     sha512_block_data_order(c, data, 1);
- }
- 
--unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md)
- {
-     SHA512_CTX c;
-     static unsigned char m[SHA384_DIGEST_LENGTH];
-@@ -337,7 +337,7 @@ unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
-     return md;
- }
- 
--unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md)
- {
-     SHA512_CTX c;
-     static unsigned char m[SHA512_DIGEST_LENGTH];
-diff --git a/include/openssl/seed.h b/include/openssl/seed.h
-index de10b08572..471f8f40ea 100644
---- a/include/openssl/seed.h
-+++ b/include/openssl/seed.h
-@@ -65,26 +65,26 @@ typedef struct seed_key_st {
- # endif
- } SEED_KEY_SCHEDULE;
- 
--void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
-+void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
-                   SEED_KEY_SCHEDULE *ks);
- 
--void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
-+void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
-                   unsigned char d[SEED_BLOCK_SIZE],
-                   const SEED_KEY_SCHEDULE *ks);
--void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
-+void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
-                   unsigned char d[SEED_BLOCK_SIZE],
-                   const SEED_KEY_SCHEDULE *ks);
- 
--void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                       const SEED_KEY_SCHEDULE *ks, int enc);
--void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
-+void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
-                       const SEED_KEY_SCHEDULE *ks,
-                       unsigned char ivec[SEED_BLOCK_SIZE], int enc);
--void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
-                          size_t len, const SEED_KEY_SCHEDULE *ks,
-                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
-                          int enc);
--void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
-                          size_t len, const SEED_KEY_SCHEDULE *ks,
-                          unsigned char ivec[SEED_BLOCK_SIZE], int *num);
- 
-diff --git a/include/openssl/sha.h b/include/openssl/sha.h
-index e2ee74e392..0fc7a42b1e 100644
---- a/include/openssl/sha.h
-+++ b/include/openssl/sha.h
-@@ -55,10 +55,10 @@ typedef struct SHA256state_st {
-     unsigned int num, md_len;
- } SHA256_CTX;
- 
--int SHA224_Init(SHA256_CTX *c);
--int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
--int SHA224_Final(unsigned char *md, SHA256_CTX *c);
--unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
-+int __cdecl SHA224_Init(SHA256_CTX *c);
-+int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
-+int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c);
-+unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md);
- int __cdecl SHA256_Init(SHA256_CTX *c);
- int __cdecl SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
- int __cdecl SHA256_Final(unsigned char *md, SHA256_CTX *c);
-@@ -102,15 +102,15 @@ typedef struct SHA512state_st {
-     unsigned int num, md_len;
- } SHA512_CTX;
- 
--int SHA384_Init(SHA512_CTX *c);
--int SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
--int SHA384_Final(unsigned char *md, SHA512_CTX *c);
--unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md);
--int SHA512_Init(SHA512_CTX *c);
--int SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
--int SHA512_Final(unsigned char *md, SHA512_CTX *c);
--unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md);
--void SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
-+int __cdecl SHA384_Init(SHA512_CTX *c);
-+int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
-+int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c);
-+unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md);
-+int __cdecl SHA512_Init(SHA512_CTX *c);
-+int __cdecl SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
-+int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c);
-+unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md);
-+void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
- 
- #ifdef  __cplusplus
+     return s->srtp_profile;
  }
