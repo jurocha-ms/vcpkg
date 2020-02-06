@@ -17855,7 +17855,7 @@ index 6d764f55e2..8e2a4cd734 100644
  {
      int from_sec, to_sec, diff_sec;
 diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
-index c4355370cb..9f9d815e87 100644
+index c4355370cb..1f86b5d16f 100644
 --- a/crypto/objects/o_names.c
 +++ b/crypto/objects/o_names.c
 @@ -30,7 +30,7 @@
@@ -17885,11 +17885,19 @@ index c4355370cb..9f9d815e87 100644
  
  static CRYPTO_ONCE init = CRYPTO_ONCE_STATIC_INIT;
  DEFINE_RUN_ONCE_STATIC(o_names_init)
-@@ -79,7 +79,7 @@ int OBJ_NAME_init(void)
+@@ -73,13 +73,13 @@ DEFINE_RUN_ONCE_STATIC(o_names_init)
+     return names_lh != NULL && obj_lock != NULL;
  }
  
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+-int OBJ_NAME_init(void)
++int __cdecl OBJ_NAME_init(void)
+ {
+     return RUN_ONCE(&init, o_names_init);
+ }
+ 
+-int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
 -                       int (*cmp_func) (const char *, const char *),
++int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
 +                       int (__cdecl *cmp_func) (const char *, const char *),
                         void (*free_func) (const char *, int, const char *))
  {
@@ -17903,6 +17911,42 @@ index c4355370cb..9f9d815e87 100644
  {
      int ret;
  
+@@ -169,7 +169,7 @@ static unsigned long obj_name_hash(const OBJ_NAME *a)
+     return ret;
+ }
+ 
+-const char *OBJ_NAME_get(const char *name, int type)
++const char * __cdecl OBJ_NAME_get(const char *name, int type)
+ {
+     OBJ_NAME on, *ret;
+     int num = 0, alias;
+@@ -205,7 +205,7 @@ const char *OBJ_NAME_get(const char *name, int type)
+     return value;
+ }
+ 
+-int OBJ_NAME_add(const char *name, int type, const char *data)
++int __cdecl OBJ_NAME_add(const char *name, int type, const char *data)
+ {
+     OBJ_NAME *onp, *ret;
+     int alias, ok = 0;
+@@ -258,7 +258,7 @@ unlock:
+     return ok;
+ }
+ 
+-int OBJ_NAME_remove(const char *name, int type)
++int __cdecl OBJ_NAME_remove(const char *name, int type)
+ {
+     OBJ_NAME on, *ret;
+     int ok = 0;
+@@ -306,7 +306,7 @@ static void do_all_fn(const OBJ_NAME *name, OBJ_DOALL *d)
+ 
+ IMPLEMENT_LHASH_DOALL_ARG_CONST(OBJ_NAME, OBJ_DOALL);
+ 
+-void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
++void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
+                      void *arg)
+ {
+     OBJ_DOALL d;
 @@ -334,7 +334,7 @@ static void do_all_sorted_fn(const OBJ_NAME *name, void *d_)
      d->names[d->n++] = name;
  }
@@ -17912,7 +17956,16 @@ index c4355370cb..9f9d815e87 100644
  {
      const OBJ_NAME *const *n1 = n1_;
      const OBJ_NAME *const *n2 = n2_;
-@@ -377,7 +377,7 @@ static void names_lh_free_doall(OBJ_NAME *onp)
+@@ -342,7 +342,7 @@ static int do_all_sorted_cmp(const void *n1_, const void *n2_)
+     return strcmp((*n1)->name, (*n2)->name);
+ }
+ 
+-void OBJ_NAME_do_all_sorted(int type,
++void __cdecl OBJ_NAME_do_all_sorted(int type,
+                             void (*fn) (const OBJ_NAME *, void *arg),
+                             void *arg)
+ {
+@@ -377,12 +377,12 @@ static void names_lh_free_doall(OBJ_NAME *onp)
          OBJ_NAME_remove(onp->name, onp->type);
  }
  
@@ -17921,8 +17974,14 @@ index c4355370cb..9f9d815e87 100644
  {
      OPENSSL_free(ptr);
  }
+ 
+-void OBJ_NAME_cleanup(int type)
++void __cdecl OBJ_NAME_cleanup(int type)
+ {
+     unsigned long down_load;
+ 
 diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
-index ef2d1e0dda..93489b2520 100644
+index ef2d1e0dda..35921e3223 100644
 --- a/crypto/objects/obj_dat.c
 +++ b/crypto/objects/obj_dat.c
 @@ -38,14 +38,14 @@ struct added_obj_st {
@@ -17951,6 +18010,51 @@ index ef2d1e0dda..93489b2520 100644
  {
      ASN1_OBJECT *a, *b;
      int i;
+@@ -162,7 +162,7 @@ void obj_cleanup_int(void)
+     added = NULL;
+ }
+ 
+-int OBJ_new_nid(int num)
++int __cdecl OBJ_new_nid(int num)
+ {
+     int i;
+ 
+@@ -171,7 +171,7 @@ int OBJ_new_nid(int num)
+     return i;
+ }
+ 
+-int OBJ_add_object(const ASN1_OBJECT *obj)
++int __cdecl OBJ_add_object(const ASN1_OBJECT *obj)
+ {
+     ASN1_OBJECT *o;
+     ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop;
+@@ -217,7 +217,7 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
+     return NID_undef;
+ }
+ 
+-ASN1_OBJECT *OBJ_nid2obj(int n)
++ASN1_OBJECT * __cdecl OBJ_nid2obj(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
+@@ -244,7 +244,7 @@ ASN1_OBJECT *OBJ_nid2obj(int n)
+     }
+ }
+ 
+-const char *OBJ_nid2sn(int n)
++const char * __cdecl OBJ_nid2sn(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
+@@ -271,7 +271,7 @@ const char *OBJ_nid2sn(int n)
+     }
+ }
+ 
+-const char *OBJ_nid2ln(int n)
++const char * __cdecl OBJ_nid2ln(int n)
+ {
+     ADDED_OBJ ad, *adp;
+     ASN1_OBJECT ob;
 @@ -298,7 +298,7 @@ const char *OBJ_nid2ln(int n)
      }
  }
@@ -17960,25 +18064,152 @@ index ef2d1e0dda..93489b2520 100644
  {
      int j;
      const ASN1_OBJECT *a = *ap;
-@@ -580,14 +580,14 @@ int OBJ_sn2nid(const char *s)
+@@ -314,7 +314,7 @@ static int obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, obj);
+ 
+-int OBJ_obj2nid(const ASN1_OBJECT *a)
++int __cdecl OBJ_obj2nid(const ASN1_OBJECT *a)
+ {
+     const unsigned int *op;
+     ADDED_OBJ ad, *adp;
+@@ -347,7 +347,7 @@ int OBJ_obj2nid(const ASN1_OBJECT *a)
+  * just registered ones.
+  */
+ 
+-ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
++ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name)
+ {
+     int nid = NID_undef;
+     ASN1_OBJECT *op;
+@@ -393,7 +393,7 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
+     return op;
  }
  
- const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
++int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
+ {
+     int i, n = 0, len, nid, first, use_bn;
+     BIGNUM *bl;
+@@ -527,7 +527,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
+     return -1;
+ }
+ 
+-int OBJ_txt2nid(const char *s)
++int __cdecl OBJ_txt2nid(const char *s)
+ {
+     ASN1_OBJECT *obj;
+     int nid;
+@@ -537,7 +537,7 @@ int OBJ_txt2nid(const char *s)
+     return nid;
+ }
+ 
+-int OBJ_ln2nid(const char *s)
++int __cdecl OBJ_ln2nid(const char *s)
+ {
+     ASN1_OBJECT o;
+     const ASN1_OBJECT *oo = &o;
+@@ -558,7 +558,7 @@ int OBJ_ln2nid(const char *s)
+     return nid_objs[*op].nid;
+ }
+ 
+-int OBJ_sn2nid(const char *s)
++int __cdecl OBJ_sn2nid(const char *s)
+ {
+     ASN1_OBJECT o;
+     const ASN1_OBJECT *oo = &o;
+@@ -579,15 +579,15 @@ int OBJ_sn2nid(const char *s)
+     return nid_objs[*op].nid;
+ }
+ 
+-const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
 -                         int (*cmp) (const void *, const void *))
++const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
 +                         int (__cdecl *cmp) (const void *, const void *))
  {
      return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
  }
  
- const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+-const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
++const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base_, int num,
                              int size,
 -                            int (*cmp) (const void *, const void *),
 +                            int (__cdecl *cmp) (const void *, const void *),
                              int flags)
  {
      const char *base = base_;
+@@ -638,7 +638,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
+  * Parse a BIO sink to create some extra oid's objects.
+  * Line format:<OID:isdigit or '.']><isspace><SN><isspace><LN>
+  */
+-int OBJ_create_objects(BIO *in)
++int __cdecl OBJ_create_objects(BIO *in)
+ {
+     char buf[512];
+     int i, num = 0;
+@@ -687,7 +687,7 @@ int OBJ_create_objects(BIO *in)
+     }
+ }
+ 
+-int OBJ_create(const char *oid, const char *sn, const char *ln)
++int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln)
+ {
+     ASN1_OBJECT *tmpoid = NULL;
+     int ok = 0;
+@@ -724,14 +724,14 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
+     return ok;
+ }
+ 
+-size_t OBJ_length(const ASN1_OBJECT *obj)
++size_t __cdecl OBJ_length(const ASN1_OBJECT *obj)
+ {
+     if (obj == NULL)
+         return 0;
+     return obj->length;
+ }
+ 
+-const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj)
++const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj)
+ {
+     if (obj == NULL)
+         return NULL;
+diff --git a/crypto/objects/obj_err.c b/crypto/objects/obj_err.c
+index be4f11ca20..a223310a61 100644
+--- a/crypto/objects/obj_err.c
++++ b/crypto/objects/obj_err.c
+@@ -34,7 +34,7 @@ static const ERR_STRING_DATA OBJ_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_OBJ_strings(void)
++int __cdecl ERR_load_OBJ_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(OBJ_str_functs[0].error) == NULL) {
+diff --git a/crypto/objects/obj_lib.c b/crypto/objects/obj_lib.c
+index acbdeec2c9..373d462235 100644
+--- a/crypto/objects/obj_lib.c
++++ b/crypto/objects/obj_lib.c
+@@ -13,7 +13,7 @@
+ #include <openssl/buffer.h>
+ #include "internal/asn1_int.h"
+ 
+-ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
++ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o)
+ {
+     ASN1_OBJECT *r;
+ 
+@@ -54,7 +54,7 @@ ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
+     return NULL;
+ }
+ 
+-int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
++int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
+ {
+     int ret;
+ 
 diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
-index faf59eb20c..b9218cd74c 100644
+index faf59eb20c..495b9e821b 100644
 --- a/crypto/objects/obj_xref.c
 +++ b/crypto/objects/obj_xref.c
 @@ -14,7 +14,7 @@
@@ -18007,7 +18238,34 @@ index faf59eb20c..b9218cd74c 100644
  {
      int ret;
      ret = (*a)->hash_id - (*b)->hash_id;
-@@ -125,7 +125,7 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+@@ -40,7 +40,7 @@ static int sigx_cmp(const nid_triple *const *a, const nid_triple *const *b)
+ 
+ IMPLEMENT_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
+ 
+-int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
++int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+ {
+     nid_triple tmp;
+     const nid_triple *rv = NULL;
+@@ -64,7 +64,7 @@ int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+     return 1;
+ }
+ 
+-int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
++int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+ {
+     nid_triple tmp;
+     const nid_triple *t = &tmp;
+@@ -92,7 +92,7 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+     return 1;
+ }
+ 
+-int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
++int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+ {
+     nid_triple *ntr;
+     if (sig_app == NULL)
+@@ -125,12 +125,12 @@ int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
      return 1;
  }
  
@@ -18016,6 +18274,12 @@ index faf59eb20c..b9218cd74c 100644
  {
      OPENSSL_free(tt);
  }
+ 
+-void OBJ_sigid_free(void)
++void __cdecl OBJ_sigid_free(void)
+ {
+     sk_nid_triple_pop_free(sig_app, sid_free);
+     sig_app = NULL;
 diff --git a/crypto/pkcs12/p12_crpt.c b/crypto/pkcs12/p12_crpt.c
 index feef9d1fc4..1448924b01 100644
 --- a/crypto/pkcs12/p12_crpt.c
@@ -29223,25 +29487,64 @@ index d544f98d55..e15ef42843 100644
  
  # ifdef  __cplusplus
 diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index 5e8b5762f8..c7e8ce2d0d 100644
+index 5e8b5762f8..af71998db9 100644
 --- a/include/openssl/objects.h
 +++ b/include/openssl/objects.h
-@@ -43,7 +43,7 @@ typedef struct obj_name_st {
+@@ -41,41 +41,41 @@ typedef struct obj_name_st {
  
- int OBJ_NAME_init(void);
- int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
+ # define         OBJ_create_and_add_object(a,b,c) OBJ_create(a,b,c)
+ 
+-int OBJ_NAME_init(void);
+-int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
 -                       int (*cmp_func) (const char *, const char *),
++int __cdecl OBJ_NAME_init(void);
++int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
 +                       int (__cdecl *cmp_func) (const char *, const char *),
                         void (*free_func) (const char *, int, const char *));
- const char *OBJ_NAME_get(const char *name, int type);
- int OBJ_NAME_add(const char *name, int type, const char *data);
-@@ -67,15 +67,15 @@ int OBJ_ln2nid(const char *s);
- int OBJ_sn2nid(const char *s);
- int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
- const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
+-const char *OBJ_NAME_get(const char *name, int type);
+-int OBJ_NAME_add(const char *name, int type, const char *data);
+-int OBJ_NAME_remove(const char *name, int type);
+-void OBJ_NAME_cleanup(int type); /* -1 for everything */
+-void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
++const char * __cdecl OBJ_NAME_get(const char *name, int type);
++int __cdecl OBJ_NAME_add(const char *name, int type, const char *data);
++int __cdecl OBJ_NAME_remove(const char *name, int type);
++void __cdecl OBJ_NAME_cleanup(int type); /* -1 for everything */
++void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
+                      void *arg);
+-void OBJ_NAME_do_all_sorted(int type,
++void __cdecl OBJ_NAME_do_all_sorted(int type,
+                             void (*fn) (const OBJ_NAME *, void *arg),
+                             void *arg);
+ 
+-ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o);
+-ASN1_OBJECT *OBJ_nid2obj(int n);
+-const char *OBJ_nid2ln(int n);
+-const char *OBJ_nid2sn(int n);
+-int OBJ_obj2nid(const ASN1_OBJECT *o);
+-ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name);
+-int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
+-int OBJ_txt2nid(const char *s);
+-int OBJ_ln2nid(const char *s);
+-int OBJ_sn2nid(const char *s);
+-int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
+-const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
 -                         int (*cmp) (const void *, const void *));
+-const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
++ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o);
++ASN1_OBJECT * __cdecl OBJ_nid2obj(int n);
++const char * __cdecl OBJ_nid2ln(int n);
++const char * __cdecl OBJ_nid2sn(int n);
++int __cdecl OBJ_obj2nid(const ASN1_OBJECT *o);
++ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name);
++int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
++int __cdecl OBJ_txt2nid(const char *s);
++int __cdecl OBJ_ln2nid(const char *s);
++int __cdecl OBJ_sn2nid(const char *s);
++int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
++const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
 +                         int (__cdecl *cmp) (const void *, const void *));
- const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
++const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base, int num,
                              int size,
 -                            int (*cmp) (const void *, const void *),
 +                            int (__cdecl *cmp) (const void *, const void *),
@@ -29273,6 +29576,51 @@ index 5e8b5762f8..c7e8ce2d0d 100644
        { \
        type1 const *a = a_; \
        type2 const *b = b_; \
+@@ -152,21 +152,21 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
+                           (void)type_2=CHECKED_PTR_OF(type2,cmp##_type_2), \
+                           cmp##_BSEARCH_CMP_FN)),flags)
+ 
+-int OBJ_new_nid(int num);
+-int OBJ_add_object(const ASN1_OBJECT *obj);
+-int OBJ_create(const char *oid, const char *sn, const char *ln);
++int __cdecl OBJ_new_nid(int num);
++int __cdecl OBJ_add_object(const ASN1_OBJECT *obj);
++int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln);
+ #if OPENSSL_API_COMPAT < 0x10100000L
+ # define OBJ_cleanup() while(0) continue
+ #endif
+-int OBJ_create_objects(BIO *in);
++int __cdecl OBJ_create_objects(BIO *in);
+ 
+-size_t OBJ_length(const ASN1_OBJECT *obj);
+-const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj);
++size_t __cdecl OBJ_length(const ASN1_OBJECT *obj);
++const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj);
+ 
+-int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
+-int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
+-int OBJ_add_sigid(int signid, int dig_id, int pkey_id);
+-void OBJ_sigid_free(void);
++int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
++int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
++int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id);
++void __cdecl OBJ_sigid_free(void);
+ 
+ 
+ # ifdef  __cplusplus
+diff --git a/include/openssl/objectserr.h b/include/openssl/objectserr.h
+index 02e166f1ac..7888b96790 100644
+--- a/include/openssl/objectserr.h
++++ b/include/openssl/objectserr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_OBJ_strings(void);
++int __cdecl ERR_load_OBJ_strings(void);
+ 
+ /*
+  * OBJ function codes.
 diff --git a/include/openssl/ocsp.h b/include/openssl/ocsp.h
 index 8582fe1ee1..c0accac758 100644
 --- a/include/openssl/ocsp.h
@@ -30837,6 +31185,33 @@ index d239bd23b8..6179fa76ed 100644
  {
  #ifndef OPENSSL_NO_CRYPTO_MDEBUG
      char *p;
+diff --git a/test/modes_internal_test.c b/test/modes_internal_test.c
+index e0f1adf6af..89f7b76696 100644
+--- a/test/modes_internal_test.c
++++ b/test/modes_internal_test.c
+@@ -127,18 +127,18 @@ typedef struct {
+     const char *case_name;
+     size_t (*last_blocks_correction)(const unsigned char *in,
+                                      unsigned char *out, size_t len);
+-    size_t (*encrypt_block)(const unsigned char *in,
++    size_t (__cdecl *encrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*encrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *encrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+-    size_t (*decrypt_block)(const unsigned char *in,
++    size_t (__cdecl *decrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*decrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *decrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+ } CTS128_FIXTURE;
 diff --git a/test/ossl_shim/ossl_shim.cc b/test/ossl_shim/ossl_shim.cc
 index 90d1f1ef40..a38fe0fdc9 100644
 --- a/test/ossl_shim/ossl_shim.cc
@@ -30995,437 +31370,1181 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/objects/o_names.c b/crypto/objects/o_names.c
-index 9f9d815e87..1f86b5d16f 100644
---- a/crypto/objects/o_names.c
-+++ b/crypto/objects/o_names.c
-@@ -73,12 +73,12 @@ DEFINE_RUN_ONCE_STATIC(o_names_init)
-     return names_lh != NULL && obj_lock != NULL;
+diff --git a/crypto/ocsp/ocsp_cl.c b/crypto/ocsp/ocsp_cl.c
+index 739ac01807..a6e26cb903 100644
+--- a/crypto/ocsp/ocsp_cl.c
++++ b/crypto/ocsp/ocsp_cl.c
+@@ -28,7 +28,7 @@
+  * useful if we want to add extensions.
+  */
+ 
+-OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
++OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
+ {
+     OCSP_ONEREQ *one = NULL;
+ 
+@@ -48,7 +48,7 @@ OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
+ 
+ /* Set requestorName from an X509_NAME structure */
+ 
+-int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
++int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
+ {
+     GENERAL_NAME *gen;
+ 
+@@ -67,7 +67,7 @@ int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
+ 
+ /* Add a certificate to an OCSP request */
+ 
+-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
++int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+ {
+     OCSP_SIGNATURE *sig;
+     if (req->optionalSignature == NULL)
+@@ -93,7 +93,7 @@ int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+  * in the request. Behaves like PKCS7_sign().
+  */
+ 
+-int OCSP_request_sign(OCSP_REQUEST *req,
++int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
+                       X509 *signer,
+                       EVP_PKEY *key,
+                       const EVP_MD *dgst,
+@@ -136,7 +136,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
+ 
+ /* Get response status */
+ 
+-int OCSP_response_status(OCSP_RESPONSE *resp)
++int __cdecl OCSP_response_status(OCSP_RESPONSE *resp)
+ {
+     return ASN1_ENUMERATED_get(resp->responseStatus);
+ }
+@@ -146,7 +146,7 @@ int OCSP_response_status(OCSP_RESPONSE *resp)
+  * present.
+  */
+ 
+-OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
++OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp)
+ {
+     OCSP_RESPBYTES *rb;
+     rb = resp->responseBytes;
+@@ -162,17 +162,17 @@ OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
+     return ASN1_item_unpack(rb->response, ASN1_ITEM_rptr(OCSP_BASICRESP));
  }
  
--int OBJ_NAME_init(void)
-+int __cdecl OBJ_NAME_init(void)
+-const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
++const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
  {
-     return RUN_ONCE(&init, o_names_init);
+     return bs->signature;
  }
  
--int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
-+int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
-                        int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *))
+-const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
++const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
  {
-@@ -169,7 +169,7 @@ static unsigned long obj_name_hash(const OBJ_NAME *a)
+     return &bs->signatureAlgorithm;
+ }
+ 
+-const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
++const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
+ {
+     return &bs->tbsResponseData;
+ }
+@@ -181,7 +181,7 @@ const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
+  * Return number of OCSP_SINGLERESP responses present in a basic response.
+  */
+ 
+-int OCSP_resp_count(OCSP_BASICRESP *bs)
++int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs)
+ {
+     if (!bs)
+         return -1;
+@@ -190,24 +190,24 @@ int OCSP_resp_count(OCSP_BASICRESP *bs)
+ 
+ /* Extract an OCSP_SINGLERESP response with a given index */
+ 
+-OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
++OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
+ {
+     if (!bs)
+         return NULL;
+     return sk_OCSP_SINGLERESP_value(bs->tbsResponseData.responses, idx);
+ }
+ 
+-const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
++const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
+ {
+     return bs->tbsResponseData.producedAt;
+ }
+ 
+-const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
++const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
+ {
+     return bs->certs;
+ }
+ 
+-int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+                       const ASN1_OCTET_STRING **pid,
+                       const X509_NAME **pname)
+ {
+@@ -225,7 +225,7 @@ int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+     return 1;
+ }
+ 
+-int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+                       ASN1_OCTET_STRING **pid,
+                       X509_NAME **pname)
+ {
+@@ -247,7 +247,7 @@ int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+ 
+ /* Look single response matching a given certificate ID */
+ 
+-int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
++int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
+ {
+     int i;
+     STACK_OF(OCSP_SINGLERESP) *sresp;
+@@ -273,7 +273,7 @@ int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
+  * revoked. Returns numerical value of status.
+  */
+ 
+-int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
++int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+                             ASN1_GENERALIZEDTIME **revtime,
+                             ASN1_GENERALIZEDTIME **thisupd,
+                             ASN1_GENERALIZEDTIME **nextupd)
+@@ -307,7 +307,7 @@ int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+  * found extract status information. Return 0 is successful.
+  */
+ 
+-int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
++int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+                           int *reason,
+                           ASN1_GENERALIZEDTIME **revtime,
+                           ASN1_GENERALIZEDTIME **thisupd,
+@@ -335,7 +335,7 @@ int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+  * parameter specifies the maximum age the thisUpdate field can be.
+  */
+ 
+-int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
++int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
+                         ASN1_GENERALIZEDTIME *nextupd, long nsec, long maxsec)
+ {
+     int ret = 1;
+@@ -390,7 +390,7 @@ int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
      return ret;
  }
  
--const char *OBJ_NAME_get(const char *name, int type)
-+const char * __cdecl OBJ_NAME_get(const char *name, int type)
+-const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
++const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
  {
-     OBJ_NAME on, *ret;
-     int num = 0, alias;
-@@ -205,7 +205,7 @@ const char *OBJ_NAME_get(const char *name, int type)
-     return value;
+     return single->certId;
  }
- 
--int OBJ_NAME_add(const char *name, int type, const char *data)
-+int __cdecl OBJ_NAME_add(const char *name, int type, const char *data)
- {
-     OBJ_NAME *onp, *ret;
-     int alias, ok = 0;
-@@ -258,7 +258,7 @@ unlock:
-     return ok;
- }
- 
--int OBJ_NAME_remove(const char *name, int type)
-+int __cdecl OBJ_NAME_remove(const char *name, int type)
- {
-     OBJ_NAME on, *ret;
-     int ok = 0;
-@@ -306,7 +306,7 @@ static void do_all_fn(const OBJ_NAME *name, OBJ_DOALL *d)
- 
- IMPLEMENT_LHASH_DOALL_ARG_CONST(OBJ_NAME, OBJ_DOALL);
- 
--void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
-+void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
-                      void *arg)
- {
-     OBJ_DOALL d;
-@@ -342,7 +342,7 @@ static int __cdecl do_all_sorted_cmp(const void *n1_, const void *n2_)
-     return strcmp((*n1)->name, (*n2)->name);
- }
- 
--void OBJ_NAME_do_all_sorted(int type,
-+void __cdecl OBJ_NAME_do_all_sorted(int type,
-                             void (*fn) (const OBJ_NAME *, void *arg),
-                             void *arg)
- {
-@@ -382,7 +382,7 @@ static void __cdecl name_funcs_free(NAME_FUNCS *ptr)
-     OPENSSL_free(ptr);
- }
- 
--void OBJ_NAME_cleanup(int type)
-+void __cdecl OBJ_NAME_cleanup(int type)
- {
-     unsigned long down_load;
- 
-diff --git a/crypto/objects/obj_dat.c b/crypto/objects/obj_dat.c
-index 93489b2520..35921e3223 100644
---- a/crypto/objects/obj_dat.c
-+++ b/crypto/objects/obj_dat.c
-@@ -162,7 +162,7 @@ void obj_cleanup_int(void)
-     added = NULL;
- }
- 
--int OBJ_new_nid(int num)
-+int __cdecl OBJ_new_nid(int num)
- {
-     int i;
- 
-@@ -171,7 +171,7 @@ int OBJ_new_nid(int num)
-     return i;
- }
- 
--int OBJ_add_object(const ASN1_OBJECT *obj)
-+int __cdecl OBJ_add_object(const ASN1_OBJECT *obj)
- {
-     ASN1_OBJECT *o;
-     ADDED_OBJ *ao[4] = { NULL, NULL, NULL, NULL }, *aop;
-@@ -217,7 +217,7 @@ int OBJ_add_object(const ASN1_OBJECT *obj)
-     return NID_undef;
- }
- 
--ASN1_OBJECT *OBJ_nid2obj(int n)
-+ASN1_OBJECT * __cdecl OBJ_nid2obj(int n)
- {
-     ADDED_OBJ ad, *adp;
-     ASN1_OBJECT ob;
-@@ -244,7 +244,7 @@ ASN1_OBJECT *OBJ_nid2obj(int n)
-     }
- }
- 
--const char *OBJ_nid2sn(int n)
-+const char * __cdecl OBJ_nid2sn(int n)
- {
-     ADDED_OBJ ad, *adp;
-     ASN1_OBJECT ob;
-@@ -271,7 +271,7 @@ const char *OBJ_nid2sn(int n)
-     }
- }
- 
--const char *OBJ_nid2ln(int n)
-+const char * __cdecl OBJ_nid2ln(int n)
- {
-     ADDED_OBJ ad, *adp;
-     ASN1_OBJECT ob;
-@@ -314,7 +314,7 @@ static int __cdecl obj_cmp(const ASN1_OBJECT *const *ap, const unsigned int *bp)
- 
- IMPLEMENT_OBJ_BSEARCH_CMP_FN(const ASN1_OBJECT *, unsigned int, obj);
- 
--int OBJ_obj2nid(const ASN1_OBJECT *a)
-+int __cdecl OBJ_obj2nid(const ASN1_OBJECT *a)
- {
-     const unsigned int *op;
-     ADDED_OBJ ad, *adp;
-@@ -347,7 +347,7 @@ int OBJ_obj2nid(const ASN1_OBJECT *a)
-  * just registered ones.
-  */
- 
--ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
-+ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name)
- {
-     int nid = NID_undef;
-     ASN1_OBJECT *op;
-@@ -393,7 +393,7 @@ ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name)
-     return op;
- }
- 
--int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
-+int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
- {
-     int i, n = 0, len, nid, first, use_bn;
-     BIGNUM *bl;
-@@ -527,7 +527,7 @@ int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name)
-     return -1;
- }
- 
--int OBJ_txt2nid(const char *s)
-+int __cdecl OBJ_txt2nid(const char *s)
- {
-     ASN1_OBJECT *obj;
-     int nid;
-@@ -537,7 +537,7 @@ int OBJ_txt2nid(const char *s)
-     return nid;
- }
- 
--int OBJ_ln2nid(const char *s)
-+int __cdecl OBJ_ln2nid(const char *s)
- {
-     ASN1_OBJECT o;
-     const ASN1_OBJECT *oo = &o;
-@@ -558,7 +558,7 @@ int OBJ_ln2nid(const char *s)
-     return nid_objs[*op].nid;
- }
- 
--int OBJ_sn2nid(const char *s)
-+int __cdecl OBJ_sn2nid(const char *s)
- {
-     ASN1_OBJECT o;
-     const ASN1_OBJECT *oo = &o;
-@@ -579,13 +579,13 @@ int OBJ_sn2nid(const char *s)
-     return nid_objs[*op].nid;
- }
- 
--const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
-+const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
-                          int (__cdecl *cmp) (const void *, const void *))
- {
-     return OBJ_bsearch_ex_(key, base, num, size, cmp, 0);
- }
- 
--const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
-+const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base_, int num,
-                             int size,
-                             int (__cdecl *cmp) (const void *, const void *),
-                             int flags)
-@@ -638,7 +638,7 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base_, int num,
-  * Parse a BIO sink to create some extra oid's objects.
-  * Line format:<OID:isdigit or '.']><isspace><SN><isspace><LN>
-  */
--int OBJ_create_objects(BIO *in)
-+int __cdecl OBJ_create_objects(BIO *in)
- {
-     char buf[512];
-     int i, num = 0;
-@@ -687,7 +687,7 @@ int OBJ_create_objects(BIO *in)
-     }
- }
- 
--int OBJ_create(const char *oid, const char *sn, const char *ln)
-+int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln)
- {
-     ASN1_OBJECT *tmpoid = NULL;
-     int ok = 0;
-@@ -724,14 +724,14 @@ int OBJ_create(const char *oid, const char *sn, const char *ln)
-     return ok;
- }
- 
--size_t OBJ_length(const ASN1_OBJECT *obj)
-+size_t __cdecl OBJ_length(const ASN1_OBJECT *obj)
- {
-     if (obj == NULL)
-         return 0;
-     return obj->length;
- }
- 
--const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj)
-+const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj)
- {
-     if (obj == NULL)
-         return NULL;
-diff --git a/crypto/objects/obj_err.c b/crypto/objects/obj_err.c
-index be4f11ca20..a223310a61 100644
---- a/crypto/objects/obj_err.c
-+++ b/crypto/objects/obj_err.c
-@@ -34,7 +34,7 @@ static const ERR_STRING_DATA OBJ_str_reasons[] = {
+diff --git a/crypto/ocsp/ocsp_err.c b/crypto/ocsp/ocsp_err.c
+index 660e193665..6b4c8eb9c1 100644
+--- a/crypto/ocsp/ocsp_err.c
++++ b/crypto/ocsp/ocsp_err.c
+@@ -89,7 +89,7 @@ static const ERR_STRING_DATA OCSP_str_reasons[] = {
  
  #endif
  
--int ERR_load_OBJ_strings(void)
-+int __cdecl ERR_load_OBJ_strings(void)
+-int ERR_load_OCSP_strings(void)
++int __cdecl ERR_load_OCSP_strings(void)
  {
  #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(OBJ_str_functs[0].error) == NULL) {
-diff --git a/crypto/objects/obj_lib.c b/crypto/objects/obj_lib.c
-index acbdeec2c9..373d462235 100644
---- a/crypto/objects/obj_lib.c
-+++ b/crypto/objects/obj_lib.c
-@@ -13,7 +13,7 @@
- #include <openssl/buffer.h>
- #include "internal/asn1_int.h"
+     if (ERR_func_error_string(OCSP_str_functs[0].error) == NULL) {
+diff --git a/crypto/ocsp/ocsp_ext.c b/crypto/ocsp/ocsp_ext.c
+index 3ab5308a12..6e5fb668c5 100644
+--- a/crypto/ocsp/ocsp_ext.c
++++ b/crypto/ocsp/ocsp_ext.c
+@@ -20,53 +20,53 @@
  
--ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
-+ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o)
+ /* OCSP request extensions */
+ 
+-int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
++int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
  {
-     ASN1_OBJECT *r;
+     return X509v3_get_ext_count(x->tbsRequest.requestExtensions);
+ }
  
-@@ -54,7 +54,7 @@ ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o)
+-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
++int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
+ {
+     return (X509v3_get_ext_by_NID
+             (x->tbsRequest.requestExtensions, nid, lastpos));
+ }
+ 
+-int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
+                                 int lastpos)
+ {
+     return (X509v3_get_ext_by_OBJ
+             (x->tbsRequest.requestExtensions, obj, lastpos));
+ }
+ 
+-int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
++int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->tbsRequest.requestExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
++X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
+ {
+     return X509v3_get_ext(x->tbsRequest.requestExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
++X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
+ {
+     return X509v3_delete_ext(x->tbsRequest.requestExtensions, loc);
+ }
+ 
+-void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
++void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
+ {
+     return X509V3_get_d2i(x->tbsRequest.requestExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
+                               unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->tbsRequest.requestExtensions, nid, value,
+                            crit, flags);
+ }
+ 
+-int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->tbsRequest.requestExtensions), ex, loc) !=
+             NULL);
+@@ -74,107 +74,107 @@ int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
+ 
+ /* Single extensions */
+ 
+-int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
++int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
+ {
+     return X509v3_get_ext_count(x->singleRequestExtensions);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
++int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
+ {
+     return X509v3_get_ext_by_NID(x->singleRequestExtensions, nid, lastpos);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
+                                int lastpos)
+ {
+     return X509v3_get_ext_by_OBJ(x->singleRequestExtensions, obj, lastpos);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
++int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->singleRequestExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
++X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
+ {
+     return X509v3_get_ext(x->singleRequestExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
++X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
+ {
+     return X509v3_delete_ext(x->singleRequestExtensions, loc);
+ }
+ 
+-void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
++void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
+ {
+     return X509V3_get_d2i(x->singleRequestExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
++int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
+                              unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->singleRequestExtensions, nid, value, crit,
+                            flags);
+ }
+ 
+-int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->singleRequestExtensions), ex, loc) != NULL);
+ }
+ 
+ /* OCSP Basic response */
+ 
+-int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
++int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
+ {
+     return X509v3_get_ext_count(x->tbsResponseData.responseExtensions);
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
++int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
+ {
+     return (X509v3_get_ext_by_NID
+             (x->tbsResponseData.responseExtensions, nid, lastpos));
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
+                                   int lastpos)
+ {
+     return (X509v3_get_ext_by_OBJ
+             (x->tbsResponseData.responseExtensions, obj, lastpos));
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
++int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
+                                        int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->tbsResponseData.responseExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
+ {
+     return X509v3_get_ext(x->tbsResponseData.responseExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
+ {
+     return X509v3_delete_ext(x->tbsResponseData.responseExtensions, loc);
+ }
+ 
+-void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
++void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
+                                   int *idx)
+ {
+     return X509V3_get_d2i(x->tbsResponseData.responseExtensions, nid, crit,
+                           idx);
+ }
+ 
+-int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
++int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
+                                 int crit, unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->tbsResponseData.responseExtensions, nid,
+                            value, crit, flags);
+ }
+ 
+-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->tbsResponseData.responseExtensions), ex, loc)
+             != NULL);
+@@ -182,51 +182,51 @@ int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
+ 
+ /* OCSP single response extensions */
+ 
+-int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
++int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
+ {
+     return X509v3_get_ext_count(x->singleExtensions);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
++int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
+ {
+     return X509v3_get_ext_by_NID(x->singleExtensions, nid, lastpos);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
+                                    int lastpos)
+ {
+     return X509v3_get_ext_by_OBJ(x->singleExtensions, obj, lastpos);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
++int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
+                                         int lastpos)
+ {
+     return X509v3_get_ext_by_critical(x->singleExtensions, crit, lastpos);
+ }
+ 
+-X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
+ {
+     return X509v3_get_ext(x->singleExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
+ {
+     return X509v3_delete_ext(x->singleExtensions, loc);
+ }
+ 
+-void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
++void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
+                                    int *idx)
+ {
+     return X509V3_get_d2i(x->singleExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
++int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
+                                  int crit, unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->singleExtensions, nid, value, crit, flags);
+ }
+ 
+-int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->singleExtensions), ex, loc) != NULL);
+ }
+@@ -279,14 +279,14 @@ static int ocsp_add1_nonce(STACK_OF(X509_EXTENSION) **exts,
+ 
+ /* Add nonce to an OCSP request */
+ 
+-int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
++int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
+ {
+     return ocsp_add1_nonce(&req->tbsRequest.requestExtensions, val, len);
+ }
+ 
+ /* Same as above but for a response */
+ 
+-int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
++int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
+ {
+     return ocsp_add1_nonce(&resp->tbsResponseData.responseExtensions, val,
+                            len);
+@@ -306,7 +306,7 @@ int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
+  *  necessary. return == 0 is always an error.
+  */
+ 
+-int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
++int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
+ {
+     /*
+      * Since we are only interested in the presence or absence of
+@@ -344,7 +344,7 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
+  * Copy the nonce value (if any) from an OCSP request to a response.
+  */
+ 
+-int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
++int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
+ {
+     X509_EXTENSION *req_ext;
+     int req_idx;
+@@ -357,7 +357,7 @@ int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
+     return OCSP_BASICRESP_add_ext(resp, req_ext, -1);
+ }
+ 
+-X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
++X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim)
+ {
+     X509_EXTENSION *x = NULL;
+     OCSP_CRLID *cid = NULL;
+@@ -389,7 +389,7 @@ X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
+ }
+ 
+ /*   AcceptableResponses ::= SEQUENCE OF OBJECT IDENTIFIER */
+-X509_EXTENSION *OCSP_accept_responses_new(char **oids)
++X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids)
+ {
+     int nid;
+     STACK_OF(ASN1_OBJECT) *sk = NULL;
+@@ -410,7 +410,7 @@ X509_EXTENSION *OCSP_accept_responses_new(char **oids)
+ }
+ 
+ /*  ArchiveCutoff ::= GeneralizedTime */
+-X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
++X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim)
+ {
+     X509_EXTENSION *x = NULL;
+     ASN1_GENERALIZEDTIME *gt = NULL;
+@@ -430,7 +430,7 @@ X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
+  * two--NID_ad_ocsp, NID_id_ad_caIssuers--and GeneralName value.  This method
+  * forces NID_ad_ocsp and uniformResourceLocator [6] IA5String.
+  */
+-X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
++X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
+ {
+     X509_EXTENSION *x = NULL;
+     ASN1_IA5STRING *ia5 = NULL;
+diff --git a/crypto/ocsp/ocsp_ht.c b/crypto/ocsp/ocsp_ht.c
+index 42c3686431..b1aabd82f8 100644
+--- a/crypto/ocsp/ocsp_ht.c
++++ b/crypto/ocsp/ocsp_ht.c
+@@ -61,7 +61,7 @@ struct ocsp_req_ctx_st {
+ 
+ static int parse_http_line1(char *line);
+ 
+-OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
++OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline)
+ {
+     OCSP_REQ_CTX *rctx = OPENSSL_zalloc(sizeof(*rctx));
+ 
+@@ -83,7 +83,7 @@ OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
+     return rctx;
+ }
+ 
+-void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
++void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+ {
+     if (!rctx)
+         return;
+@@ -92,12 +92,12 @@ void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+     OPENSSL_free(rctx);
+ }
+ 
+-BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
++BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
+ {
+     return rctx->mem;
+ }
+ 
+-void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
++void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+ {
+     if (len == 0)
+         rctx->max_resp_len = OCSP_MAX_RESP_LENGTH;
+@@ -105,7 +105,7 @@ void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+         rctx->max_resp_len = len;
+ }
+ 
+-int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
++int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+ {
+     static const char req_hdr[] =
+         "Content-Type: application/ocsp-request\r\n"
+@@ -119,7 +119,7 @@ int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
++int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
+                           ASN1_VALUE **pval, const ASN1_ITEM *it)
+ {
+     int rv, len;
+@@ -138,7 +138,7 @@ int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
++int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
+ {
+     static const char http_hdr[] = "%s %s HTTP/1.0\r\n";
+ 
+@@ -151,13 +151,13 @@ int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
++int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
+ {
+     return OCSP_REQ_CTX_i2d(rctx, ASN1_ITEM_rptr(OCSP_REQUEST),
+                             (ASN1_VALUE *)req);
+ }
+ 
+-int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
++int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+                              const char *name, const char *value)
+ {
+     if (!name)
+@@ -176,7 +176,7 @@ int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+     return 1;
+ }
+ 
+-OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
++OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+                                int maxline)
+ {
+ 
+@@ -269,7 +269,7 @@ static int parse_http_line1(char *line)
+ 
+ }
+ 
+-int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
++int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+ {
+     int i, n;
+     const unsigned char *p;
+@@ -469,7 +469,7 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+ 
+ }
+ 
+-int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
++int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
+ {
+     return OCSP_REQ_CTX_nbio_d2i(rctx,
+                                  (ASN1_VALUE **)presp,
+@@ -478,7 +478,7 @@ int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
+ 
+ /* Blocking OCSP request handler: now a special case of non-blocking I/O */
+ 
+-OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
++OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
+ {
+     OCSP_RESPONSE *resp = NULL;
+     OCSP_REQ_CTX *ctx;
+diff --git a/crypto/ocsp/ocsp_lib.c b/crypto/ocsp/ocsp_lib.c
+index b8b91cc9eb..81084ae167 100644
+--- a/crypto/ocsp/ocsp_lib.c
++++ b/crypto/ocsp/ocsp_lib.c
+@@ -19,7 +19,7 @@
+ 
+ /* Convert a certificate and its issuer to an OCSP_CERTID */
+ 
+-OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
++OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+                              const X509 *issuer)
+ {
+     X509_NAME *iname;
+@@ -38,7 +38,7 @@ OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+     return OCSP_cert_id_new(dgst, iname, ikey, serial);
+ }
+ 
+-OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
++OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
+                               const X509_NAME *issuerName,
+                               const ASN1_BIT_STRING *issuerKey,
+                               const ASN1_INTEGER *serialNumber)
+@@ -88,7 +88,7 @@ OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
      return NULL;
  }
  
--int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
-+int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b)
+-int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
++int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
  {
      int ret;
+     ret = OBJ_cmp(a->hashAlgorithm.algorithm, b->hashAlgorithm.algorithm);
+@@ -100,7 +100,7 @@ int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+     return ASN1_OCTET_STRING_cmp(&a->issuerKeyHash, &b->issuerKeyHash);
+ }
  
-diff --git a/crypto/objects/obj_xref.c b/crypto/objects/obj_xref.c
-index b9218cd74c..495b9e821b 100644
---- a/crypto/objects/obj_xref.c
-+++ b/crypto/objects/obj_xref.c
-@@ -40,7 +40,7 @@ static int __cdecl sigx_cmp(const nid_triple *const *a, const nid_triple *const
- 
- IMPLEMENT_OBJ_BSEARCH_CMP_FN(const nid_triple *, const nid_triple *, sigx);
- 
--int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
-+int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+-int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
++int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
  {
-     nid_triple tmp;
-     const nid_triple *rv = NULL;
-@@ -64,7 +64,7 @@ int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid)
+     int ret;
+     ret = OCSP_id_issuer_cmp(a, b);
+@@ -114,7 +114,7 @@ int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+  * whether it is SSL.
+  */
+ 
+-int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
++int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
+                    int *pssl)
+ {
+     char *p, *buf;
+diff --git a/crypto/ocsp/ocsp_prn.c b/crypto/ocsp/ocsp_prn.c
+index 5605812ef7..abba225944 100644
+--- a/crypto/ocsp/ocsp_prn.c
++++ b/crypto/ocsp/ocsp_prn.c
+@@ -46,7 +46,7 @@ static const char *do_table2string(long s, const OCSP_TBLSTR *ts, size_t len)
+ 
+ #define table2string(s, tbl) do_table2string(s, tbl, OSSL_NELEM(tbl))
+ 
+-const char *OCSP_response_status_str(long s)
++const char * __cdecl OCSP_response_status_str(long s)
+ {
+     static const OCSP_TBLSTR rstat_tbl[] = {
+         {OCSP_RESPONSE_STATUS_SUCCESSFUL, "successful"},
+@@ -59,7 +59,7 @@ const char *OCSP_response_status_str(long s)
+     return table2string(s, rstat_tbl);
+ }
+ 
+-const char *OCSP_cert_status_str(long s)
++const char * __cdecl OCSP_cert_status_str(long s)
+ {
+     static const OCSP_TBLSTR cstat_tbl[] = {
+         {V_OCSP_CERTSTATUS_GOOD, "good"},
+@@ -69,7 +69,7 @@ const char *OCSP_cert_status_str(long s)
+     return table2string(s, cstat_tbl);
+ }
+ 
+-const char *OCSP_crl_reason_str(long s)
++const char * __cdecl OCSP_crl_reason_str(long s)
+ {
+     static const OCSP_TBLSTR reason_tbl[] = {
+         {OCSP_REVOKED_STATUS_UNSPECIFIED, "unspecified"},
+@@ -84,7 +84,7 @@ const char *OCSP_crl_reason_str(long s)
+     return table2string(s, reason_tbl);
+ }
+ 
+-int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
++int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
+ {
+     int i;
+     long l;
+@@ -129,7 +129,7 @@ int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
+     return 0;
+ }
+ 
+-int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
++int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
+ {
+     int i, ret = 0;
+     long l;
+diff --git a/crypto/ocsp/ocsp_srv.c b/crypto/ocsp/ocsp_srv.c
+index 6bd6f7b6d8..0cf4e6b2f6 100644
+--- a/crypto/ocsp/ocsp_srv.c
++++ b/crypto/ocsp/ocsp_srv.c
+@@ -21,22 +21,22 @@
+  * relevant information from the request.
+  */
+ 
+-int OCSP_request_onereq_count(OCSP_REQUEST *req)
++int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req)
+ {
+     return sk_OCSP_ONEREQ_num(req->tbsRequest.requestList);
+ }
+ 
+-OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
++OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
+ {
+     return sk_OCSP_ONEREQ_value(req->tbsRequest.requestList, i);
+ }
+ 
+-OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one)
++OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one)
+ {
+     return one->reqCert;
+ }
+ 
+-int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
++int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+                       ASN1_OCTET_STRING **pikeyHash,
+                       ASN1_INTEGER **pserial, OCSP_CERTID *cid)
+ {
+@@ -53,7 +53,7 @@ int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
      return 1;
  }
  
--int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
-+int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+-int OCSP_request_is_signed(OCSP_REQUEST *req)
++int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req)
  {
-     nid_triple tmp;
-     const nid_triple *t = &tmp;
-@@ -92,7 +92,7 @@ int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid)
+     if (req->optionalSignature)
+         return 1;
+@@ -61,7 +61,7 @@ int OCSP_request_is_signed(OCSP_REQUEST *req)
+ }
+ 
+ /* Create an OCSP response and encode an optional basic response */
+-OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
++OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs)
+ {
+     OCSP_RESPONSE *rsp = NULL;
+ 
+@@ -83,7 +83,7 @@ OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
+     return NULL;
+ }
+ 
+-OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
++OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+                                         OCSP_CERTID *cid,
+                                         int status, int reason,
+                                         ASN1_TIME *revtime,
+@@ -156,7 +156,7 @@ OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+ 
+ /* Add a certificate to an OCSP request */
+ 
+-int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
++int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
+ {
+     if (resp->certs == NULL
+         && (resp->certs = sk_X509_new_null()) == NULL)
+@@ -174,7 +174,7 @@ int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
+  * include one or more optional certificates in the response.
+  */
+ 
+-int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_MD_CTX *ctx,
+                     STACK_OF(X509) *certs, unsigned long flags)
+ {
+@@ -229,7 +229,7 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+     return 0;
+ }
+ 
+-int OCSP_basic_sign(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
+                     STACK_OF(X509) *certs, unsigned long flags)
+ {
+@@ -249,7 +249,7 @@ int OCSP_basic_sign(OCSP_BASICRESP *brsp,
+     return i;
+ }
+ 
+-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+ {
+     if (!X509_NAME_set(&respid->value.byName, X509_get_subject_name(cert)))
+         return 0;
+@@ -259,7 +259,7 @@ int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
      return 1;
  }
  
--int OBJ_add_sigid(int signid, int dig_id, int pkey_id)
-+int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id)
+-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
  {
-     nid_triple *ntr;
-     if (sig_app == NULL)
-@@ -130,7 +130,7 @@ static void __cdecl sid_free(nid_triple *tt)
-     OPENSSL_free(tt);
+     ASN1_OCTET_STRING *byKey = NULL;
+     unsigned char md[SHA_DIGEST_LENGTH];
+@@ -283,7 +283,7 @@ int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+     return 1;
  }
  
--void OBJ_sigid_free(void)
-+void __cdecl OBJ_sigid_free(void)
+-int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
  {
-     sk_nid_triple_pop_free(sig_app, sid_free);
-     sig_app = NULL;
-diff --git a/include/openssl/objects.h b/include/openssl/objects.h
-index c7e8ce2d0d..af71998db9 100644
---- a/include/openssl/objects.h
-+++ b/include/openssl/objects.h
-@@ -41,34 +41,34 @@ typedef struct obj_name_st {
+     if (respid->type == V_OCSP_RESPID_KEY) {
+         unsigned char md[SHA_DIGEST_LENGTH];
+diff --git a/crypto/ocsp/ocsp_vfy.c b/crypto/ocsp/ocsp_vfy.c
+index 9a8d343866..e6933c19ef 100644
+--- a/crypto/ocsp/ocsp_vfy.c
++++ b/crypto/ocsp/ocsp_vfy.c
+@@ -27,7 +27,7 @@ static int ocsp_req_find_signer(X509 **psigner, OCSP_REQUEST *req,
  
- # define         OBJ_create_and_add_object(a,b,c) OBJ_create(a,b,c)
+ /* Verify a basic response message */
  
--int OBJ_NAME_init(void);
--int OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
-+int __cdecl OBJ_NAME_init(void);
-+int __cdecl OBJ_NAME_new_index(unsigned long (*hash_func) (const char *),
-                        int (__cdecl *cmp_func) (const char *, const char *),
-                        void (*free_func) (const char *, int, const char *));
--const char *OBJ_NAME_get(const char *name, int type);
--int OBJ_NAME_add(const char *name, int type, const char *data);
--int OBJ_NAME_remove(const char *name, int type);
--void OBJ_NAME_cleanup(int type); /* -1 for everything */
--void OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
-+const char * __cdecl OBJ_NAME_get(const char *name, int type);
-+int __cdecl OBJ_NAME_add(const char *name, int type, const char *data);
-+int __cdecl OBJ_NAME_remove(const char *name, int type);
-+void __cdecl OBJ_NAME_cleanup(int type); /* -1 for everything */
-+void __cdecl OBJ_NAME_do_all(int type, void (*fn) (const OBJ_NAME *, void *arg),
-                      void *arg);
--void OBJ_NAME_do_all_sorted(int type,
-+void __cdecl OBJ_NAME_do_all_sorted(int type,
-                             void (*fn) (const OBJ_NAME *, void *arg),
-                             void *arg);
+-int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
++int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+                       X509_STORE *st, unsigned long flags)
+ {
+     X509 *signer, *x;
+@@ -138,7 +138,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+     goto end;
+ }
  
--ASN1_OBJECT *OBJ_dup(const ASN1_OBJECT *o);
--ASN1_OBJECT *OBJ_nid2obj(int n);
--const char *OBJ_nid2ln(int n);
--const char *OBJ_nid2sn(int n);
--int OBJ_obj2nid(const ASN1_OBJECT *o);
--ASN1_OBJECT *OBJ_txt2obj(const char *s, int no_name);
--int OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
--int OBJ_txt2nid(const char *s);
--int OBJ_ln2nid(const char *s);
--int OBJ_sn2nid(const char *s);
--int OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
--const void *OBJ_bsearch_(const void *key, const void *base, int num, int size,
-+ASN1_OBJECT * __cdecl OBJ_dup(const ASN1_OBJECT *o);
-+ASN1_OBJECT * __cdecl OBJ_nid2obj(int n);
-+const char * __cdecl OBJ_nid2ln(int n);
-+const char * __cdecl OBJ_nid2sn(int n);
-+int __cdecl OBJ_obj2nid(const ASN1_OBJECT *o);
-+ASN1_OBJECT * __cdecl OBJ_txt2obj(const char *s, int no_name);
-+int __cdecl OBJ_obj2txt(char *buf, int buf_len, const ASN1_OBJECT *a, int no_name);
-+int __cdecl OBJ_txt2nid(const char *s);
-+int __cdecl OBJ_ln2nid(const char *s);
-+int __cdecl OBJ_sn2nid(const char *s);
-+int __cdecl OBJ_cmp(const ASN1_OBJECT *a, const ASN1_OBJECT *b);
-+const void * __cdecl OBJ_bsearch_(const void *key, const void *base, int num, int size,
-                          int (__cdecl *cmp) (const void *, const void *));
--const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-+const void * __cdecl OBJ_bsearch_ex_(const void *key, const void *base, int num,
-                             int size,
-                             int (__cdecl *cmp) (const void *, const void *),
-                             int flags);
-@@ -152,21 +152,21 @@ const void *OBJ_bsearch_ex_(const void *key, const void *base, int num,
-                           (void)type_2=CHECKED_PTR_OF(type2,cmp##_type_2), \
-                           cmp##_BSEARCH_CMP_FN)),flags)
+-int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
++int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
+                           STACK_OF(X509) *extra_certs)
+ {
+     int ret;
+@@ -336,7 +336,7 @@ static int ocsp_check_delegated(X509 *x)
+  * trust value.
+  */
  
--int OBJ_new_nid(int num);
--int OBJ_add_object(const ASN1_OBJECT *obj);
--int OBJ_create(const char *oid, const char *sn, const char *ln);
-+int __cdecl OBJ_new_nid(int num);
-+int __cdecl OBJ_add_object(const ASN1_OBJECT *obj);
-+int __cdecl OBJ_create(const char *oid, const char *sn, const char *ln);
- #if OPENSSL_API_COMPAT < 0x10100000L
- # define OBJ_cleanup() while(0) continue
- #endif
--int OBJ_create_objects(BIO *in);
-+int __cdecl OBJ_create_objects(BIO *in);
+-int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
++int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
+                         X509_STORE *store, unsigned long flags)
+ {
+     X509 *signer;
+diff --git a/include/openssl/ocsp.h b/include/openssl/ocsp.h
+index c0accac758..2ef8968d5e 100644
+--- a/include/openssl/ocsp.h
++++ b/include/openssl/ocsp.h
+@@ -148,175 +148,175 @@ typedef struct ocsp_service_locator_st OCSP_SERVICELOC;
  
--size_t OBJ_length(const ASN1_OBJECT *obj);
--const unsigned char *OBJ_get0_data(const ASN1_OBJECT *obj);
-+size_t __cdecl OBJ_length(const ASN1_OBJECT *obj);
-+const unsigned char * __cdecl OBJ_get0_data(const ASN1_OBJECT *obj);
+ OCSP_CERTID * __cdecl OCSP_CERTID_dup(OCSP_CERTID *id);
  
--int OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
--int OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
--int OBJ_add_sigid(int signid, int dig_id, int pkey_id);
--void OBJ_sigid_free(void);
-+int __cdecl OBJ_find_sigid_algs(int signid, int *pdig_nid, int *ppkey_nid);
-+int __cdecl OBJ_find_sigid_by_algs(int *psignid, int dig_nid, int pkey_nid);
-+int __cdecl OBJ_add_sigid(int signid, int dig_id, int pkey_id);
-+void __cdecl OBJ_sigid_free(void);
+-OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
+-OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
++OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
++OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+                                int maxline);
+-int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
+-int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
+-OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline);
+-void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
+-void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
+-int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
++int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
++int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
++OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline);
++void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
++void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
++int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
+                      ASN1_VALUE *val);
+-int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
++int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
+                           const ASN1_ITEM *it);
+-BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
+-int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
+-int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
+-int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
++BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
++int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
++int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
++int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+                              const char *name, const char *value);
+ 
+-OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
++OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+                              const X509 *issuer);
+ 
+-OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
++OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
+                               const X509_NAME *issuerName,
+                               const ASN1_BIT_STRING *issuerKey,
+                               const ASN1_INTEGER *serialNumber);
+ 
+-OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
++OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
+ 
+-int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
+-int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
+-int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
+-int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
++int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
++int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
++int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
++int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
+ 
+-int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
+-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
++int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
++int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
+ 
+-int OCSP_request_sign(OCSP_REQUEST *req,
++int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
+                       X509 *signer,
+                       EVP_PKEY *key,
+                       const EVP_MD *dgst,
+                       STACK_OF(X509) *certs, unsigned long flags);
+ 
+-int OCSP_response_status(OCSP_RESPONSE *resp);
+-OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp);
++int __cdecl OCSP_response_status(OCSP_RESPONSE *resp);
++OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp);
+ 
+-const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
+-const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
+-const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
+-int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
++const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
++const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
++const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
++int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
+                           STACK_OF(X509) *extra_certs);
+ 
+-int OCSP_resp_count(OCSP_BASICRESP *bs);
+-OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
+-const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
+-const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
+-int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs);
++OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
++const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
++const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
++int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+                       const ASN1_OCTET_STRING **pid,
+                       const X509_NAME **pname);
+-int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+                       ASN1_OCTET_STRING **pid,
+                       X509_NAME **pname);
+ 
+-int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
+-int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
++int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
++int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+                             ASN1_GENERALIZEDTIME **revtime,
+                             ASN1_GENERALIZEDTIME **thisupd,
+                             ASN1_GENERALIZEDTIME **nextupd);
+-int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
++int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+                           int *reason,
+                           ASN1_GENERALIZEDTIME **revtime,
+                           ASN1_GENERALIZEDTIME **thisupd,
+                           ASN1_GENERALIZEDTIME **nextupd);
+-int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
++int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
+                         ASN1_GENERALIZEDTIME *nextupd, long sec, long maxsec);
+ 
+-int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
++int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
+                         X509_STORE *store, unsigned long flags);
+ 
+-int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
++int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
+                    int *pssl);
+ 
+-int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
+-int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
++int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
++int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
+ 
+-int OCSP_request_onereq_count(OCSP_REQUEST *req);
+-OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
+-OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one);
+-int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
++int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req);
++OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
++OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one);
++int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+                       ASN1_OCTET_STRING **pikeyHash,
+                       ASN1_INTEGER **pserial, OCSP_CERTID *cid);
+-int OCSP_request_is_signed(OCSP_REQUEST *req);
+-OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs);
+-OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
++int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req);
++OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs);
++OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+                                         OCSP_CERTID *cid,
+                                         int status, int reason,
+                                         ASN1_TIME *revtime,
+                                         ASN1_TIME *thisupd,
+                                         ASN1_TIME *nextupd);
+-int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
+-int OCSP_basic_sign(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
++int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
+                     STACK_OF(X509) *certs, unsigned long flags);
+-int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+                         X509 *signer, EVP_MD_CTX *ctx,
+                         STACK_OF(X509) *certs, unsigned long flags);
+-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
+-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
+-int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
+ 
+-X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim);
++X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim);
+ 
+-X509_EXTENSION *OCSP_accept_responses_new(char **oids);
++X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids);
+ 
+-X509_EXTENSION *OCSP_archive_cutoff_new(char *tim);
++X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim);
+ 
+-X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
++X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
+ 
+-int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
+-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
+-int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
++int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
++int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
+                                 int lastpos);
+-int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
+-X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
+-X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
+-void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
++int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
++X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
++X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
++void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
+                                 int *idx);
+-int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
+                               unsigned long flags);
+-int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
+-
+-int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
+-int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
+-int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
+-int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
+-X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
+-X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
+-void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
+-int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
++
++int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
++int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
++int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
++int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
++X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
++X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
++void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
++int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
+                              unsigned long flags);
+-int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
++int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
+ 
+-int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
+-int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
+-int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
++int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
++int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
+                                   int lastpos);
+-int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
++int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
+                                        int lastpos);
+-X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
+-X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
+-void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
++X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
++X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
++void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
+                                   int *idx);
+-int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
++int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
+                                 int crit, unsigned long flags);
+-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
++int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
+ 
+-int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
+-int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
+-int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
++int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
++int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
+                                    int lastpos);
+-int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
++int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
+                                         int lastpos);
+-X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
+-X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
+-void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
++void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
+                                    int *idx);
+-int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
++int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
+                                  int crit, unsigned long flags);
+-int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
+-const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
++int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
++const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
+ 
+ DECLARE_ASN1_FUNCTIONS(OCSP_SINGLERESP)
+ DECLARE_ASN1_FUNCTIONS(OCSP_CERTSTATUS)
+@@ -334,14 +334,14 @@ DECLARE_ASN1_FUNCTIONS(OCSP_REQINFO)
+ DECLARE_ASN1_FUNCTIONS(OCSP_CRLID)
+ DECLARE_ASN1_FUNCTIONS(OCSP_SERVICELOC)
+ 
+-const char *OCSP_response_status_str(long s);
+-const char *OCSP_cert_status_str(long s);
+-const char *OCSP_crl_reason_str(long s);
++const char * __cdecl OCSP_response_status_str(long s);
++const char * __cdecl OCSP_cert_status_str(long s);
++const char * __cdecl OCSP_crl_reason_str(long s);
+ 
+-int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
+-int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
++int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
++int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
+ 
+-int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
++int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+                       X509_STORE *st, unsigned long flags);
  
  
- # ifdef  __cplusplus
-diff --git a/include/openssl/objectserr.h b/include/openssl/objectserr.h
-index 02e166f1ac..7888b96790 100644
---- a/include/openssl/objectserr.h
-+++ b/include/openssl/objectserr.h
-@@ -18,7 +18,7 @@
- # ifdef  __cplusplus
+diff --git a/include/openssl/ocsperr.h b/include/openssl/ocsperr.h
+index 8dd9e01a17..bb512da35d 100644
+--- a/include/openssl/ocsperr.h
++++ b/include/openssl/ocsperr.h
+@@ -22,7 +22,7 @@
+ #  ifdef  __cplusplus
  extern "C"
- # endif
--int ERR_load_OBJ_strings(void);
-+int __cdecl ERR_load_OBJ_strings(void);
+ #  endif
+-int ERR_load_OCSP_strings(void);
++int __cdecl ERR_load_OCSP_strings(void);
  
  /*
-  * OBJ function codes.
-diff --git a/test/modes_internal_test.c b/test/modes_internal_test.c
-index e0f1adf6af..89f7b76696 100644
---- a/test/modes_internal_test.c
-+++ b/test/modes_internal_test.c
-@@ -127,18 +127,18 @@ typedef struct {
-     const char *case_name;
-     size_t (*last_blocks_correction)(const unsigned char *in,
-                                      unsigned char *out, size_t len);
--    size_t (*encrypt_block)(const unsigned char *in,
-+    size_t (__cdecl *encrypt_block)(const unsigned char *in,
-                             unsigned char *out, size_t len,
-                             const void *key, unsigned char ivec[16],
-                             block128_f block);
--    size_t (*encrypt_stream)(const unsigned char *in, unsigned char *out,
-+    size_t (__cdecl *encrypt_stream)(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
--    size_t (*decrypt_block)(const unsigned char *in,
-+    size_t (__cdecl *decrypt_block)(const unsigned char *in,
-                             unsigned char *out, size_t len,
-                             const void *key, unsigned char ivec[16],
-                             block128_f block);
--    size_t (*decrypt_stream)(const unsigned char *in, unsigned char *out,
-+    size_t (__cdecl *decrypt_stream)(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
- } CTS128_FIXTURE;
+  * OCSP function codes.
