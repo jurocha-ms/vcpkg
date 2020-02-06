@@ -16238,6 +16238,195 @@ index 08dc7c4073..db440eeb06 100644
  {
      if (ad->sk == NULL || idx >= sk_void_num(ad->sk))
          return NULL;
+diff --git a/crypto/hmac/hmac.c b/crypto/hmac/hmac.c
+index 0c0a7133fb..1ad3c7602b 100644
+--- a/crypto/hmac/hmac.c
++++ b/crypto/hmac/hmac.c
+@@ -15,7 +15,7 @@
+ #include <openssl/opensslconf.h>
+ #include "hmac_lcl.h"
+ 
+-int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
++int __cdecl HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
+                  const EVP_MD *md, ENGINE *impl)
+ {
+     int rv = 0;
+@@ -95,14 +95,14 @@ int HMAC_Init(HMAC_CTX *ctx, const void *key, int len, const EVP_MD *md)
+ }
+ #endif
+ 
+-int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
++int __cdecl HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
+ {
+     if (!ctx->md)
+         return 0;
+     return EVP_DigestUpdate(ctx->md_ctx, data, len);
+ }
+ 
+-int HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
++int __cdecl HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
+ {
+     unsigned int i;
+     unsigned char buf[EVP_MAX_MD_SIZE];
+@@ -123,14 +123,14 @@ int HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
+     return 0;
+ }
+ 
+-size_t HMAC_size(const HMAC_CTX *ctx)
++size_t __cdecl HMAC_size(const HMAC_CTX *ctx)
+ {
+     int size = EVP_MD_size((ctx)->md);
+ 
+     return (size < 0) ? 0 : size;
+ }
+ 
+-HMAC_CTX *HMAC_CTX_new(void)
++HMAC_CTX * __cdecl HMAC_CTX_new(void)
+ {
+     HMAC_CTX *ctx = OPENSSL_zalloc(sizeof(HMAC_CTX));
+ 
+@@ -153,7 +153,7 @@ static void hmac_ctx_cleanup(HMAC_CTX *ctx)
+     OPENSSL_cleanse(ctx->key, sizeof(ctx->key));
+ }
+ 
+-void HMAC_CTX_free(HMAC_CTX *ctx)
++void __cdecl HMAC_CTX_free(HMAC_CTX *ctx)
+ {
+     if (ctx != NULL) {
+         hmac_ctx_cleanup(ctx);
+@@ -181,7 +181,7 @@ static int hmac_ctx_alloc_mds(HMAC_CTX *ctx)
+     return 1;
+ }
+ 
+-int HMAC_CTX_reset(HMAC_CTX *ctx)
++int __cdecl HMAC_CTX_reset(HMAC_CTX *ctx)
+ {
+     hmac_ctx_cleanup(ctx);
+     if (!hmac_ctx_alloc_mds(ctx)) {
+@@ -191,7 +191,7 @@ int HMAC_CTX_reset(HMAC_CTX *ctx)
+     return 1;
+ }
+ 
+-int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
++int __cdecl HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
+ {
+     if (!hmac_ctx_alloc_mds(dctx))
+         goto err;
+@@ -210,7 +210,7 @@ int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
+     return 0;
+ }
+ 
+-unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
++unsigned char * __cdecl HMAC(const EVP_MD *evp_md, const void *key, int key_len,
+                     const unsigned char *d, size_t n, unsigned char *md,
+                     unsigned int *md_len)
+ {
+@@ -241,14 +241,14 @@ unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
+     return NULL;
+ }
+ 
+-void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags)
++void __cdecl HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags)
+ {
+     EVP_MD_CTX_set_flags(ctx->i_ctx, flags);
+     EVP_MD_CTX_set_flags(ctx->o_ctx, flags);
+     EVP_MD_CTX_set_flags(ctx->md_ctx, flags);
+ }
+ 
+-const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx)
++const EVP_MD * __cdecl HMAC_CTX_get_md(const HMAC_CTX *ctx)
+ {
+     return ctx->md;
+ }
+diff --git a/crypto/idea/i_cbc.c b/crypto/idea/i_cbc.c
+index a70a8682a7..151597a3d5 100644
+--- a/crypto/idea/i_cbc.c
++++ b/crypto/idea/i_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/idea.h>
+ #include "idea_lcl.h"
+ 
+-void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                       int encrypt)
+ {
+@@ -86,7 +86,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
+     tin[0] = tin[1] = 0;
+ }
+ 
+-void IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
++void __cdecl IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
+ {
+     register IDEA_INT *p;
+     register unsigned long x1, x2, x3, x4, t0, t1, ul;
+diff --git a/crypto/idea/i_cfb64.c b/crypto/idea/i_cfb64.c
+index daf467eb5c..676510e6a2 100644
+--- a/crypto/idea/i_cfb64.c
++++ b/crypto/idea/i_cfb64.c
+@@ -16,7 +16,7 @@
+  * used is contained in *num;
+  */
+ 
+-void IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, IDEA_KEY_SCHEDULE *schedule,
+                         unsigned char *ivec, int *num, int encrypt)
+ {
+diff --git a/crypto/idea/i_ecb.c b/crypto/idea/i_ecb.c
+index 058d0c14c0..da98c3976b 100644
+--- a/crypto/idea/i_ecb.c
++++ b/crypto/idea/i_ecb.c
+@@ -11,12 +11,12 @@
+ #include "idea_lcl.h"
+ #include <openssl/opensslv.h>
+ 
+-const char *IDEA_options(void)
++const char * __cdecl IDEA_options(void)
+ {
+     return "idea(int)";
+ }
+ 
+-void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       IDEA_KEY_SCHEDULE *ks)
+ {
+     unsigned long l0, l1, d[2];
+diff --git a/crypto/idea/i_ofb64.c b/crypto/idea/i_ofb64.c
+index 997a7b88ed..6e72c6232c 100644
+--- a/crypto/idea/i_ofb64.c
++++ b/crypto/idea/i_ofb64.c
+@@ -15,7 +15,7 @@
+  * The extra state information to record how much of the 64bit block we have
+  * used is contained in *num;
+  */
+-void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, IDEA_KEY_SCHEDULE *schedule,
+                         unsigned char *ivec, int *num)
+ {
+diff --git a/crypto/idea/i_skey.c b/crypto/idea/i_skey.c
+index 9d9145580f..25f98c82e5 100644
+--- a/crypto/idea/i_skey.c
++++ b/crypto/idea/i_skey.c
+@@ -11,7 +11,7 @@
+ #include "idea_lcl.h"
+ 
+ static IDEA_INT inverse(unsigned int xin);
+-void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
++void __cdecl IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
+ {
+     int i;
+     register IDEA_INT *kt, *kf, r0, r1, r2;
+@@ -51,7 +51,7 @@ void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
+     }
+ }
+ 
+-void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
++void __cdecl IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
+ {
+     int r;
+     register IDEA_INT *fp, *tp, t;
 diff --git a/crypto/include/internal/err_int.h b/crypto/include/internal/err_int.h
 index 44ac944627..574d2e780f 100644
 --- a/crypto/include/internal/err_int.h
@@ -16276,6 +16465,51 @@ index d86aed36f0..bce3e21171 100644
  
  #define BLOCK_CIPHER_def_cbc(cname, kstruct, nid, block_size, key_len, \
                               iv_len, flags, init_key, cleanup, set_asn1, \
+diff --git a/crypto/include/internal/md32_common.h b/crypto/include/internal/md32_common.h
+index 1124e9c24b..5f54c7a6b8 100644
+--- a/crypto/include/internal/md32_common.h
++++ b/crypto/include/internal/md32_common.h
+@@ -125,7 +125,7 @@
+  * Time for some action :-)
+  */
+ 
+-int HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
++int __cdecl HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
+ {
+     const unsigned char *data = data_;
+     unsigned char *p;
+@@ -183,12 +183,12 @@ int HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
+     return 1;
+ }
+ 
+-void HASH_TRANSFORM(HASH_CTX *c, const unsigned char *data)
++void __cdecl HASH_TRANSFORM(HASH_CTX *c, const unsigned char *data)
+ {
+     HASH_BLOCK_DATA_ORDER(c, data, 1);
+ }
+ 
+-int HASH_FINAL(unsigned char *md, HASH_CTX *c)
++int __cdecl HASH_FINAL(unsigned char *md, HASH_CTX *c)
+ {
+     unsigned char *p = (unsigned char *)c->data;
+     size_t n = c->num;
+diff --git a/crypto/include/internal/sm3.h b/crypto/include/internal/sm3.h
+index 27eb471c28..f9fda6966d 100644
+--- a/crypto/include/internal/sm3.h
++++ b/crypto/include/internal/sm3.h
+@@ -30,9 +30,9 @@ typedef struct SM3state_st {
+    unsigned int num;
+ } SM3_CTX;
+ 
+-int sm3_init(SM3_CTX *c);
+-int sm3_update(SM3_CTX *c, const void *data, size_t len);
+-int sm3_final(unsigned char *md, SM3_CTX *c);
++int __cdecl sm3_init(SM3_CTX *c);
++int __cdecl sm3_update(SM3_CTX *c, const void *data, size_t len);
++int __cdecl sm3_final(unsigned char *md, SM3_CTX *c);
+ 
+ void sm3_block_data_order(SM3_CTX *c, const void *p, size_t num);
+ 
 diff --git a/crypto/init.c b/crypto/init.c
 index 9fc0e8ef68..c87de50e62 100644
 --- a/crypto/init.c
@@ -16344,10 +16578,99 @@ index 9fc0e8ef68..c87de50e62 100644
  {
  }
  #endif
+diff --git a/crypto/kdf/kdf_err.c b/crypto/kdf/kdf_err.c
+index 1627c0a394..a999d0f2db 100644
+--- a/crypto/kdf/kdf_err.c
++++ b/crypto/kdf/kdf_err.c
+@@ -55,7 +55,7 @@ static const ERR_STRING_DATA KDF_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_KDF_strings(void)
++int __cdecl ERR_load_KDF_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(KDF_str_functs[0].error) == NULL) {
+diff --git a/crypto/lhash/lh_stats.c b/crypto/lhash/lh_stats.c
+index 65b91e1ef4..7381cae119 100644
+--- a/crypto/lhash/lh_stats.c
++++ b/crypto/lhash/lh_stats.c
+@@ -21,7 +21,7 @@
+ #include "lhash_lcl.h"
+ 
+ # ifndef OPENSSL_NO_STDIO
+-void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
++void __cdecl OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
+ {
+     BIO *bp;
+ 
+@@ -33,7 +33,7 @@ void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
+     BIO_free(bp);
+ }
+ 
+-void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
++void __cdecl OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
+ {
+     BIO *bp;
+ 
+@@ -45,7 +45,7 @@ void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
+     BIO_free(bp);
+ }
+ 
+-void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
++void __cdecl OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
+ {
+     BIO *bp;
+ 
+@@ -59,7 +59,7 @@ void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
+ 
+ # endif
+ 
+-void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
++void __cdecl OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+ {
+     BIO_printf(out, "num_items             = %lu\n", lh->num_items);
+     BIO_printf(out, "num_nodes             = %u\n",  lh->num_nodes);
+@@ -79,7 +79,7 @@ void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+     BIO_printf(out, "num_hash_comps        = %lu\n", lh->num_hash_comps);
+ }
+ 
+-void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
++void __cdecl OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+ {
+     OPENSSL_LH_NODE *n;
+     unsigned int i, num;
+@@ -91,7 +91,7 @@ void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+     }
+ }
+ 
+-void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
++void __cdecl OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+ {
+     OPENSSL_LH_NODE *n;
+     unsigned long num;
 diff --git a/crypto/lhash/lhash.c b/crypto/lhash/lhash.c
-index 485d4c3fff..e9519e91b6 100644
+index 485d4c3fff..fa3d7ae252 100644
 --- a/crypto/lhash/lhash.c
 +++ b/crypto/lhash/lhash.c
+@@ -44,7 +44,7 @@ static int expand(OPENSSL_LHASH *lh);
+ static void contract(OPENSSL_LHASH *lh);
+ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh, const void *data, unsigned long *rhash);
+ 
+-OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
++OPENSSL_LHASH * __cdecl OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
+ {
+     OPENSSL_LHASH *ret;
+ 
+@@ -73,7 +73,7 @@ err:
+     return NULL;
+ }
+ 
+-void OPENSSL_LH_free(OPENSSL_LHASH *lh)
++void __cdecl OPENSSL_LH_free(OPENSSL_LHASH *lh)
+ {
+     unsigned int i;
+     OPENSSL_LH_NODE *n, *nn;
 @@ -93,7 +93,7 @@ void OPENSSL_LH_free(OPENSSL_LHASH *lh)
      OPENSSL_free(lh);
  }
@@ -16357,6 +16680,224 @@ index 485d4c3fff..e9519e91b6 100644
  {
      unsigned long hash;
      OPENSSL_LH_NODE *nn, **rn;
+@@ -125,7 +125,7 @@ void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
+     return ret;
+ }
+ 
+-void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
++void * __cdecl OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
+ {
+     unsigned long hash;
+     OPENSSL_LH_NODE *nn, **rn;
+@@ -153,7 +153,7 @@ void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
+     return ret;
+ }
+ 
+-void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
++void * __cdecl OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
+ {
+     unsigned long hash;
+     OPENSSL_LH_NODE **rn;
+@@ -201,12 +201,12 @@ static void doall_util_fn(OPENSSL_LHASH *lh, int use_arg,
+     }
+ }
+ 
+-void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
++void __cdecl OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
+ {
+     doall_util_fn(lh, 0, func, (OPENSSL_LH_DOALL_FUNCARG)0, NULL);
+ }
+ 
+-void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
++void __cdecl OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
+ {
+     doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC)0, func, arg);
+ }
+@@ -328,7 +328,7 @@ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
+  * collisions on /usr/dict/words and it distributes on %2^n quite well, not
+  * as good as MD5, but still good.
+  */
+-unsigned long OPENSSL_LH_strhash(const char *c)
++unsigned long __cdecl OPENSSL_LH_strhash(const char *c)
+ {
+     unsigned long ret = 0;
+     long n;
+@@ -372,22 +372,22 @@ unsigned long openssl_lh_strcasehash(const char *c)
+     return (ret >> 16) ^ ret;
+ }
+ 
+-unsigned long OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
++unsigned long __cdecl OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
+ {
+     return lh ? lh->num_items : 0;
+ }
+ 
+-unsigned long OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
++unsigned long __cdecl OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
+ {
+     return lh->down_load;
+ }
+ 
+-void OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
++void __cdecl OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
+ {
+     lh->down_load = down_load;
+ }
+ 
+-int OPENSSL_LH_error(OPENSSL_LHASH *lh)
++int __cdecl OPENSSL_LH_error(OPENSSL_LHASH *lh)
+ {
+     return lh->error;
+ }
+diff --git a/crypto/md2/md2_dgst.c b/crypto/md2/md2_dgst.c
+index faa9393f2e..9a39b17691 100644
+--- a/crypto/md2/md2_dgst.c
++++ b/crypto/md2/md2_dgst.c
+@@ -60,7 +60,7 @@ static const MD2_INT S[256] = {
+     0xDB, 0x99, 0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14,
+ };
+ 
+-const char *MD2_options(void)
++const char * __cdecl MD2_options(void)
+ {
+     if (sizeof(MD2_INT) == 1)
+         return "md2(char)";
+@@ -68,7 +68,7 @@ const char *MD2_options(void)
+         return "md2(int)";
+ }
+ 
+-int MD2_Init(MD2_CTX *c)
++int __cdecl MD2_Init(MD2_CTX *c)
+ {
+     c->num = 0;
+     memset(c->state, 0, sizeof(c->state));
+@@ -77,7 +77,7 @@ int MD2_Init(MD2_CTX *c)
+     return 1;
+ }
+ 
+-int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
++int __cdecl MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
+ {
+     register UCHAR *p;
+ 
+@@ -147,7 +147,7 @@ static void md2_block(MD2_CTX *c, const unsigned char *d)
+     OPENSSL_cleanse(state, 48 * sizeof(MD2_INT));
+ }
+ 
+-int MD2_Final(unsigned char *md, MD2_CTX *c)
++int __cdecl MD2_Final(unsigned char *md, MD2_CTX *c)
+ {
+     int i, v;
+     register UCHAR *cp;
+diff --git a/crypto/md2/md2_one.c b/crypto/md2/md2_one.c
+index 5502b21696..dccf23bf88 100644
+--- a/crypto/md2/md2_one.c
++++ b/crypto/md2/md2_one.c
+@@ -16,7 +16,7 @@
+  * functions to different names
+  */
+ 
+-unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl MD2(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     MD2_CTX c;
+     static unsigned char m[MD2_DIGEST_LENGTH];
+diff --git a/crypto/md4/md4_dgst.c b/crypto/md4/md4_dgst.c
+index 5319618615..e7ec9d1381 100644
+--- a/crypto/md4/md4_dgst.c
++++ b/crypto/md4/md4_dgst.c
+@@ -20,7 +20,7 @@
+ #define INIT_DATA_C (unsigned long)0x98badcfeL
+ #define INIT_DATA_D (unsigned long)0x10325476L
+ 
+-int MD4_Init(MD4_CTX *c)
++int __cdecl MD4_Init(MD4_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->A = INIT_DATA_A;
+diff --git a/crypto/md4/md4_one.c b/crypto/md4/md4_one.c
+index 9e52303c2f..ad2b87b724 100644
+--- a/crypto/md4/md4_one.c
++++ b/crypto/md4/md4_one.c
+@@ -16,7 +16,7 @@
+ # include <openssl/ebcdic.h>
+ #endif
+ 
+-unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl MD4(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     MD4_CTX c;
+     static unsigned char m[MD4_DIGEST_LENGTH];
+diff --git a/crypto/md5/md5_dgst.c b/crypto/md5/md5_dgst.c
+index fbede6742a..64b2f17eca 100644
+--- a/crypto/md5/md5_dgst.c
++++ b/crypto/md5/md5_dgst.c
+@@ -20,7 +20,7 @@
+ #define INIT_DATA_C (unsigned long)0x98badcfeL
+ #define INIT_DATA_D (unsigned long)0x10325476L
+ 
+-int MD5_Init(MD5_CTX *c)
++int __cdecl MD5_Init(MD5_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->A = INIT_DATA_A;
+diff --git a/crypto/md5/md5_one.c b/crypto/md5/md5_one.c
+index c3bf2f88f0..3c34b57615 100644
+--- a/crypto/md5/md5_one.c
++++ b/crypto/md5/md5_one.c
+@@ -16,7 +16,7 @@
+ # include <openssl/ebcdic.h>
+ #endif
+ 
+-unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl MD5(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     MD5_CTX c;
+     static unsigned char m[MD5_DIGEST_LENGTH];
+diff --git a/crypto/mdc2/mdc2_one.c b/crypto/mdc2/mdc2_one.c
+index 58e1e0fdf6..1290ebf705 100644
+--- a/crypto/mdc2/mdc2_one.c
++++ b/crypto/mdc2/mdc2_one.c
+@@ -11,7 +11,7 @@
+ #include "internal/cryptlib.h"
+ #include <openssl/mdc2.h>
+ 
+-unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl MDC2(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     MDC2_CTX c;
+     static unsigned char m[MDC2_DIGEST_LENGTH];
+diff --git a/crypto/mdc2/mdc2dgst.c b/crypto/mdc2/mdc2dgst.c
+index 14233b9aba..2dceffa1cb 100644
+--- a/crypto/mdc2/mdc2dgst.c
++++ b/crypto/mdc2/mdc2dgst.c
+@@ -27,7 +27,7 @@
+                         *((c)++)=(unsigned char)(((l)>>24L)&0xff))
+ 
+ static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len);
+-int MDC2_Init(MDC2_CTX *c)
++int __cdecl MDC2_Init(MDC2_CTX *c)
+ {
+     c->num = 0;
+     c->pad_type = 1;
+@@ -36,7 +36,7 @@ int MDC2_Init(MDC2_CTX *c)
+     return 1;
+ }
+ 
+-int MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
++int __cdecl MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
+ {
+     size_t i, j;
+ 
+@@ -107,7 +107,7 @@ static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
+     }
+ }
+ 
+-int MDC2_Final(unsigned char *md, MDC2_CTX *c)
++int __cdecl MDC2_Final(unsigned char *md, MDC2_CTX *c)
+ {
+     unsigned int i;
+     int j;
 diff --git a/crypto/mem.c b/crypto/mem.c
 index 780053ffef..56c02305ea 100644
 --- a/crypto/mem.c
@@ -16999,6 +17540,19 @@ index feef9d1fc4..1448924b01 100644
                          ASN1_TYPE *param, const EVP_CIPHER *cipher,
                          const EVP_MD *md, int en_de)
  {
+diff --git a/crypto/ripemd/rmd_dgst.c b/crypto/ripemd/rmd_dgst.c
+index a1670c7fbd..f8b6a834f5 100644
+--- a/crypto/ripemd/rmd_dgst.c
++++ b/crypto/ripemd/rmd_dgst.c
+@@ -18,7 +18,7 @@ void ripemd160_block_x86(RIPEMD160_CTX *c, unsigned long *p, size_t num);
+ void ripemd160_block(RIPEMD160_CTX *c, unsigned long *p, size_t num);
+ #endif
+ 
+-int RIPEMD160_Init(RIPEMD160_CTX *c)
++int __cdecl RIPEMD160_Init(RIPEMD160_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->A = RIPEMD160_A;
 diff --git a/crypto/rsa/rsa_lib.c b/crypto/rsa/rsa_lib.c
 index e737a28898..1ba92cd08b 100644
 --- a/crypto/rsa/rsa_lib.c
@@ -17428,6 +17982,54 @@ index 55a44023d5..9e3e805b1b 100644
  {
      /*
       * This is 5-bit SHAKE128 test from http://csrc.nist.gov/groups/ST/toolkit/examples.html#aHashing
+diff --git a/crypto/sha/sha1_one.c b/crypto/sha/sha1_one.c
+index e5b38211d2..5807649c8f 100644
+--- a/crypto/sha/sha1_one.c
++++ b/crypto/sha/sha1_one.c
+@@ -12,7 +12,7 @@
+ #include <openssl/crypto.h>
+ #include <openssl/sha.h>
+ 
+-unsigned char *SHA1(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA1(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA_CTX c;
+     static unsigned char m[SHA_DIGEST_LENGTH];
+diff --git a/crypto/sha/sha256.c b/crypto/sha/sha256.c
+index bf78f075ee..cde44fb98d 100644
+--- a/crypto/sha/sha256.c
++++ b/crypto/sha/sha256.c
+@@ -31,7 +31,7 @@ int SHA224_Init(SHA256_CTX *c)
+     return 1;
+ }
+ 
+-int SHA256_Init(SHA256_CTX *c)
++int __cdecl SHA256_Init(SHA256_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->h[0] = 0x6a09e667UL;
+@@ -60,7 +60,7 @@ unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
+     return md;
+ }
+ 
+-unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA256_CTX c;
+     static unsigned char m[SHA256_DIGEST_LENGTH];
+diff --git a/crypto/sha/sha_locl.h b/crypto/sha/sha_locl.h
+index 4e5a090382..20df4dc95f 100644
+--- a/crypto/sha/sha_locl.h
++++ b/crypto/sha/sha_locl.h
+@@ -50,7 +50,7 @@ void sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
+ #define INIT_DATA_h3 0x10325476UL
+ #define INIT_DATA_h4 0xc3d2e1f0UL
+ 
+-int HASH_INIT(SHA_CTX *c)
++int __cdecl HASH_INIT(SHA_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->h0 = INIT_DATA_h0;
 diff --git a/crypto/sm3/m_sm3.c b/crypto/sm3/m_sm3.c
 index 85538dc8af..2c6f3d0f49 100644
 --- a/crypto/sm3/m_sm3.c
@@ -17441,6 +18043,32 @@ index 85538dc8af..2c6f3d0f49 100644
  {
      return &sm3_md;
  }
+diff --git a/crypto/sm3/sm3.c b/crypto/sm3/sm3.c
+index 1588dd115a..da11aeaa23 100644
+--- a/crypto/sm3/sm3.c
++++ b/crypto/sm3/sm3.c
+@@ -12,7 +12,7 @@
+ #include <openssl/e_os2.h>
+ #include "sm3_locl.h"
+ 
+-int sm3_init(SM3_CTX *c)
++int __cdecl sm3_init(SM3_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->A = SM3_A;
+diff --git a/crypto/sm3/sm3_locl.h b/crypto/sm3/sm3_locl.h
+index efa6db57c6..ec24600d91 100644
+--- a/crypto/sm3/sm3_locl.h
++++ b/crypto/sm3/sm3_locl.h
+@@ -34,7 +34,7 @@
+       } while (0)
+ #define HASH_BLOCK_DATA_ORDER   sm3_block_data_order
+ 
+-void sm3_transform(SM3_CTX *c, const unsigned char *data);
++void __cdecl sm3_transform(SM3_CTX *c, const unsigned char *data);
+ 
+ #include "internal/md32_common.h"
+ 
 diff --git a/crypto/srp/srp_vfy.c b/crypto/srp/srp_vfy.c
 index eb279dd418..68e177db22 100644
 --- a/crypto/srp/srp_vfy.c
@@ -27651,19 +28279,146 @@ index 6a651f5563..31d3100dfb 100644
  
  /*
   * EVP function codes.
+diff --git a/include/openssl/hmac.h b/include/openssl/hmac.h
+index 458efc1d51..835a686408 100644
+--- a/include/openssl/hmac.h
++++ b/include/openssl/hmac.h
+@@ -22,27 +22,27 @@
+ extern "C" {
+ #endif
+ 
+-size_t HMAC_size(const HMAC_CTX *e);
+-HMAC_CTX *HMAC_CTX_new(void);
+-int HMAC_CTX_reset(HMAC_CTX *ctx);
+-void HMAC_CTX_free(HMAC_CTX *ctx);
++size_t __cdecl HMAC_size(const HMAC_CTX *e);
++HMAC_CTX * __cdecl HMAC_CTX_new(void);
++int __cdecl HMAC_CTX_reset(HMAC_CTX *ctx);
++void __cdecl HMAC_CTX_free(HMAC_CTX *ctx);
+ 
+ DEPRECATEDIN_1_1_0(__owur int HMAC_Init(HMAC_CTX *ctx, const void *key, int len,
+                      const EVP_MD *md))
+ 
+-/*__owur*/ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
++/*__owur*/ int __cdecl HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
+                             const EVP_MD *md, ENGINE *impl);
+-/*__owur*/ int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
++/*__owur*/ int __cdecl HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
+                            size_t len);
+-/*__owur*/ int HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
++/*__owur*/ int __cdecl HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
+                           unsigned int *len);
+-unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
++unsigned char * __cdecl HMAC(const EVP_MD *evp_md, const void *key, int key_len,
+                     const unsigned char *d, size_t n, unsigned char *md,
+                     unsigned int *md_len);
+-__owur int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx);
++__owur int __cdecl HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx);
+ 
+-void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
+-const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx);
++void __cdecl HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
++const EVP_MD * __cdecl HMAC_CTX_get_md(const HMAC_CTX *ctx);
+ 
+ #ifdef  __cplusplus
+ }
+diff --git a/include/openssl/idea.h b/include/openssl/idea.h
+index 4334f3ea71..6b55edea2d 100644
+--- a/include/openssl/idea.h
++++ b/include/openssl/idea.h
+@@ -29,21 +29,21 @@ typedef struct idea_key_st {
+     IDEA_INT data[9][6];
+ } IDEA_KEY_SCHEDULE;
+ 
+-const char *IDEA_options(void);
+-void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
++const char * __cdecl IDEA_options(void);
++void __cdecl IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       IDEA_KEY_SCHEDULE *ks);
+-void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
+-void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
+-void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
++void __cdecl IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
++void __cdecl IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                       int enc);
+-void IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                         int *num, int enc);
+-void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
+                         int *num);
+-void IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
++void __cdecl IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define idea_options          IDEA_options
+diff --git a/include/openssl/kdferr.h b/include/openssl/kdferr.h
+index 3f51bd0228..1b9a66a755 100644
+--- a/include/openssl/kdferr.h
++++ b/include/openssl/kdferr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_KDF_strings(void);
++int __cdecl ERR_load_KDF_strings(void);
+ 
+ /*
+  * KDF function codes.
 diff --git a/include/openssl/lhash.h b/include/openssl/lhash.h
-index 47b99d17fb..e37335400e 100644
+index 47b99d17fb..38eafe3c18 100644
 --- a/include/openssl/lhash.h
 +++ b/include/openssl/lhash.h
-@@ -72,7 +72,7 @@ typedef struct lhash_st OPENSSL_LHASH;
- int OPENSSL_LH_error(OPENSSL_LHASH *lh);
- OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c);
- void OPENSSL_LH_free(OPENSSL_LHASH *lh);
+@@ -69,27 +69,27 @@ typedef struct lhash_st OPENSSL_LHASH;
+ 
+ # define LH_LOAD_MULT    256
+ 
+-int OPENSSL_LH_error(OPENSSL_LHASH *lh);
+-OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c);
+-void OPENSSL_LH_free(OPENSSL_LHASH *lh);
 -void *OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data);
+-void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data);
+-void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data);
+-void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func);
+-void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg);
+-unsigned long OPENSSL_LH_strhash(const char *c);
+-unsigned long OPENSSL_LH_num_items(const OPENSSL_LHASH *lh);
+-unsigned long OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh);
+-void OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load);
++int __cdecl OPENSSL_LH_error(OPENSSL_LHASH *lh);
++OPENSSL_LHASH * __cdecl OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c);
++void __cdecl OPENSSL_LH_free(OPENSSL_LHASH *lh);
 +void * __cdecl OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data);
- void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data);
- void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data);
- void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func);
++void * __cdecl OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data);
++void * __cdecl OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data);
++void __cdecl OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func);
++void __cdecl OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg);
++unsigned long __cdecl OPENSSL_LH_strhash(const char *c);
++unsigned long __cdecl OPENSSL_LH_num_items(const OPENSSL_LHASH *lh);
++unsigned long __cdecl OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh);
++void __cdecl OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load);
+ 
+ # ifndef OPENSSL_NO_STDIO
+-void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp);
+-void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp);
+-void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp);
++void __cdecl OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp);
++void __cdecl OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp);
++void __cdecl OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp);
+ # endif
+-void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
+-void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
+-void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
++void __cdecl OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
++void __cdecl OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
++void __cdecl OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define _LHASH OPENSSL_LHASH
 @@ -122,7 +122,7 @@ void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
      LHASH_OF(type) { union lh_##type##_dummy { void* d1; unsigned long d2; int d3; } dummy; }; \
      static ossl_inline LHASH_OF(type) * \
@@ -27673,6 +28428,88 @@ index 47b99d17fb..e37335400e 100644
      { \
          return (LHASH_OF(type) *) \
              OPENSSL_LH_new((OPENSSL_LH_HASHFUNC)hfn, (OPENSSL_LH_COMPFUNC)cfn); \
+diff --git a/include/openssl/md2.h b/include/openssl/md2.h
+index 7faf8e3d65..597613226d 100644
+--- a/include/openssl/md2.h
++++ b/include/openssl/md2.h
+@@ -30,11 +30,11 @@ typedef struct MD2state_st {
+     MD2_INT state[MD2_BLOCK];
+ } MD2_CTX;
+ 
+-const char *MD2_options(void);
+-int MD2_Init(MD2_CTX *c);
+-int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len);
+-int MD2_Final(unsigned char *md, MD2_CTX *c);
+-unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md);
++const char * __cdecl MD2_options(void);
++int __cdecl MD2_Init(MD2_CTX *c);
++int __cdecl MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len);
++int __cdecl MD2_Final(unsigned char *md, MD2_CTX *c);
++unsigned char * __cdecl MD2(const unsigned char *d, size_t n, unsigned char *md);
+ 
+ # ifdef  __cplusplus
+ }
+diff --git a/include/openssl/md4.h b/include/openssl/md4.h
+index 940e29db40..72d0e4bad9 100644
+--- a/include/openssl/md4.h
++++ b/include/openssl/md4.h
+@@ -37,11 +37,11 @@ typedef struct MD4state_st {
+     unsigned int num;
+ } MD4_CTX;
+ 
+-int MD4_Init(MD4_CTX *c);
+-int MD4_Update(MD4_CTX *c, const void *data, size_t len);
+-int MD4_Final(unsigned char *md, MD4_CTX *c);
+-unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md);
+-void MD4_Transform(MD4_CTX *c, const unsigned char *b);
++int __cdecl MD4_Init(MD4_CTX *c);
++int __cdecl MD4_Update(MD4_CTX *c, const void *data, size_t len);
++int __cdecl MD4_Final(unsigned char *md, MD4_CTX *c);
++unsigned char * __cdecl MD4(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl MD4_Transform(MD4_CTX *c, const unsigned char *b);
+ 
+ # ifdef  __cplusplus
+ }
+diff --git a/include/openssl/md5.h b/include/openssl/md5.h
+index 2deb772118..2a8761ce9e 100644
+--- a/include/openssl/md5.h
++++ b/include/openssl/md5.h
+@@ -37,11 +37,11 @@ typedef struct MD5state_st {
+     unsigned int num;
+ } MD5_CTX;
+ 
+-int MD5_Init(MD5_CTX *c);
+-int MD5_Update(MD5_CTX *c, const void *data, size_t len);
+-int MD5_Final(unsigned char *md, MD5_CTX *c);
+-unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md);
+-void MD5_Transform(MD5_CTX *c, const unsigned char *b);
++int __cdecl MD5_Init(MD5_CTX *c);
++int __cdecl MD5_Update(MD5_CTX *c, const void *data, size_t len);
++int __cdecl MD5_Final(unsigned char *md, MD5_CTX *c);
++unsigned char * __cdecl MD5(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl MD5_Transform(MD5_CTX *c, const unsigned char *b);
+ # ifdef  __cplusplus
+ }
+ # endif
+diff --git a/include/openssl/mdc2.h b/include/openssl/mdc2.h
+index aabd2bfaad..d10b60aa7b 100644
+--- a/include/openssl/mdc2.h
++++ b/include/openssl/mdc2.h
+@@ -29,10 +29,10 @@ typedef struct mdc2_ctx_st {
+     int pad_type;               /* either 1 or 2, default 1 */
+ } MDC2_CTX;
+ 
+-int MDC2_Init(MDC2_CTX *c);
+-int MDC2_Update(MDC2_CTX *c, const unsigned char *data, size_t len);
+-int MDC2_Final(unsigned char *md, MDC2_CTX *c);
+-unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md);
++int __cdecl MDC2_Init(MDC2_CTX *c);
++int __cdecl MDC2_Update(MDC2_CTX *c, const unsigned char *data, size_t len);
++int __cdecl MDC2_Final(unsigned char *md, MDC2_CTX *c);
++unsigned char * __cdecl MDC2(const unsigned char *d, size_t n, unsigned char *md);
+ 
+ # ifdef  __cplusplus
+ }
 diff --git a/include/openssl/objects.h b/include/openssl/objects.h
 index 5e8b5762f8..c7e8ce2d0d 100644
 --- a/include/openssl/objects.h
@@ -27763,6 +28600,26 @@ index 9b66e002d2..6aa4a89a01 100644
  PKCS7 *d2i_PKCS7_bio(BIO *bp, PKCS7 **p7);
  int i2d_PKCS7_bio(BIO *bp, PKCS7 *p7);
  int i2d_PKCS7_bio_stream(BIO *out, PKCS7 *p7, BIO *in, int flags);
+diff --git a/include/openssl/ripemd.h b/include/openssl/ripemd.h
+index c42026aa42..0c0845a545 100644
+--- a/include/openssl/ripemd.h
++++ b/include/openssl/ripemd.h
+@@ -32,11 +32,11 @@ typedef struct RIPEMD160state_st {
+     unsigned int num;
+ } RIPEMD160_CTX;
+ 
+-int RIPEMD160_Init(RIPEMD160_CTX *c);
+-int RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
+-int RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
++int __cdecl RIPEMD160_Init(RIPEMD160_CTX *c);
++int __cdecl RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
++int __cdecl RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
+ unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
+-void RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
++void __cdecl RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
+ 
+ # ifdef  __cplusplus
+ }
 diff --git a/include/openssl/rsa.h b/include/openssl/rsa.h
 index cdce1264eb..037bf42a88 100644
 --- a/include/openssl/rsa.h
@@ -27909,6 +28766,44 @@ index 38b5578978..0d317b8a56 100644
      static ossl_unused ossl_inline int sk_##t1##_num(const STACK_OF(t1) *sk) \
      { \
          return OPENSSL_sk_num((const OPENSSL_STACK *)sk); \
+diff --git a/include/openssl/sha.h b/include/openssl/sha.h
+index 6a1eb0de8b..e2ee74e392 100644
+--- a/include/openssl/sha.h
++++ b/include/openssl/sha.h
+@@ -38,11 +38,11 @@ typedef struct SHAstate_st {
+     unsigned int num;
+ } SHA_CTX;
+ 
+-int SHA1_Init(SHA_CTX *c);
+-int SHA1_Update(SHA_CTX *c, const void *data, size_t len);
+-int SHA1_Final(unsigned char *md, SHA_CTX *c);
+-unsigned char *SHA1(const unsigned char *d, size_t n, unsigned char *md);
+-void SHA1_Transform(SHA_CTX *c, const unsigned char *data);
++int __cdecl SHA1_Init(SHA_CTX *c);
++int __cdecl SHA1_Update(SHA_CTX *c, const void *data, size_t len);
++int __cdecl SHA1_Final(unsigned char *md, SHA_CTX *c);
++unsigned char * __cdecl SHA1(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl SHA1_Transform(SHA_CTX *c, const unsigned char *data);
+ 
+ # define SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
+                                         * contiguous array of 32 bit wide
+@@ -59,11 +59,11 @@ int SHA224_Init(SHA256_CTX *c);
+ int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
+ int SHA224_Final(unsigned char *md, SHA256_CTX *c);
+ unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
+-int SHA256_Init(SHA256_CTX *c);
+-int SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
+-int SHA256_Final(unsigned char *md, SHA256_CTX *c);
+-unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
+-void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
++int __cdecl SHA256_Init(SHA256_CTX *c);
++int __cdecl SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
++int __cdecl SHA256_Final(unsigned char *md, SHA256_CTX *c);
++unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
+ 
+ # define SHA224_DIGEST_LENGTH    28
+ # define SHA256_DIGEST_LENGTH    32
 diff --git a/include/openssl/srp.h b/include/openssl/srp.h
 index aaf13558e3..6fbf8aee4d 100644
 --- a/include/openssl/srp.h
@@ -29388,914 +30283,715 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/hmac/hmac.c b/crypto/hmac/hmac.c
-index 0c0a7133fb..1ad3c7602b 100644
---- a/crypto/hmac/hmac.c
-+++ b/crypto/hmac/hmac.c
+diff --git a/crypto/modes/cbc128.c b/crypto/modes/cbc128.c
+index 4ce5eb2ae3..4d31026624 100644
+--- a/crypto/modes/cbc128.c
++++ b/crypto/modes/cbc128.c
 @@ -15,7 +15,7 @@
- #include <openssl/opensslconf.h>
- #include "hmac_lcl.h"
- 
--int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
-+int __cdecl HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
-                  const EVP_MD *md, ENGINE *impl)
- {
-     int rv = 0;
-@@ -95,14 +95,14 @@ int HMAC_Init(HMAC_CTX *ctx, const void *key, int len, const EVP_MD *md)
- }
+ # define STRICT_ALIGNMENT 0
  #endif
  
--int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
-+int __cdecl HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, size_t len)
+-void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block)
  {
-     if (!ctx->md)
-         return 0;
-     return EVP_DigestUpdate(ctx->md_ctx, data, len);
+@@ -66,7 +66,7 @@ void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+     memcpy(ivec, iv, 16);
  }
  
--int HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
-+int __cdecl HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
+-void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block)
+ {
+diff --git a/crypto/modes/ccm128.c b/crypto/modes/ccm128.c
+index 05a33239f5..a0cec976f6 100644
+--- a/crypto/modes/ccm128.c
++++ b/crypto/modes/ccm128.c
+@@ -15,7 +15,7 @@
+  * First you setup M and L parameters and pass the key schedule. This is
+  * called once per session setup...
+  */
+-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+                         unsigned int M, unsigned int L, void *key,
+                         block128_f block)
+ {
+@@ -29,7 +29,7 @@ void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+ /* !!! Following interfaces are to be called *once* per packet !!! */
+ 
+ /* Then you setup per-message nonce and pass the length of the message */
+-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
+                         const unsigned char *nonce, size_t nlen, size_t mlen)
+ {
+     unsigned int L = ctx->nonce.c[0] & 7; /* the L parameter */
+@@ -57,7 +57,7 @@ int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx,
+ }
+ 
+ /* Then you pass additional authentication data, this is optional */
+-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx,
+                        const unsigned char *aad, size_t alen)
  {
      unsigned int i;
-     unsigned char buf[EVP_MAX_MD_SIZE];
-@@ -123,14 +123,14 @@ int HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len)
+@@ -126,7 +126,7 @@ static void ctr64_inc(unsigned char *counter)
+     } while (n);
+ }
+ 
+-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len)
+ {
+@@ -210,7 +210,7 @@ int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx,
      return 0;
  }
  
--size_t HMAC_size(const HMAC_CTX *ctx)
-+size_t __cdecl HMAC_size(const HMAC_CTX *ctx)
+-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx,
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len)
  {
-     int size = EVP_MD_size((ctx)->md);
- 
-     return (size < 0) ? 0 : size;
+@@ -297,7 +297,7 @@ static void ctr64_add(unsigned char *counter, size_t inc)
+     } while (n && (inc || val));
  }
  
--HMAC_CTX *HMAC_CTX_new(void)
-+HMAC_CTX * __cdecl HMAC_CTX_new(void)
+-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
+                                 const unsigned char *inp, unsigned char *out,
+                                 size_t len, ccm128_f stream)
  {
-     HMAC_CTX *ctx = OPENSSL_zalloc(sizeof(HMAC_CTX));
- 
-@@ -153,7 +153,7 @@ static void hmac_ctx_cleanup(HMAC_CTX *ctx)
-     OPENSSL_cleanse(ctx->key, sizeof(ctx->key));
- }
- 
--void HMAC_CTX_free(HMAC_CTX *ctx)
-+void __cdecl HMAC_CTX_free(HMAC_CTX *ctx)
- {
-     if (ctx != NULL) {
-         hmac_ctx_cleanup(ctx);
-@@ -181,7 +181,7 @@ static int hmac_ctx_alloc_mds(HMAC_CTX *ctx)
-     return 1;
- }
- 
--int HMAC_CTX_reset(HMAC_CTX *ctx)
-+int __cdecl HMAC_CTX_reset(HMAC_CTX *ctx)
- {
-     hmac_ctx_cleanup(ctx);
-     if (!hmac_ctx_alloc_mds(ctx)) {
-@@ -191,7 +191,7 @@ int HMAC_CTX_reset(HMAC_CTX *ctx)
-     return 1;
- }
- 
--int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
-+int __cdecl HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
- {
-     if (!hmac_ctx_alloc_mds(dctx))
-         goto err;
-@@ -210,7 +210,7 @@ int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
+@@ -361,7 +361,7 @@ int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx,
      return 0;
  }
  
--unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
-+unsigned char * __cdecl HMAC(const EVP_MD *evp_md, const void *key, int key_len,
-                     const unsigned char *d, size_t n, unsigned char *md,
-                     unsigned int *md_len)
+-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
+                                 const unsigned char *inp, unsigned char *out,
+                                 size_t len, ccm128_f stream)
  {
-@@ -241,14 +241,14 @@ unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
-     return NULL;
+@@ -419,7 +419,7 @@ int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx,
+     return 0;
  }
  
--void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags)
-+void __cdecl HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags)
+-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
++size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
  {
-     EVP_MD_CTX_set_flags(ctx->i_ctx, flags);
-     EVP_MD_CTX_set_flags(ctx->o_ctx, flags);
-     EVP_MD_CTX_set_flags(ctx->md_ctx, flags);
- }
+     unsigned int M = (ctx->nonce.c[0] >> 3) & 7; /* the M parameter */
  
--const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx)
-+const EVP_MD * __cdecl HMAC_CTX_get_md(const HMAC_CTX *ctx)
- {
-     return ctx->md;
- }
-diff --git a/crypto/idea/i_cbc.c b/crypto/idea/i_cbc.c
-index a70a8682a7..151597a3d5 100644
---- a/crypto/idea/i_cbc.c
-+++ b/crypto/idea/i_cbc.c
-@@ -10,7 +10,7 @@
- #include <openssl/idea.h>
- #include "idea_lcl.h"
- 
--void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-                       int encrypt)
- {
-@@ -86,7 +86,7 @@ void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-     tin[0] = tin[1] = 0;
- }
- 
--void IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
-+void __cdecl IDEA_encrypt(unsigned long *d, IDEA_KEY_SCHEDULE *key)
- {
-     register IDEA_INT *p;
-     register unsigned long x1, x2, x3, x4, t0, t1, ul;
-diff --git a/crypto/idea/i_cfb64.c b/crypto/idea/i_cfb64.c
-index daf467eb5c..676510e6a2 100644
---- a/crypto/idea/i_cfb64.c
-+++ b/crypto/idea/i_cfb64.c
+diff --git a/crypto/modes/cfb128.c b/crypto/modes/cfb128.c
+index e439567fe5..14a3acf830 100644
+--- a/crypto/modes/cfb128.c
++++ b/crypto/modes/cfb128.c
 @@ -16,7 +16,7 @@
+  * The extra state information to record how much of the 128bit block we have
   * used is contained in *num;
   */
- 
--void IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                         long length, IDEA_KEY_SCHEDULE *schedule,
-                         unsigned char *ivec, int *num, int encrypt)
- {
-diff --git a/crypto/idea/i_ecb.c b/crypto/idea/i_ecb.c
-index 058d0c14c0..da98c3976b 100644
---- a/crypto/idea/i_ecb.c
-+++ b/crypto/idea/i_ecb.c
-@@ -11,12 +11,12 @@
- #include "idea_lcl.h"
- #include <openssl/opensslv.h>
- 
--const char *IDEA_options(void)
-+const char * __cdecl IDEA_options(void)
- {
-     return "idea(int)";
+-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            int enc, block128_f block)
+@@ -170,7 +170,7 @@ static void cfbr_encrypt_block(const unsigned char *in, unsigned char *out,
  }
  
--void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                       IDEA_KEY_SCHEDULE *ks)
- {
-     unsigned long l0, l1, d[2];
-diff --git a/crypto/idea/i_ofb64.c b/crypto/idea/i_ofb64.c
-index 997a7b88ed..6e72c6232c 100644
---- a/crypto/idea/i_ofb64.c
-+++ b/crypto/idea/i_ofb64.c
-@@ -15,7 +15,7 @@
-  * The extra state information to record how much of the 64bit block we have
-  * used is contained in *num;
-  */
--void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-                         long length, IDEA_KEY_SCHEDULE *schedule,
-                         unsigned char *ivec, int *num)
- {
-diff --git a/crypto/idea/i_skey.c b/crypto/idea/i_skey.c
-index 9d9145580f..25f98c82e5 100644
---- a/crypto/idea/i_skey.c
-+++ b/crypto/idea/i_skey.c
-@@ -11,7 +11,7 @@
- #include "idea_lcl.h"
- 
- static IDEA_INT inverse(unsigned int xin);
--void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
-+void __cdecl IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
- {
-     int i;
-     register IDEA_INT *kt, *kf, r0, r1, r2;
-@@ -51,7 +51,7 @@ void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks)
+ /* N.B. This expects the input to be packed, MS bit first */
+-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t bits, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block)
+@@ -186,7 +186,7 @@ void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
      }
  }
  
--void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
-+void __cdecl IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk)
- {
-     int r;
-     register IDEA_INT *fp, *tp, t;
-diff --git a/crypto/include/internal/md32_common.h b/crypto/include/internal/md32_common.h
-index 1124e9c24b..5f54c7a6b8 100644
---- a/crypto/include/internal/md32_common.h
-+++ b/crypto/include/internal/md32_common.h
-@@ -125,7 +125,7 @@
-  * Time for some action :-)
+-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block)
+diff --git a/crypto/modes/ctr128.c b/crypto/modes/ctr128.c
+index 03920b4473..1a588415cc 100644
+--- a/crypto/modes/ctr128.c
++++ b/crypto/modes/ctr128.c
+@@ -68,7 +68,7 @@ static void ctr128_inc_aligned(unsigned char *counter)
+  * implementation takes NO responsibility for checking that the counter
+  * doesn't overflow into the rest of the IV when incremented.
+  */
+-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16],
+                            unsigned char ecount_buf[16], unsigned int *num,
+@@ -144,7 +144,7 @@ static void ctr96_inc(unsigned char *counter)
+     } while (n);
+ }
+ 
+-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16],
+                                  unsigned char ecount_buf[16],
+diff --git a/crypto/modes/cts128.c b/crypto/modes/cts128.c
+index 93826a1e2f..bcbaa65081 100644
+--- a/crypto/modes/cts128.c
++++ b/crypto/modes/cts128.c
+@@ -24,7 +24,7 @@
+  * compliant with the NIST proposal, both extending CBC mode.
   */
  
--int HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
-+int __cdecl HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
- {
-     const unsigned char *data = data_;
-     unsigned char *p;
-@@ -183,12 +183,12 @@ int HASH_UPDATE(HASH_CTX *c, const void *data_, size_t len)
-     return 1;
+-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block)
+@@ -53,7 +53,7 @@ size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
+     return len + residue;
  }
  
--void HASH_TRANSFORM(HASH_CTX *c, const unsigned char *data)
-+void __cdecl HASH_TRANSFORM(HASH_CTX *c, const unsigned char *data)
- {
-     HASH_BLOCK_DATA_ORDER(c, data, 1);
+-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+@@ -84,7 +84,7 @@ size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+     return len + residue;
  }
  
--int HASH_FINAL(unsigned char *md, HASH_CTX *c)
-+int __cdecl HASH_FINAL(unsigned char *md, HASH_CTX *c)
+-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc)
  {
-     unsigned char *p = (unsigned char *)c->data;
-     size_t n = c->num;
-diff --git a/crypto/include/internal/sm3.h b/crypto/include/internal/sm3.h
-index 27eb471c28..f9fda6966d 100644
---- a/crypto/include/internal/sm3.h
-+++ b/crypto/include/internal/sm3.h
-@@ -30,9 +30,9 @@ typedef struct SM3state_st {
-    unsigned int num;
- } SM3_CTX;
+@@ -120,7 +120,7 @@ size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+     return len + residue;
+ }
  
--int sm3_init(SM3_CTX *c);
--int sm3_update(SM3_CTX *c, const void *data, size_t len);
--int sm3_final(unsigned char *md, SM3_CTX *c);
-+int __cdecl sm3_init(SM3_CTX *c);
-+int __cdecl sm3_update(SM3_CTX *c, const void *data, size_t len);
-+int __cdecl sm3_final(unsigned char *md, SM3_CTX *c);
+-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc)
+ {
+@@ -155,7 +155,7 @@ size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+     return len + residue;
+ }
  
- void sm3_block_data_order(SM3_CTX *c, const void *p, size_t num);
+-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block)
+@@ -197,7 +197,7 @@ size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
+     return 16 + len + residue;
+ }
  
-diff --git a/crypto/kdf/kdf_err.c b/crypto/kdf/kdf_err.c
-index 1627c0a394..a999d0f2db 100644
---- a/crypto/kdf/kdf_err.c
-+++ b/crypto/kdf/kdf_err.c
-@@ -55,7 +55,7 @@ static const ERR_STRING_DATA KDF_str_reasons[] = {
+-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+@@ -245,7 +245,7 @@ size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+     return 16 + len + residue;
+ }
  
+-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc)
+ {
+@@ -285,7 +285,7 @@ size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+     return 16 + len + residue;
+ }
+ 
+-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc)
+ {
+diff --git a/crypto/modes/gcm128.c b/crypto/modes/gcm128.c
+index 15f76e3e86..8fd5f4d0af 100644
+--- a/crypto/modes/gcm128.c
++++ b/crypto/modes/gcm128.c
+@@ -710,7 +710,7 @@ void gcm_ghash_p8(u64 Xi[2], const u128 Htable[16], const u8 *inp,
+ # endif
  #endif
  
--int ERR_load_KDF_strings(void)
-+int __cdecl ERR_load_KDF_strings(void)
+-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
++void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
  {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(KDF_str_functs[0].error) == NULL) {
-diff --git a/crypto/lhash/lh_stats.c b/crypto/lhash/lh_stats.c
-index 65b91e1ef4..7381cae119 100644
---- a/crypto/lhash/lh_stats.c
-+++ b/crypto/lhash/lh_stats.c
-@@ -21,7 +21,7 @@
- #include "lhash_lcl.h"
- 
- # ifndef OPENSSL_NO_STDIO
--void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
-+void __cdecl OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
- {
-     BIO *bp;
- 
-@@ -33,7 +33,7 @@ void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp)
-     BIO_free(bp);
+     const union {
+         long one;
+@@ -824,7 +824,7 @@ void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block)
+ #endif
  }
  
--void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
-+void __cdecl OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
+-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
++void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+                          size_t len)
  {
-     BIO *bp;
- 
-@@ -45,7 +45,7 @@ void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp)
-     BIO_free(bp);
+     const union {
+@@ -917,7 +917,7 @@ void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+         ctx->Yi.d[3] = ctr;
  }
  
--void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
-+void __cdecl OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
+-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len)
  {
-     BIO *bp;
- 
-@@ -59,7 +59,7 @@ void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp)
- 
- # endif
- 
--void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
-+void __cdecl OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
- {
-     BIO_printf(out, "num_items             = %lu\n", lh->num_items);
-     BIO_printf(out, "num_nodes             = %u\n",  lh->num_nodes);
-@@ -79,7 +79,7 @@ void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
-     BIO_printf(out, "num_hash_comps        = %lu\n", lh->num_hash_comps);
+     size_t i;
+@@ -978,7 +978,7 @@ int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+     return 0;
  }
  
--void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
-+void __cdecl OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
  {
-     OPENSSL_LH_NODE *n;
-     unsigned int i, num;
-@@ -91,7 +91,7 @@ void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
-     }
+@@ -1213,7 +1213,7 @@ int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+     return 0;
  }
  
--void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
-+void __cdecl OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out)
+-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
  {
-     OPENSSL_LH_NODE *n;
-     unsigned long num;
-diff --git a/crypto/lhash/lhash.c b/crypto/lhash/lhash.c
-index e9519e91b6..fa3d7ae252 100644
---- a/crypto/lhash/lhash.c
-+++ b/crypto/lhash/lhash.c
-@@ -44,7 +44,7 @@ static int expand(OPENSSL_LHASH *lh);
- static void contract(OPENSSL_LHASH *lh);
- static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh, const void *data, unsigned long *rhash);
- 
--OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
-+OPENSSL_LHASH * __cdecl OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c)
- {
-     OPENSSL_LHASH *ret;
- 
-@@ -73,7 +73,7 @@ err:
-     return NULL;
+@@ -1456,7 +1456,7 @@ int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+     return 0;
  }
  
--void OPENSSL_LH_free(OPENSSL_LHASH *lh)
-+void __cdecl OPENSSL_LH_free(OPENSSL_LHASH *lh)
+-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream)
  {
-     unsigned int i;
-     OPENSSL_LH_NODE *n, *nn;
-@@ -125,7 +125,7 @@ void * __cdecl OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data)
+@@ -1620,7 +1620,7 @@ int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+ #endif
+ }
+ 
+-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream)
+ {
+@@ -1791,7 +1791,7 @@ int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+ #endif
+ }
+ 
+-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len)
+ {
+     const union {
+@@ -1865,14 +1865,14 @@ int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+         return -1;
+ }
+ 
+-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
++void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ {
+     CRYPTO_gcm128_finish(ctx, NULL, 0);
+     memcpy(tag, ctx->Xi.c,
+            len <= sizeof(ctx->Xi.c) ? len : sizeof(ctx->Xi.c));
+ }
+ 
+-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
++GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block)
+ {
+     GCM128_CONTEXT *ret;
+ 
+@@ -1882,7 +1882,7 @@ GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block)
      return ret;
  }
  
--void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
-+void * __cdecl OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
+-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
++void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx)
  {
-     unsigned long hash;
-     OPENSSL_LH_NODE *nn, **rn;
-@@ -153,7 +153,7 @@ void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data)
-     return ret;
+     OPENSSL_clear_free(ctx, sizeof(*ctx));
  }
- 
--void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
-+void * __cdecl OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data)
- {
-     unsigned long hash;
-     OPENSSL_LH_NODE **rn;
-@@ -201,12 +201,12 @@ static void doall_util_fn(OPENSSL_LHASH *lh, int use_arg,
-     }
- }
- 
--void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
-+void __cdecl OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func)
- {
-     doall_util_fn(lh, 0, func, (OPENSSL_LH_DOALL_FUNCARG)0, NULL);
- }
- 
--void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
-+void __cdecl OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg)
- {
-     doall_util_fn(lh, 1, (OPENSSL_LH_DOALL_FUNC)0, func, arg);
- }
-@@ -328,7 +328,7 @@ static OPENSSL_LH_NODE **getrn(OPENSSL_LHASH *lh,
-  * collisions on /usr/dict/words and it distributes on %2^n quite well, not
-  * as good as MD5, but still good.
-  */
--unsigned long OPENSSL_LH_strhash(const char *c)
-+unsigned long __cdecl OPENSSL_LH_strhash(const char *c)
- {
-     unsigned long ret = 0;
-     long n;
-@@ -372,22 +372,22 @@ unsigned long openssl_lh_strcasehash(const char *c)
-     return (ret >> 16) ^ ret;
- }
- 
--unsigned long OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
-+unsigned long __cdecl OPENSSL_LH_num_items(const OPENSSL_LHASH *lh)
- {
-     return lh ? lh->num_items : 0;
- }
- 
--unsigned long OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
-+unsigned long __cdecl OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh)
- {
-     return lh->down_load;
- }
- 
--void OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
-+void __cdecl OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load)
- {
-     lh->down_load = down_load;
- }
- 
--int OPENSSL_LH_error(OPENSSL_LHASH *lh)
-+int __cdecl OPENSSL_LH_error(OPENSSL_LHASH *lh)
- {
-     return lh->error;
- }
-diff --git a/crypto/md2/md2_dgst.c b/crypto/md2/md2_dgst.c
-index faa9393f2e..9a39b17691 100644
---- a/crypto/md2/md2_dgst.c
-+++ b/crypto/md2/md2_dgst.c
-@@ -60,7 +60,7 @@ static const MD2_INT S[256] = {
-     0xDB, 0x99, 0x8D, 0x33, 0x9F, 0x11, 0x83, 0x14,
- };
- 
--const char *MD2_options(void)
-+const char * __cdecl MD2_options(void)
- {
-     if (sizeof(MD2_INT) == 1)
-         return "md2(char)";
-@@ -68,7 +68,7 @@ const char *MD2_options(void)
-         return "md2(int)";
- }
- 
--int MD2_Init(MD2_CTX *c)
-+int __cdecl MD2_Init(MD2_CTX *c)
- {
-     c->num = 0;
-     memset(c->state, 0, sizeof(c->state));
-@@ -77,7 +77,7 @@ int MD2_Init(MD2_CTX *c)
-     return 1;
- }
- 
--int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
-+int __cdecl MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len)
- {
-     register UCHAR *p;
- 
-@@ -147,7 +147,7 @@ static void md2_block(MD2_CTX *c, const unsigned char *d)
-     OPENSSL_cleanse(state, 48 * sizeof(MD2_INT));
- }
- 
--int MD2_Final(unsigned char *md, MD2_CTX *c)
-+int __cdecl MD2_Final(unsigned char *md, MD2_CTX *c)
- {
-     int i, v;
-     register UCHAR *cp;
-diff --git a/crypto/md2/md2_one.c b/crypto/md2/md2_one.c
-index 5502b21696..dccf23bf88 100644
---- a/crypto/md2/md2_one.c
-+++ b/crypto/md2/md2_one.c
-@@ -16,7 +16,7 @@
-  * functions to different names
-  */
- 
--unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl MD2(const unsigned char *d, size_t n, unsigned char *md)
- {
-     MD2_CTX c;
-     static unsigned char m[MD2_DIGEST_LENGTH];
-diff --git a/crypto/md4/md4_dgst.c b/crypto/md4/md4_dgst.c
-index 5319618615..e7ec9d1381 100644
---- a/crypto/md4/md4_dgst.c
-+++ b/crypto/md4/md4_dgst.c
-@@ -20,7 +20,7 @@
- #define INIT_DATA_C (unsigned long)0x98badcfeL
- #define INIT_DATA_D (unsigned long)0x10325476L
- 
--int MD4_Init(MD4_CTX *c)
-+int __cdecl MD4_Init(MD4_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->A = INIT_DATA_A;
-diff --git a/crypto/md4/md4_one.c b/crypto/md4/md4_one.c
-index 9e52303c2f..ad2b87b724 100644
---- a/crypto/md4/md4_one.c
-+++ b/crypto/md4/md4_one.c
-@@ -16,7 +16,7 @@
- # include <openssl/ebcdic.h>
- #endif
- 
--unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl MD4(const unsigned char *d, size_t n, unsigned char *md)
- {
-     MD4_CTX c;
-     static unsigned char m[MD4_DIGEST_LENGTH];
-diff --git a/crypto/md5/md5_dgst.c b/crypto/md5/md5_dgst.c
-index fbede6742a..64b2f17eca 100644
---- a/crypto/md5/md5_dgst.c
-+++ b/crypto/md5/md5_dgst.c
-@@ -20,7 +20,7 @@
- #define INIT_DATA_C (unsigned long)0x98badcfeL
- #define INIT_DATA_D (unsigned long)0x10325476L
- 
--int MD5_Init(MD5_CTX *c)
-+int __cdecl MD5_Init(MD5_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->A = INIT_DATA_A;
-diff --git a/crypto/md5/md5_one.c b/crypto/md5/md5_one.c
-index c3bf2f88f0..3c34b57615 100644
---- a/crypto/md5/md5_one.c
-+++ b/crypto/md5/md5_one.c
-@@ -16,7 +16,7 @@
- # include <openssl/ebcdic.h>
- #endif
- 
--unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl MD5(const unsigned char *d, size_t n, unsigned char *md)
- {
-     MD5_CTX c;
-     static unsigned char m[MD5_DIGEST_LENGTH];
-diff --git a/crypto/mdc2/mdc2_one.c b/crypto/mdc2/mdc2_one.c
-index 58e1e0fdf6..1290ebf705 100644
---- a/crypto/mdc2/mdc2_one.c
-+++ b/crypto/mdc2/mdc2_one.c
-@@ -11,7 +11,7 @@
- #include "internal/cryptlib.h"
- #include <openssl/mdc2.h>
- 
--unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl MDC2(const unsigned char *d, size_t n, unsigned char *md)
- {
-     MDC2_CTX c;
-     static unsigned char m[MDC2_DIGEST_LENGTH];
-diff --git a/crypto/mdc2/mdc2dgst.c b/crypto/mdc2/mdc2dgst.c
-index 14233b9aba..2dceffa1cb 100644
---- a/crypto/mdc2/mdc2dgst.c
-+++ b/crypto/mdc2/mdc2dgst.c
-@@ -27,7 +27,7 @@
-                         *((c)++)=(unsigned char)(((l)>>24L)&0xff))
- 
- static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len);
--int MDC2_Init(MDC2_CTX *c)
-+int __cdecl MDC2_Init(MDC2_CTX *c)
- {
-     c->num = 0;
-     c->pad_type = 1;
-@@ -36,7 +36,7 @@ int MDC2_Init(MDC2_CTX *c)
-     return 1;
- }
- 
--int MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
-+int __cdecl MDC2_Update(MDC2_CTX *c, const unsigned char *in, size_t len)
- {
-     size_t i, j;
- 
-@@ -107,7 +107,7 @@ static void mdc2_body(MDC2_CTX *c, const unsigned char *in, size_t len)
-     }
- }
- 
--int MDC2_Final(unsigned char *md, MDC2_CTX *c)
-+int __cdecl MDC2_Final(unsigned char *md, MDC2_CTX *c)
- {
-     unsigned int i;
-     int j;
-diff --git a/crypto/ripemd/rmd_dgst.c b/crypto/ripemd/rmd_dgst.c
-index a1670c7fbd..f8b6a834f5 100644
---- a/crypto/ripemd/rmd_dgst.c
-+++ b/crypto/ripemd/rmd_dgst.c
-@@ -18,7 +18,7 @@ void ripemd160_block_x86(RIPEMD160_CTX *c, unsigned long *p, size_t num);
- void ripemd160_block(RIPEMD160_CTX *c, unsigned long *p, size_t num);
- #endif
- 
--int RIPEMD160_Init(RIPEMD160_CTX *c)
-+int __cdecl RIPEMD160_Init(RIPEMD160_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->A = RIPEMD160_A;
-diff --git a/crypto/sha/sha1_one.c b/crypto/sha/sha1_one.c
-index e5b38211d2..5807649c8f 100644
---- a/crypto/sha/sha1_one.c
-+++ b/crypto/sha/sha1_one.c
-@@ -12,7 +12,7 @@
- #include <openssl/crypto.h>
- #include <openssl/sha.h>
- 
--unsigned char *SHA1(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl SHA1(const unsigned char *d, size_t n, unsigned char *md)
- {
-     SHA_CTX c;
-     static unsigned char m[SHA_DIGEST_LENGTH];
-diff --git a/crypto/sha/sha256.c b/crypto/sha/sha256.c
-index bf78f075ee..cde44fb98d 100644
---- a/crypto/sha/sha256.c
-+++ b/crypto/sha/sha256.c
-@@ -31,7 +31,7 @@ int SHA224_Init(SHA256_CTX *c)
-     return 1;
- }
- 
--int SHA256_Init(SHA256_CTX *c)
-+int __cdecl SHA256_Init(SHA256_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->h[0] = 0x6a09e667UL;
-@@ -60,7 +60,7 @@ unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
-     return md;
- }
- 
--unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md)
-+unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *md)
- {
-     SHA256_CTX c;
-     static unsigned char m[SHA256_DIGEST_LENGTH];
-diff --git a/crypto/sha/sha_locl.h b/crypto/sha/sha_locl.h
-index 4e5a090382..20df4dc95f 100644
---- a/crypto/sha/sha_locl.h
-+++ b/crypto/sha/sha_locl.h
-@@ -50,7 +50,7 @@ void sha1_block_data_order(SHA_CTX *c, const void *p, size_t num);
- #define INIT_DATA_h3 0x10325476UL
- #define INIT_DATA_h4 0xc3d2e1f0UL
- 
--int HASH_INIT(SHA_CTX *c)
-+int __cdecl HASH_INIT(SHA_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->h0 = INIT_DATA_h0;
-diff --git a/crypto/sm3/sm3.c b/crypto/sm3/sm3.c
-index 1588dd115a..da11aeaa23 100644
---- a/crypto/sm3/sm3.c
-+++ b/crypto/sm3/sm3.c
-@@ -12,7 +12,7 @@
- #include <openssl/e_os2.h>
- #include "sm3_locl.h"
- 
--int sm3_init(SM3_CTX *c)
-+int __cdecl sm3_init(SM3_CTX *c)
- {
-     memset(c, 0, sizeof(*c));
-     c->A = SM3_A;
-diff --git a/crypto/sm3/sm3_locl.h b/crypto/sm3/sm3_locl.h
-index efa6db57c6..ec24600d91 100644
---- a/crypto/sm3/sm3_locl.h
-+++ b/crypto/sm3/sm3_locl.h
-@@ -34,7 +34,7 @@
-       } while (0)
- #define HASH_BLOCK_DATA_ORDER   sm3_block_data_order
- 
--void sm3_transform(SM3_CTX *c, const unsigned char *data);
-+void __cdecl sm3_transform(SM3_CTX *c, const unsigned char *data);
- 
- #include "internal/md32_common.h"
- 
-diff --git a/include/openssl/hmac.h b/include/openssl/hmac.h
-index 458efc1d51..835a686408 100644
---- a/include/openssl/hmac.h
-+++ b/include/openssl/hmac.h
-@@ -22,27 +22,27 @@
- extern "C" {
- #endif
- 
--size_t HMAC_size(const HMAC_CTX *e);
--HMAC_CTX *HMAC_CTX_new(void);
--int HMAC_CTX_reset(HMAC_CTX *ctx);
--void HMAC_CTX_free(HMAC_CTX *ctx);
-+size_t __cdecl HMAC_size(const HMAC_CTX *e);
-+HMAC_CTX * __cdecl HMAC_CTX_new(void);
-+int __cdecl HMAC_CTX_reset(HMAC_CTX *ctx);
-+void __cdecl HMAC_CTX_free(HMAC_CTX *ctx);
- 
- DEPRECATEDIN_1_1_0(__owur int HMAC_Init(HMAC_CTX *ctx, const void *key, int len,
-                      const EVP_MD *md))
- 
--/*__owur*/ int HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
-+/*__owur*/ int __cdecl HMAC_Init_ex(HMAC_CTX *ctx, const void *key, int len,
-                             const EVP_MD *md, ENGINE *impl);
--/*__owur*/ int HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-+/*__owur*/ int __cdecl HMAC_Update(HMAC_CTX *ctx, const unsigned char *data,
-                            size_t len);
--/*__owur*/ int HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
-+/*__owur*/ int __cdecl HMAC_Final(HMAC_CTX *ctx, unsigned char *md,
-                           unsigned int *len);
--unsigned char *HMAC(const EVP_MD *evp_md, const void *key, int key_len,
-+unsigned char * __cdecl HMAC(const EVP_MD *evp_md, const void *key, int key_len,
-                     const unsigned char *d, size_t n, unsigned char *md,
-                     unsigned int *md_len);
--__owur int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx);
-+__owur int __cdecl HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx);
- 
--void HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
--const EVP_MD *HMAC_CTX_get_md(const HMAC_CTX *ctx);
-+void __cdecl HMAC_CTX_set_flags(HMAC_CTX *ctx, unsigned long flags);
-+const EVP_MD * __cdecl HMAC_CTX_get_md(const HMAC_CTX *ctx);
- 
- #ifdef  __cplusplus
- }
-diff --git a/include/openssl/idea.h b/include/openssl/idea.h
-index 4334f3ea71..6b55edea2d 100644
---- a/include/openssl/idea.h
-+++ b/include/openssl/idea.h
-@@ -29,21 +29,21 @@ typedef struct idea_key_st {
-     IDEA_INT data[9][6];
- } IDEA_KEY_SCHEDULE;
- 
--const char *IDEA_options(void);
--void IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
-+const char * __cdecl IDEA_options(void);
-+void __cdecl IDEA_ecb_encrypt(const unsigned char *in, unsigned char *out,
-                       IDEA_KEY_SCHEDULE *ks);
--void IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
--void IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
--void IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_set_encrypt_key(const unsigned char *key, IDEA_KEY_SCHEDULE *ks);
-+void __cdecl IDEA_set_decrypt_key(IDEA_KEY_SCHEDULE *ek, IDEA_KEY_SCHEDULE *dk);
-+void __cdecl IDEA_cbc_encrypt(const unsigned char *in, unsigned char *out,
-                       long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-                       int enc);
--void IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_cfb64_encrypt(const unsigned char *in, unsigned char *out,
-                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-                         int *num, int enc);
--void IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-+void __cdecl IDEA_ofb64_encrypt(const unsigned char *in, unsigned char *out,
-                         long length, IDEA_KEY_SCHEDULE *ks, unsigned char *iv,
-                         int *num);
--void IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
-+void __cdecl IDEA_encrypt(unsigned long *in, IDEA_KEY_SCHEDULE *ks);
- 
- # if OPENSSL_API_COMPAT < 0x10100000L
- #  define idea_options          IDEA_options
-diff --git a/include/openssl/kdferr.h b/include/openssl/kdferr.h
-index 3f51bd0228..1b9a66a755 100644
---- a/include/openssl/kdferr.h
-+++ b/include/openssl/kdferr.h
-@@ -18,7 +18,7 @@
- # ifdef  __cplusplus
- extern "C"
- # endif
--int ERR_load_KDF_strings(void);
-+int __cdecl ERR_load_KDF_strings(void);
- 
+diff --git a/crypto/modes/ocb128.c b/crypto/modes/ocb128.c
+index 713b9aaf19..8510da9784 100644
+--- a/crypto/modes/ocb128.c
++++ b/crypto/modes/ocb128.c
+@@ -127,7 +127,7 @@ static OCB_BLOCK *ocb_lookup_l(OCB128_CONTEXT *ctx, size_t idx)
  /*
-  * KDF function codes.
-diff --git a/include/openssl/lhash.h b/include/openssl/lhash.h
-index e37335400e..38eafe3c18 100644
---- a/include/openssl/lhash.h
-+++ b/include/openssl/lhash.h
-@@ -69,27 +69,27 @@ typedef struct lhash_st OPENSSL_LHASH;
+  * Create a new OCB128_CONTEXT
+  */
+-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
++OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
+                                   block128_f encrypt, block128_f decrypt,
+                                   ocb128_f stream)
+ {
+@@ -148,7 +148,7 @@ OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
+ /*
+  * Initialise an existing OCB128_CONTEXT
+  */
+-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
++int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+                        block128_f encrypt, block128_f decrypt,
+                        ocb128_f stream)
+ {
+@@ -193,7 +193,7 @@ int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+ /*
+  * Copy an OCB128_CONTEXT object
+  */
+-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
++int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+                            void *keyenc, void *keydec)
+ {
+     memcpy(dest, src, sizeof(OCB128_CONTEXT));
+@@ -214,7 +214,7 @@ int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+ /*
+  * Set the IV to be used for this operation. Must be 1 - 15 bytes.
+  */
+-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
++int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+                         size_t len, size_t taglen)
+ {
+     unsigned char ktop[16], tmp[16], mask;
+@@ -265,7 +265,7 @@ int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+  * Provide any AAD. This can be called multiple times. Only the final time can
+  * have a partial block
+  */
+-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len)
+ {
+     u64 i, all_num_blocks;
+@@ -326,7 +326,7 @@ int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+  * Provide any data to be encrypted. This can be called multiple times. Only
+  * the final time can have a partial block
+  */
+-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
++int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -418,7 +418,7 @@ int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx,
+  * Provide any data to be decrypted. This can be called multiple times. Only
+  * the final time can have a partial block
+  */
+-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
++int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len)
+ {
+@@ -534,7 +534,7 @@ static int ocb_finish(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len,
+ /*
+  * Calculate the tag and verify it against the supplied tag
+  */
+-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len)
+ {
+     return ocb_finish(ctx, (unsigned char*)tag, len, 0);
+@@ -543,7 +543,7 @@ int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+ /*
+  * Retrieve the calculated tag
+  */
+-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
++int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ {
+     return ocb_finish(ctx, tag, len, 1);
+ }
+@@ -551,7 +551,7 @@ int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len)
+ /*
+  * Release all resources
+  */
+-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
++void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx)
+ {
+     if (ctx) {
+         OPENSSL_clear_free(ctx->l, ctx->max_l_index * 16);
+diff --git a/crypto/modes/ofb128.c b/crypto/modes/ofb128.c
+index 83092564c6..4548c6edbc 100644
+--- a/crypto/modes/ofb128.c
++++ b/crypto/modes/ofb128.c
+@@ -16,7 +16,7 @@
+  * The extra state information to record how much of the 128bit block we have
+  * used is contained in *num;
+  */
+-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num, block128_f block)
+ {
+diff --git a/crypto/modes/wrap128.c b/crypto/modes/wrap128.c
+index d7e56cc260..f773869d37 100644
+--- a/crypto/modes/wrap128.c
++++ b/crypto/modes/wrap128.c
+@@ -45,7 +45,7 @@ static const unsigned char default_aiv[] = {
+  *                     or if inlen > CRYPTO128_WRAP_MAX.
+  *                     Output length if wrapping succeeded.
+  */
+-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
+                        unsigned char *out,
+                        const unsigned char *in, size_t inlen,
+                        block128_f block)
+@@ -147,7 +147,7 @@ static size_t crypto_128_unwrap_raw(void *key, unsigned char *iv,
+  *                     or if IV doesn't match expected value.
+  *                     Output length otherwise.
+  */
+-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+                          unsigned char *out, const unsigned char *in,
+                          size_t inlen, block128_f block)
+ {
+@@ -180,7 +180,7 @@ size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+  *  @return            0 if inlen is out of range [1, CRYPTO128_WRAP_MAX].
+  *                     Output length if wrapping succeeded.
+  */
+-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+                            unsigned char *out,
+                            const unsigned char *in, size_t inlen,
+                            block128_f block)
+@@ -248,7 +248,7 @@ size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+  *                     or if IV and message length indicator doesn't match.
+  *                     Output length if unwrapping succeeded and IV matches.
+  */
+-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+                              unsigned char *out,
+                              const unsigned char *in, size_t inlen,
+                              block128_f block)
+diff --git a/crypto/modes/xts128.c b/crypto/modes/xts128.c
+index 81b1eacd59..095b9229c2 100644
+--- a/crypto/modes/xts128.c
++++ b/crypto/modes/xts128.c
+@@ -11,7 +11,7 @@
+ #include "modes_lcl.h"
+ #include <string.h>
  
- # define LH_LOAD_MULT    256
+-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
++int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+                           const unsigned char iv[16],
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len, int enc)
+diff --git a/include/openssl/modes.h b/include/openssl/modes.h
+index d544f98d55..e15ef42843 100644
+--- a/include/openssl/modes.h
++++ b/include/openssl/modes.h
+@@ -31,141 +31,141 @@ typedef void (*ccm128_f) (const unsigned char *in, unsigned char *out,
+                           const unsigned char ivec[16],
+                           unsigned char cmac[16]);
  
--int OPENSSL_LH_error(OPENSSL_LHASH *lh);
--OPENSSL_LHASH *OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c);
--void OPENSSL_LH_free(OPENSSL_LHASH *lh);
-+int __cdecl OPENSSL_LH_error(OPENSSL_LHASH *lh);
-+OPENSSL_LHASH * __cdecl OPENSSL_LH_new(OPENSSL_LH_HASHFUNC h, OPENSSL_LH_COMPFUNC c);
-+void __cdecl OPENSSL_LH_free(OPENSSL_LHASH *lh);
- void * __cdecl OPENSSL_LH_insert(OPENSSL_LHASH *lh, void *data);
--void *OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data);
--void *OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data);
--void OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func);
--void OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg);
--unsigned long OPENSSL_LH_strhash(const char *c);
--unsigned long OPENSSL_LH_num_items(const OPENSSL_LHASH *lh);
--unsigned long OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh);
--void OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load);
-+void * __cdecl OPENSSL_LH_delete(OPENSSL_LHASH *lh, const void *data);
-+void * __cdecl OPENSSL_LH_retrieve(OPENSSL_LHASH *lh, const void *data);
-+void __cdecl OPENSSL_LH_doall(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNC func);
-+void __cdecl OPENSSL_LH_doall_arg(OPENSSL_LHASH *lh, OPENSSL_LH_DOALL_FUNCARG func, void *arg);
-+unsigned long __cdecl OPENSSL_LH_strhash(const char *c);
-+unsigned long __cdecl OPENSSL_LH_num_items(const OPENSSL_LHASH *lh);
-+unsigned long __cdecl OPENSSL_LH_get_down_load(const OPENSSL_LHASH *lh);
-+void __cdecl OPENSSL_LH_set_down_load(OPENSSL_LHASH *lh, unsigned long down_load);
+-void CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block);
+-void CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cbc128_decrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], block128_f block);
  
- # ifndef OPENSSL_NO_STDIO
--void OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp);
--void OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp);
--void OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp);
-+void __cdecl OPENSSL_LH_stats(const OPENSSL_LHASH *lh, FILE *fp);
-+void __cdecl OPENSSL_LH_node_stats(const OPENSSL_LHASH *lh, FILE *fp);
-+void __cdecl OPENSSL_LH_node_usage_stats(const OPENSSL_LHASH *lh, FILE *fp);
- # endif
--void OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
--void OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
--void OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
-+void __cdecl OPENSSL_LH_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
-+void __cdecl OPENSSL_LH_node_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
-+void __cdecl OPENSSL_LH_node_usage_stats_bio(const OPENSSL_LHASH *lh, BIO *out);
+-void CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16],
+                            unsigned char ecount_buf[16], unsigned int *num,
+                            block128_f block);
  
- # if OPENSSL_API_COMPAT < 0x10100000L
- #  define _LHASH OPENSSL_LHASH
-diff --git a/include/openssl/md2.h b/include/openssl/md2.h
-index 7faf8e3d65..597613226d 100644
---- a/include/openssl/md2.h
-+++ b/include/openssl/md2.h
-@@ -30,11 +30,11 @@ typedef struct MD2state_st {
-     MD2_INT state[MD2_BLOCK];
- } MD2_CTX;
+-void CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ctr128_encrypt_ctr32(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16],
+                                  unsigned char ecount_buf[16],
+                                  unsigned int *num, ctr128_f ctr);
  
--const char *MD2_options(void);
--int MD2_Init(MD2_CTX *c);
--int MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len);
--int MD2_Final(unsigned char *md, MD2_CTX *c);
--unsigned char *MD2(const unsigned char *d, size_t n, unsigned char *md);
-+const char * __cdecl MD2_options(void);
-+int __cdecl MD2_Init(MD2_CTX *c);
-+int __cdecl MD2_Update(MD2_CTX *c, const unsigned char *data, size_t len);
-+int __cdecl MD2_Final(unsigned char *md, MD2_CTX *c);
-+unsigned char * __cdecl MD2(const unsigned char *d, size_t n, unsigned char *md);
+-void CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            block128_f block);
+ 
+-void CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                            size_t len, const void *key,
+                            unsigned char ivec[16], int *num,
+                            int enc, block128_f block);
+-void CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_8_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t length, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block);
+-void CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl CRYPTO_cfb128_1_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t bits, const void *key,
+                              unsigned char ivec[16], int *num,
+                              int enc, block128_f block);
+ 
+-size_t CRYPTO_cts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_encrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block);
+-size_t CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_encrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+-size_t CRYPTO_cts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_cts128_decrypt_block(const unsigned char *in,
+                                    unsigned char *out, size_t len,
+                                    const void *key, unsigned char ivec[16],
+                                    block128_f block);
+-size_t CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_cts128_decrypt(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+ 
+-size_t CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_encrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+                                        block128_f block);
+-size_t CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_encrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc);
+-size_t CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
++size_t __cdecl CRYPTO_nistcts128_decrypt_block(const unsigned char *in,
+                                        unsigned char *out, size_t len,
+                                        const void *key,
+                                        unsigned char ivec[16],
+                                        block128_f block);
+-size_t CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
++size_t __cdecl CRYPTO_nistcts128_decrypt(const unsigned char *in, unsigned char *out,
+                                  size_t len, const void *key,
+                                  unsigned char ivec[16], cbc128_f cbc);
+ 
+ typedef struct gcm128_context GCM128_CONTEXT;
+ 
+-GCM128_CONTEXT *CRYPTO_gcm128_new(void *key, block128_f block);
+-void CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
+-void CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
++GCM128_CONTEXT * __cdecl CRYPTO_gcm128_new(void *key, block128_f block);
++void __cdecl CRYPTO_gcm128_init(GCM128_CONTEXT *ctx, void *key, block128_f block);
++void __cdecl CRYPTO_gcm128_setiv(GCM128_CONTEXT *ctx, const unsigned char *iv,
+                          size_t len);
+-int CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_gcm128_aad(GCM128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len);
+-int CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len);
+-int CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt(GCM128_CONTEXT *ctx,
+                           const unsigned char *in, unsigned char *out,
+                           size_t len);
+-int CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_encrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream);
+-int CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
++int __cdecl CRYPTO_gcm128_decrypt_ctr32(GCM128_CONTEXT *ctx,
+                                 const unsigned char *in, unsigned char *out,
+                                 size_t len, ctr128_f stream);
+-int CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_gcm128_finish(GCM128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len);
+-void CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+-void CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
++void __cdecl CRYPTO_gcm128_tag(GCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
++void __cdecl CRYPTO_gcm128_release(GCM128_CONTEXT *ctx);
+ 
+ typedef struct ccm128_context CCM128_CONTEXT;
+ 
+-void CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
++void __cdecl CRYPTO_ccm128_init(CCM128_CONTEXT *ctx,
+                         unsigned int M, unsigned int L, void *key,
+                         block128_f block);
+-int CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
++int __cdecl CRYPTO_ccm128_setiv(CCM128_CONTEXT *ctx, const unsigned char *nonce,
+                         size_t nlen, size_t mlen);
+-void CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
++void __cdecl CRYPTO_ccm128_aad(CCM128_CONTEXT *ctx, const unsigned char *aad,
+                        size_t alen);
+-int CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_encrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_decrypt(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_encrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                                 unsigned char *out, size_t len,
+                                 ccm128_f stream);
+-int CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
++int __cdecl CRYPTO_ccm128_decrypt_ccm64(CCM128_CONTEXT *ctx, const unsigned char *inp,
+                                 unsigned char *out, size_t len,
+                                 ccm128_f stream);
+-size_t CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
++size_t __cdecl CRYPTO_ccm128_tag(CCM128_CONTEXT *ctx, unsigned char *tag, size_t len);
+ 
+ typedef struct xts128_context XTS128_CONTEXT;
+ 
+-int CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
++int __cdecl CRYPTO_xts128_encrypt(const XTS128_CONTEXT *ctx,
+                           const unsigned char iv[16],
+                           const unsigned char *inp, unsigned char *out,
+                           size_t len, int enc);
+ 
+-size_t CRYPTO_128_wrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_wrap(void *key, const unsigned char *iv,
+                        unsigned char *out,
+                        const unsigned char *in, size_t inlen,
+                        block128_f block);
+ 
+-size_t CRYPTO_128_unwrap(void *key, const unsigned char *iv,
++size_t __cdecl CRYPTO_128_unwrap(void *key, const unsigned char *iv,
+                          unsigned char *out,
+                          const unsigned char *in, size_t inlen,
+                          block128_f block);
+-size_t CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_wrap_pad(void *key, const unsigned char *icv,
+                            unsigned char *out, const unsigned char *in,
+                            size_t inlen, block128_f block);
+-size_t CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
++size_t __cdecl CRYPTO_128_unwrap_pad(void *key, const unsigned char *icv,
+                              unsigned char *out, const unsigned char *in,
+                              size_t inlen, block128_f block);
+ 
+@@ -179,26 +179,26 @@ typedef void (*ocb128_f) (const unsigned char *in, unsigned char *out,
+                           const unsigned char L_[][16],
+                           unsigned char checksum[16]);
+ 
+-OCB128_CONTEXT *CRYPTO_ocb128_new(void *keyenc, void *keydec,
++OCB128_CONTEXT * __cdecl CRYPTO_ocb128_new(void *keyenc, void *keydec,
+                                   block128_f encrypt, block128_f decrypt,
+                                   ocb128_f stream);
+-int CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
++int __cdecl CRYPTO_ocb128_init(OCB128_CONTEXT *ctx, void *keyenc, void *keydec,
+                        block128_f encrypt, block128_f decrypt,
+                        ocb128_f stream);
+-int CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
++int __cdecl CRYPTO_ocb128_copy_ctx(OCB128_CONTEXT *dest, OCB128_CONTEXT *src,
+                            void *keyenc, void *keydec);
+-int CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
++int __cdecl CRYPTO_ocb128_setiv(OCB128_CONTEXT *ctx, const unsigned char *iv,
+                         size_t len, size_t taglen);
+-int CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
++int __cdecl CRYPTO_ocb128_aad(OCB128_CONTEXT *ctx, const unsigned char *aad,
+                       size_t len);
+-int CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
++int __cdecl CRYPTO_ocb128_encrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
++int __cdecl CRYPTO_ocb128_decrypt(OCB128_CONTEXT *ctx, const unsigned char *in,
+                           unsigned char *out, size_t len);
+-int CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
++int __cdecl CRYPTO_ocb128_finish(OCB128_CONTEXT *ctx, const unsigned char *tag,
+                          size_t len);
+-int CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
+-void CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
++int __cdecl CRYPTO_ocb128_tag(OCB128_CONTEXT *ctx, unsigned char *tag, size_t len);
++void __cdecl CRYPTO_ocb128_cleanup(OCB128_CONTEXT *ctx);
+ # endif                          /* OPENSSL_NO_OCB */
  
  # ifdef  __cplusplus
- }
-diff --git a/include/openssl/md4.h b/include/openssl/md4.h
-index 940e29db40..72d0e4bad9 100644
---- a/include/openssl/md4.h
-+++ b/include/openssl/md4.h
-@@ -37,11 +37,11 @@ typedef struct MD4state_st {
-     unsigned int num;
- } MD4_CTX;
- 
--int MD4_Init(MD4_CTX *c);
--int MD4_Update(MD4_CTX *c, const void *data, size_t len);
--int MD4_Final(unsigned char *md, MD4_CTX *c);
--unsigned char *MD4(const unsigned char *d, size_t n, unsigned char *md);
--void MD4_Transform(MD4_CTX *c, const unsigned char *b);
-+int __cdecl MD4_Init(MD4_CTX *c);
-+int __cdecl MD4_Update(MD4_CTX *c, const void *data, size_t len);
-+int __cdecl MD4_Final(unsigned char *md, MD4_CTX *c);
-+unsigned char * __cdecl MD4(const unsigned char *d, size_t n, unsigned char *md);
-+void __cdecl MD4_Transform(MD4_CTX *c, const unsigned char *b);
- 
- # ifdef  __cplusplus
- }
-diff --git a/include/openssl/md5.h b/include/openssl/md5.h
-index 2deb772118..2a8761ce9e 100644
---- a/include/openssl/md5.h
-+++ b/include/openssl/md5.h
-@@ -37,11 +37,11 @@ typedef struct MD5state_st {
-     unsigned int num;
- } MD5_CTX;
- 
--int MD5_Init(MD5_CTX *c);
--int MD5_Update(MD5_CTX *c, const void *data, size_t len);
--int MD5_Final(unsigned char *md, MD5_CTX *c);
--unsigned char *MD5(const unsigned char *d, size_t n, unsigned char *md);
--void MD5_Transform(MD5_CTX *c, const unsigned char *b);
-+int __cdecl MD5_Init(MD5_CTX *c);
-+int __cdecl MD5_Update(MD5_CTX *c, const void *data, size_t len);
-+int __cdecl MD5_Final(unsigned char *md, MD5_CTX *c);
-+unsigned char * __cdecl MD5(const unsigned char *d, size_t n, unsigned char *md);
-+void __cdecl MD5_Transform(MD5_CTX *c, const unsigned char *b);
- # ifdef  __cplusplus
- }
- # endif
-diff --git a/include/openssl/mdc2.h b/include/openssl/mdc2.h
-index aabd2bfaad..d10b60aa7b 100644
---- a/include/openssl/mdc2.h
-+++ b/include/openssl/mdc2.h
-@@ -29,10 +29,10 @@ typedef struct mdc2_ctx_st {
-     int pad_type;               /* either 1 or 2, default 1 */
- } MDC2_CTX;
- 
--int MDC2_Init(MDC2_CTX *c);
--int MDC2_Update(MDC2_CTX *c, const unsigned char *data, size_t len);
--int MDC2_Final(unsigned char *md, MDC2_CTX *c);
--unsigned char *MDC2(const unsigned char *d, size_t n, unsigned char *md);
-+int __cdecl MDC2_Init(MDC2_CTX *c);
-+int __cdecl MDC2_Update(MDC2_CTX *c, const unsigned char *data, size_t len);
-+int __cdecl MDC2_Final(unsigned char *md, MDC2_CTX *c);
-+unsigned char * __cdecl MDC2(const unsigned char *d, size_t n, unsigned char *md);
- 
- # ifdef  __cplusplus
- }
-diff --git a/include/openssl/ripemd.h b/include/openssl/ripemd.h
-index c42026aa42..0c0845a545 100644
---- a/include/openssl/ripemd.h
-+++ b/include/openssl/ripemd.h
-@@ -32,11 +32,11 @@ typedef struct RIPEMD160state_st {
-     unsigned int num;
- } RIPEMD160_CTX;
- 
--int RIPEMD160_Init(RIPEMD160_CTX *c);
--int RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
--int RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
-+int __cdecl RIPEMD160_Init(RIPEMD160_CTX *c);
-+int __cdecl RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
-+int __cdecl RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
- unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
--void RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
-+void __cdecl RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
- 
- # ifdef  __cplusplus
- }
-diff --git a/include/openssl/sha.h b/include/openssl/sha.h
-index 6a1eb0de8b..e2ee74e392 100644
---- a/include/openssl/sha.h
-+++ b/include/openssl/sha.h
-@@ -38,11 +38,11 @@ typedef struct SHAstate_st {
-     unsigned int num;
- } SHA_CTX;
- 
--int SHA1_Init(SHA_CTX *c);
--int SHA1_Update(SHA_CTX *c, const void *data, size_t len);
--int SHA1_Final(unsigned char *md, SHA_CTX *c);
--unsigned char *SHA1(const unsigned char *d, size_t n, unsigned char *md);
--void SHA1_Transform(SHA_CTX *c, const unsigned char *data);
-+int __cdecl SHA1_Init(SHA_CTX *c);
-+int __cdecl SHA1_Update(SHA_CTX *c, const void *data, size_t len);
-+int __cdecl SHA1_Final(unsigned char *md, SHA_CTX *c);
-+unsigned char * __cdecl SHA1(const unsigned char *d, size_t n, unsigned char *md);
-+void __cdecl SHA1_Transform(SHA_CTX *c, const unsigned char *data);
- 
- # define SHA256_CBLOCK   (SHA_LBLOCK*4)/* SHA-256 treats input data as a
-                                         * contiguous array of 32 bit wide
-@@ -59,11 +59,11 @@ int SHA224_Init(SHA256_CTX *c);
- int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
- int SHA224_Final(unsigned char *md, SHA256_CTX *c);
- unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
--int SHA256_Init(SHA256_CTX *c);
--int SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
--int SHA256_Final(unsigned char *md, SHA256_CTX *c);
--unsigned char *SHA256(const unsigned char *d, size_t n, unsigned char *md);
--void SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
-+int __cdecl SHA256_Init(SHA256_CTX *c);
-+int __cdecl SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
-+int __cdecl SHA256_Final(unsigned char *md, SHA256_CTX *c);
-+unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *md);
-+void __cdecl SHA256_Transform(SHA256_CTX *c, const unsigned char *data);
- 
- # define SHA224_DIGEST_LENGTH    28
- # define SHA256_DIGEST_LENGTH    32
