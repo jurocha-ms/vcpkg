@@ -18280,6 +18280,872 @@ index faf59eb20c..495b9e821b 100644
  {
      sk_nid_triple_pop_free(sig_app, sid_free);
      sig_app = NULL;
+diff --git a/crypto/ocsp/ocsp_cl.c b/crypto/ocsp/ocsp_cl.c
+index 739ac01807..a6e26cb903 100644
+--- a/crypto/ocsp/ocsp_cl.c
++++ b/crypto/ocsp/ocsp_cl.c
+@@ -28,7 +28,7 @@
+  * useful if we want to add extensions.
+  */
+ 
+-OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
++OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
+ {
+     OCSP_ONEREQ *one = NULL;
+ 
+@@ -48,7 +48,7 @@ OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
+ 
+ /* Set requestorName from an X509_NAME structure */
+ 
+-int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
++int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
+ {
+     GENERAL_NAME *gen;
+ 
+@@ -67,7 +67,7 @@ int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
+ 
+ /* Add a certificate to an OCSP request */
+ 
+-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
++int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+ {
+     OCSP_SIGNATURE *sig;
+     if (req->optionalSignature == NULL)
+@@ -93,7 +93,7 @@ int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
+  * in the request. Behaves like PKCS7_sign().
+  */
+ 
+-int OCSP_request_sign(OCSP_REQUEST *req,
++int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
+                       X509 *signer,
+                       EVP_PKEY *key,
+                       const EVP_MD *dgst,
+@@ -136,7 +136,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
+ 
+ /* Get response status */
+ 
+-int OCSP_response_status(OCSP_RESPONSE *resp)
++int __cdecl OCSP_response_status(OCSP_RESPONSE *resp)
+ {
+     return ASN1_ENUMERATED_get(resp->responseStatus);
+ }
+@@ -146,7 +146,7 @@ int OCSP_response_status(OCSP_RESPONSE *resp)
+  * present.
+  */
+ 
+-OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
++OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp)
+ {
+     OCSP_RESPBYTES *rb;
+     rb = resp->responseBytes;
+@@ -162,17 +162,17 @@ OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
+     return ASN1_item_unpack(rb->response, ASN1_ITEM_rptr(OCSP_BASICRESP));
+ }
+ 
+-const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
++const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
+ {
+     return bs->signature;
+ }
+ 
+-const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
++const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
+ {
+     return &bs->signatureAlgorithm;
+ }
+ 
+-const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
++const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
+ {
+     return &bs->tbsResponseData;
+ }
+@@ -181,7 +181,7 @@ const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
+  * Return number of OCSP_SINGLERESP responses present in a basic response.
+  */
+ 
+-int OCSP_resp_count(OCSP_BASICRESP *bs)
++int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs)
+ {
+     if (!bs)
+         return -1;
+@@ -190,24 +190,24 @@ int OCSP_resp_count(OCSP_BASICRESP *bs)
+ 
+ /* Extract an OCSP_SINGLERESP response with a given index */
+ 
+-OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
++OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
+ {
+     if (!bs)
+         return NULL;
+     return sk_OCSP_SINGLERESP_value(bs->tbsResponseData.responses, idx);
+ }
+ 
+-const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
++const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
+ {
+     return bs->tbsResponseData.producedAt;
+ }
+ 
+-const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
++const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
+ {
+     return bs->certs;
+ }
+ 
+-int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+                       const ASN1_OCTET_STRING **pid,
+                       const X509_NAME **pname)
+ {
+@@ -225,7 +225,7 @@ int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+     return 1;
+ }
+ 
+-int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+                       ASN1_OCTET_STRING **pid,
+                       X509_NAME **pname)
+ {
+@@ -247,7 +247,7 @@ int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+ 
+ /* Look single response matching a given certificate ID */
+ 
+-int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
++int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
+ {
+     int i;
+     STACK_OF(OCSP_SINGLERESP) *sresp;
+@@ -273,7 +273,7 @@ int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
+  * revoked. Returns numerical value of status.
+  */
+ 
+-int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
++int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+                             ASN1_GENERALIZEDTIME **revtime,
+                             ASN1_GENERALIZEDTIME **thisupd,
+                             ASN1_GENERALIZEDTIME **nextupd)
+@@ -307,7 +307,7 @@ int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+  * found extract status information. Return 0 is successful.
+  */
+ 
+-int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
++int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+                           int *reason,
+                           ASN1_GENERALIZEDTIME **revtime,
+                           ASN1_GENERALIZEDTIME **thisupd,
+@@ -335,7 +335,7 @@ int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+  * parameter specifies the maximum age the thisUpdate field can be.
+  */
+ 
+-int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
++int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
+                         ASN1_GENERALIZEDTIME *nextupd, long nsec, long maxsec)
+ {
+     int ret = 1;
+@@ -390,7 +390,7 @@ int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
+     return ret;
+ }
+ 
+-const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
++const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
+ {
+     return single->certId;
+ }
+diff --git a/crypto/ocsp/ocsp_err.c b/crypto/ocsp/ocsp_err.c
+index 660e193665..6b4c8eb9c1 100644
+--- a/crypto/ocsp/ocsp_err.c
++++ b/crypto/ocsp/ocsp_err.c
+@@ -89,7 +89,7 @@ static const ERR_STRING_DATA OCSP_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_OCSP_strings(void)
++int __cdecl ERR_load_OCSP_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(OCSP_str_functs[0].error) == NULL) {
+diff --git a/crypto/ocsp/ocsp_ext.c b/crypto/ocsp/ocsp_ext.c
+index 3ab5308a12..6e5fb668c5 100644
+--- a/crypto/ocsp/ocsp_ext.c
++++ b/crypto/ocsp/ocsp_ext.c
+@@ -20,53 +20,53 @@
+ 
+ /* OCSP request extensions */
+ 
+-int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
++int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
+ {
+     return X509v3_get_ext_count(x->tbsRequest.requestExtensions);
+ }
+ 
+-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
++int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
+ {
+     return (X509v3_get_ext_by_NID
+             (x->tbsRequest.requestExtensions, nid, lastpos));
+ }
+ 
+-int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
+                                 int lastpos)
+ {
+     return (X509v3_get_ext_by_OBJ
+             (x->tbsRequest.requestExtensions, obj, lastpos));
+ }
+ 
+-int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
++int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->tbsRequest.requestExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
++X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
+ {
+     return X509v3_get_ext(x->tbsRequest.requestExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
++X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
+ {
+     return X509v3_delete_ext(x->tbsRequest.requestExtensions, loc);
+ }
+ 
+-void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
++void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
+ {
+     return X509V3_get_d2i(x->tbsRequest.requestExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
+                               unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->tbsRequest.requestExtensions, nid, value,
+                            crit, flags);
+ }
+ 
+-int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->tbsRequest.requestExtensions), ex, loc) !=
+             NULL);
+@@ -74,107 +74,107 @@ int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
+ 
+ /* Single extensions */
+ 
+-int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
++int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
+ {
+     return X509v3_get_ext_count(x->singleRequestExtensions);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
++int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
+ {
+     return X509v3_get_ext_by_NID(x->singleRequestExtensions, nid, lastpos);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
+                                int lastpos)
+ {
+     return X509v3_get_ext_by_OBJ(x->singleRequestExtensions, obj, lastpos);
+ }
+ 
+-int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
++int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->singleRequestExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
++X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
+ {
+     return X509v3_get_ext(x->singleRequestExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
++X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
+ {
+     return X509v3_delete_ext(x->singleRequestExtensions, loc);
+ }
+ 
+-void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
++void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
+ {
+     return X509V3_get_d2i(x->singleRequestExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
++int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
+                              unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->singleRequestExtensions, nid, value, crit,
+                            flags);
+ }
+ 
+-int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->singleRequestExtensions), ex, loc) != NULL);
+ }
+ 
+ /* OCSP Basic response */
+ 
+-int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
++int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
+ {
+     return X509v3_get_ext_count(x->tbsResponseData.responseExtensions);
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
++int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
+ {
+     return (X509v3_get_ext_by_NID
+             (x->tbsResponseData.responseExtensions, nid, lastpos));
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
+                                   int lastpos)
+ {
+     return (X509v3_get_ext_by_OBJ
+             (x->tbsResponseData.responseExtensions, obj, lastpos));
+ }
+ 
+-int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
++int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
+                                        int lastpos)
+ {
+     return (X509v3_get_ext_by_critical
+             (x->tbsResponseData.responseExtensions, crit, lastpos));
+ }
+ 
+-X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
+ {
+     return X509v3_get_ext(x->tbsResponseData.responseExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
+ {
+     return X509v3_delete_ext(x->tbsResponseData.responseExtensions, loc);
+ }
+ 
+-void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
++void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
+                                   int *idx)
+ {
+     return X509V3_get_d2i(x->tbsResponseData.responseExtensions, nid, crit,
+                           idx);
+ }
+ 
+-int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
++int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
+                                 int crit, unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->tbsResponseData.responseExtensions, nid,
+                            value, crit, flags);
+ }
+ 
+-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->tbsResponseData.responseExtensions), ex, loc)
+             != NULL);
+@@ -182,51 +182,51 @@ int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
+ 
+ /* OCSP single response extensions */
+ 
+-int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
++int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
+ {
+     return X509v3_get_ext_count(x->singleExtensions);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
++int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
+ {
+     return X509v3_get_ext_by_NID(x->singleExtensions, nid, lastpos);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
+                                    int lastpos)
+ {
+     return X509v3_get_ext_by_OBJ(x->singleExtensions, obj, lastpos);
+ }
+ 
+-int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
++int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
+                                         int lastpos)
+ {
+     return X509v3_get_ext_by_critical(x->singleExtensions, crit, lastpos);
+ }
+ 
+-X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
+ {
+     return X509v3_get_ext(x->singleExtensions, loc);
+ }
+ 
+-X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
+ {
+     return X509v3_delete_ext(x->singleExtensions, loc);
+ }
+ 
+-void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
++void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
+                                    int *idx)
+ {
+     return X509V3_get_d2i(x->singleExtensions, nid, crit, idx);
+ }
+ 
+-int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
++int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
+                                  int crit, unsigned long flags)
+ {
+     return X509V3_add1_i2d(&x->singleExtensions, nid, value, crit, flags);
+ }
+ 
+-int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
++int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
+ {
+     return (X509v3_add_ext(&(x->singleExtensions), ex, loc) != NULL);
+ }
+@@ -279,14 +279,14 @@ static int ocsp_add1_nonce(STACK_OF(X509_EXTENSION) **exts,
+ 
+ /* Add nonce to an OCSP request */
+ 
+-int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
++int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
+ {
+     return ocsp_add1_nonce(&req->tbsRequest.requestExtensions, val, len);
+ }
+ 
+ /* Same as above but for a response */
+ 
+-int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
++int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
+ {
+     return ocsp_add1_nonce(&resp->tbsResponseData.responseExtensions, val,
+                            len);
+@@ -306,7 +306,7 @@ int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
+  *  necessary. return == 0 is always an error.
+  */
+ 
+-int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
++int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
+ {
+     /*
+      * Since we are only interested in the presence or absence of
+@@ -344,7 +344,7 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
+  * Copy the nonce value (if any) from an OCSP request to a response.
+  */
+ 
+-int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
++int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
+ {
+     X509_EXTENSION *req_ext;
+     int req_idx;
+@@ -357,7 +357,7 @@ int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
+     return OCSP_BASICRESP_add_ext(resp, req_ext, -1);
+ }
+ 
+-X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
++X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim)
+ {
+     X509_EXTENSION *x = NULL;
+     OCSP_CRLID *cid = NULL;
+@@ -389,7 +389,7 @@ X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
+ }
+ 
+ /*   AcceptableResponses ::= SEQUENCE OF OBJECT IDENTIFIER */
+-X509_EXTENSION *OCSP_accept_responses_new(char **oids)
++X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids)
+ {
+     int nid;
+     STACK_OF(ASN1_OBJECT) *sk = NULL;
+@@ -410,7 +410,7 @@ X509_EXTENSION *OCSP_accept_responses_new(char **oids)
+ }
+ 
+ /*  ArchiveCutoff ::= GeneralizedTime */
+-X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
++X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim)
+ {
+     X509_EXTENSION *x = NULL;
+     ASN1_GENERALIZEDTIME *gt = NULL;
+@@ -430,7 +430,7 @@ X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
+  * two--NID_ad_ocsp, NID_id_ad_caIssuers--and GeneralName value.  This method
+  * forces NID_ad_ocsp and uniformResourceLocator [6] IA5String.
+  */
+-X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
++X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
+ {
+     X509_EXTENSION *x = NULL;
+     ASN1_IA5STRING *ia5 = NULL;
+diff --git a/crypto/ocsp/ocsp_ht.c b/crypto/ocsp/ocsp_ht.c
+index 42c3686431..b1aabd82f8 100644
+--- a/crypto/ocsp/ocsp_ht.c
++++ b/crypto/ocsp/ocsp_ht.c
+@@ -61,7 +61,7 @@ struct ocsp_req_ctx_st {
+ 
+ static int parse_http_line1(char *line);
+ 
+-OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
++OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline)
+ {
+     OCSP_REQ_CTX *rctx = OPENSSL_zalloc(sizeof(*rctx));
+ 
+@@ -83,7 +83,7 @@ OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
+     return rctx;
+ }
+ 
+-void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
++void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+ {
+     if (!rctx)
+         return;
+@@ -92,12 +92,12 @@ void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+     OPENSSL_free(rctx);
+ }
+ 
+-BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
++BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
+ {
+     return rctx->mem;
+ }
+ 
+-void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
++void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+ {
+     if (len == 0)
+         rctx->max_resp_len = OCSP_MAX_RESP_LENGTH;
+@@ -105,7 +105,7 @@ void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+         rctx->max_resp_len = len;
+ }
+ 
+-int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
++int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+ {
+     static const char req_hdr[] =
+         "Content-Type: application/ocsp-request\r\n"
+@@ -119,7 +119,7 @@ int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
++int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
+                           ASN1_VALUE **pval, const ASN1_ITEM *it)
+ {
+     int rv, len;
+@@ -138,7 +138,7 @@ int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
++int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
+ {
+     static const char http_hdr[] = "%s %s HTTP/1.0\r\n";
+ 
+@@ -151,13 +151,13 @@ int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
+     return 1;
+ }
+ 
+-int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
++int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
+ {
+     return OCSP_REQ_CTX_i2d(rctx, ASN1_ITEM_rptr(OCSP_REQUEST),
+                             (ASN1_VALUE *)req);
+ }
+ 
+-int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
++int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+                              const char *name, const char *value)
+ {
+     if (!name)
+@@ -176,7 +176,7 @@ int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+     return 1;
+ }
+ 
+-OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
++OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+                                int maxline)
+ {
+ 
+@@ -269,7 +269,7 @@ static int parse_http_line1(char *line)
+ 
+ }
+ 
+-int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
++int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+ {
+     int i, n;
+     const unsigned char *p;
+@@ -469,7 +469,7 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+ 
+ }
+ 
+-int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
++int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
+ {
+     return OCSP_REQ_CTX_nbio_d2i(rctx,
+                                  (ASN1_VALUE **)presp,
+@@ -478,7 +478,7 @@ int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
+ 
+ /* Blocking OCSP request handler: now a special case of non-blocking I/O */
+ 
+-OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
++OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
+ {
+     OCSP_RESPONSE *resp = NULL;
+     OCSP_REQ_CTX *ctx;
+diff --git a/crypto/ocsp/ocsp_lib.c b/crypto/ocsp/ocsp_lib.c
+index b8b91cc9eb..81084ae167 100644
+--- a/crypto/ocsp/ocsp_lib.c
++++ b/crypto/ocsp/ocsp_lib.c
+@@ -19,7 +19,7 @@
+ 
+ /* Convert a certificate and its issuer to an OCSP_CERTID */
+ 
+-OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
++OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+                              const X509 *issuer)
+ {
+     X509_NAME *iname;
+@@ -38,7 +38,7 @@ OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+     return OCSP_cert_id_new(dgst, iname, ikey, serial);
+ }
+ 
+-OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
++OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
+                               const X509_NAME *issuerName,
+                               const ASN1_BIT_STRING *issuerKey,
+                               const ASN1_INTEGER *serialNumber)
+@@ -88,7 +88,7 @@ OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
+     return NULL;
+ }
+ 
+-int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
++int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+ {
+     int ret;
+     ret = OBJ_cmp(a->hashAlgorithm.algorithm, b->hashAlgorithm.algorithm);
+@@ -100,7 +100,7 @@ int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+     return ASN1_OCTET_STRING_cmp(&a->issuerKeyHash, &b->issuerKeyHash);
+ }
+ 
+-int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
++int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+ {
+     int ret;
+     ret = OCSP_id_issuer_cmp(a, b);
+@@ -114,7 +114,7 @@ int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+  * whether it is SSL.
+  */
+ 
+-int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
++int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
+                    int *pssl)
+ {
+     char *p, *buf;
+diff --git a/crypto/ocsp/ocsp_prn.c b/crypto/ocsp/ocsp_prn.c
+index 5605812ef7..abba225944 100644
+--- a/crypto/ocsp/ocsp_prn.c
++++ b/crypto/ocsp/ocsp_prn.c
+@@ -46,7 +46,7 @@ static const char *do_table2string(long s, const OCSP_TBLSTR *ts, size_t len)
+ 
+ #define table2string(s, tbl) do_table2string(s, tbl, OSSL_NELEM(tbl))
+ 
+-const char *OCSP_response_status_str(long s)
++const char * __cdecl OCSP_response_status_str(long s)
+ {
+     static const OCSP_TBLSTR rstat_tbl[] = {
+         {OCSP_RESPONSE_STATUS_SUCCESSFUL, "successful"},
+@@ -59,7 +59,7 @@ const char *OCSP_response_status_str(long s)
+     return table2string(s, rstat_tbl);
+ }
+ 
+-const char *OCSP_cert_status_str(long s)
++const char * __cdecl OCSP_cert_status_str(long s)
+ {
+     static const OCSP_TBLSTR cstat_tbl[] = {
+         {V_OCSP_CERTSTATUS_GOOD, "good"},
+@@ -69,7 +69,7 @@ const char *OCSP_cert_status_str(long s)
+     return table2string(s, cstat_tbl);
+ }
+ 
+-const char *OCSP_crl_reason_str(long s)
++const char * __cdecl OCSP_crl_reason_str(long s)
+ {
+     static const OCSP_TBLSTR reason_tbl[] = {
+         {OCSP_REVOKED_STATUS_UNSPECIFIED, "unspecified"},
+@@ -84,7 +84,7 @@ const char *OCSP_crl_reason_str(long s)
+     return table2string(s, reason_tbl);
+ }
+ 
+-int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
++int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
+ {
+     int i;
+     long l;
+@@ -129,7 +129,7 @@ int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
+     return 0;
+ }
+ 
+-int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
++int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
+ {
+     int i, ret = 0;
+     long l;
+diff --git a/crypto/ocsp/ocsp_srv.c b/crypto/ocsp/ocsp_srv.c
+index 6bd6f7b6d8..0cf4e6b2f6 100644
+--- a/crypto/ocsp/ocsp_srv.c
++++ b/crypto/ocsp/ocsp_srv.c
+@@ -21,22 +21,22 @@
+  * relevant information from the request.
+  */
+ 
+-int OCSP_request_onereq_count(OCSP_REQUEST *req)
++int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req)
+ {
+     return sk_OCSP_ONEREQ_num(req->tbsRequest.requestList);
+ }
+ 
+-OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
++OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
+ {
+     return sk_OCSP_ONEREQ_value(req->tbsRequest.requestList, i);
+ }
+ 
+-OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one)
++OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one)
+ {
+     return one->reqCert;
+ }
+ 
+-int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
++int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+                       ASN1_OCTET_STRING **pikeyHash,
+                       ASN1_INTEGER **pserial, OCSP_CERTID *cid)
+ {
+@@ -53,7 +53,7 @@ int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+     return 1;
+ }
+ 
+-int OCSP_request_is_signed(OCSP_REQUEST *req)
++int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req)
+ {
+     if (req->optionalSignature)
+         return 1;
+@@ -61,7 +61,7 @@ int OCSP_request_is_signed(OCSP_REQUEST *req)
+ }
+ 
+ /* Create an OCSP response and encode an optional basic response */
+-OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
++OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs)
+ {
+     OCSP_RESPONSE *rsp = NULL;
+ 
+@@ -83,7 +83,7 @@ OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
+     return NULL;
+ }
+ 
+-OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
++OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+                                         OCSP_CERTID *cid,
+                                         int status, int reason,
+                                         ASN1_TIME *revtime,
+@@ -156,7 +156,7 @@ OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+ 
+ /* Add a certificate to an OCSP request */
+ 
+-int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
++int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
+ {
+     if (resp->certs == NULL
+         && (resp->certs = sk_X509_new_null()) == NULL)
+@@ -174,7 +174,7 @@ int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
+  * include one or more optional certificates in the response.
+  */
+ 
+-int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_MD_CTX *ctx,
+                     STACK_OF(X509) *certs, unsigned long flags)
+ {
+@@ -229,7 +229,7 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+     return 0;
+ }
+ 
+-int OCSP_basic_sign(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
+                     STACK_OF(X509) *certs, unsigned long flags)
+ {
+@@ -249,7 +249,7 @@ int OCSP_basic_sign(OCSP_BASICRESP *brsp,
+     return i;
+ }
+ 
+-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+ {
+     if (!X509_NAME_set(&respid->value.byName, X509_get_subject_name(cert)))
+         return 0;
+@@ -259,7 +259,7 @@ int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+     return 1;
+ }
+ 
+-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+ {
+     ASN1_OCTET_STRING *byKey = NULL;
+     unsigned char md[SHA_DIGEST_LENGTH];
+@@ -283,7 +283,7 @@ int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+     return 1;
+ }
+ 
+-int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
++int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
+ {
+     if (respid->type == V_OCSP_RESPID_KEY) {
+         unsigned char md[SHA_DIGEST_LENGTH];
+diff --git a/crypto/ocsp/ocsp_vfy.c b/crypto/ocsp/ocsp_vfy.c
+index 9a8d343866..e6933c19ef 100644
+--- a/crypto/ocsp/ocsp_vfy.c
++++ b/crypto/ocsp/ocsp_vfy.c
+@@ -27,7 +27,7 @@ static int ocsp_req_find_signer(X509 **psigner, OCSP_REQUEST *req,
+ 
+ /* Verify a basic response message */
+ 
+-int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
++int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+                       X509_STORE *st, unsigned long flags)
+ {
+     X509 *signer, *x;
+@@ -138,7 +138,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+     goto end;
+ }
+ 
+-int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
++int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
+                           STACK_OF(X509) *extra_certs)
+ {
+     int ret;
+@@ -336,7 +336,7 @@ static int ocsp_check_delegated(X509 *x)
+  * trust value.
+  */
+ 
+-int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
++int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
+                         X509_STORE *store, unsigned long flags)
+ {
+     X509 *signer;
 diff --git a/crypto/pkcs12/p12_crpt.c b/crypto/pkcs12/p12_crpt.c
 index feef9d1fc4..1448924b01 100644
 --- a/crypto/pkcs12/p12_crpt.c
@@ -29622,18 +30488,320 @@ index 02e166f1ac..7888b96790 100644
  /*
   * OBJ function codes.
 diff --git a/include/openssl/ocsp.h b/include/openssl/ocsp.h
-index 8582fe1ee1..c0accac758 100644
+index 8582fe1ee1..2ef8968d5e 100644
 --- a/include/openssl/ocsp.h
 +++ b/include/openssl/ocsp.h
-@@ -146,7 +146,7 @@ typedef struct ocsp_service_locator_st OCSP_SERVICELOC;
+@@ -146,177 +146,177 @@ typedef struct ocsp_service_locator_st OCSP_SERVICELOC;
                  (OCSP_CERTSTATUS*)ASN1_dup((int(*)())i2d_OCSP_CERTSTATUS,\
                  (char *(*)())d2i_OCSP_CERTSTATUS,(char *)(cs))
  
 -OCSP_CERTID *OCSP_CERTID_dup(OCSP_CERTID *id);
 +OCSP_CERTID * __cdecl OCSP_CERTID_dup(OCSP_CERTID *id);
  
- OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
- OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+-OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
+-OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
++OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
++OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
+                                int maxline);
+-int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
+-int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
+-OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline);
+-void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
+-void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
+-int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
++int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
++int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
++OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline);
++void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
++void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
++int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
+                      ASN1_VALUE *val);
+-int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
++int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
+                           const ASN1_ITEM *it);
+-BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
+-int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
+-int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
+-int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
++BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
++int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
++int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
++int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
+                              const char *name, const char *value);
+ 
+-OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
++OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
+                              const X509 *issuer);
+ 
+-OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
++OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
+                               const X509_NAME *issuerName,
+                               const ASN1_BIT_STRING *issuerKey,
+                               const ASN1_INTEGER *serialNumber);
+ 
+-OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
++OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
+ 
+-int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
+-int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
+-int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
+-int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
++int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
++int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
++int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
++int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
+ 
+-int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
+-int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
++int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
++int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
+ 
+-int OCSP_request_sign(OCSP_REQUEST *req,
++int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
+                       X509 *signer,
+                       EVP_PKEY *key,
+                       const EVP_MD *dgst,
+                       STACK_OF(X509) *certs, unsigned long flags);
+ 
+-int OCSP_response_status(OCSP_RESPONSE *resp);
+-OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp);
++int __cdecl OCSP_response_status(OCSP_RESPONSE *resp);
++OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp);
+ 
+-const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
+-const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
+-const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
+-int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
++const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
++const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
++const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
++int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
+                           STACK_OF(X509) *extra_certs);
+ 
+-int OCSP_resp_count(OCSP_BASICRESP *bs);
+-OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
+-const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
+-const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
+-int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs);
++OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
++const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
++const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
++int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
+                       const ASN1_OCTET_STRING **pid,
+                       const X509_NAME **pname);
+-int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
++int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
+                       ASN1_OCTET_STRING **pid,
+                       X509_NAME **pname);
+ 
+-int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
+-int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
++int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
++int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
+                             ASN1_GENERALIZEDTIME **revtime,
+                             ASN1_GENERALIZEDTIME **thisupd,
+                             ASN1_GENERALIZEDTIME **nextupd);
+-int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
++int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
+                           int *reason,
+                           ASN1_GENERALIZEDTIME **revtime,
+                           ASN1_GENERALIZEDTIME **thisupd,
+                           ASN1_GENERALIZEDTIME **nextupd);
+-int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
++int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
+                         ASN1_GENERALIZEDTIME *nextupd, long sec, long maxsec);
+ 
+-int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
++int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
+                         X509_STORE *store, unsigned long flags);
+ 
+-int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
++int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
+                    int *pssl);
+ 
+-int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
+-int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
++int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
++int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
+ 
+-int OCSP_request_onereq_count(OCSP_REQUEST *req);
+-OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
+-OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one);
+-int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
++int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req);
++OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
++OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one);
++int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+                       ASN1_OCTET_STRING **pikeyHash,
+                       ASN1_INTEGER **pserial, OCSP_CERTID *cid);
+-int OCSP_request_is_signed(OCSP_REQUEST *req);
+-OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs);
+-OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
++int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req);
++OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs);
++OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
+                                         OCSP_CERTID *cid,
+                                         int status, int reason,
+                                         ASN1_TIME *revtime,
+                                         ASN1_TIME *thisupd,
+                                         ASN1_TIME *nextupd);
+-int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
+-int OCSP_basic_sign(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
++int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
+                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
+                     STACK_OF(X509) *certs, unsigned long flags);
+-int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
++int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+                         X509 *signer, EVP_MD_CTX *ctx,
+                         STACK_OF(X509) *certs, unsigned long flags);
+-int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
+-int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
+-int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
++int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
+ 
+-X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim);
++X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim);
+ 
+-X509_EXTENSION *OCSP_accept_responses_new(char **oids);
++X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids);
+ 
+-X509_EXTENSION *OCSP_archive_cutoff_new(char *tim);
++X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim);
+ 
+-X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
++X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
+ 
+-int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
+-int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
+-int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
++int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
++int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
+                                 int lastpos);
+-int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
+-X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
+-X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
+-void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
++int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
++X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
++X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
++void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
+                                 int *idx);
+-int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
+                               unsigned long flags);
+-int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
+-
+-int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
+-int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
+-int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
+-int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
+-X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
+-X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
+-void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
+-int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
++int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
++
++int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
++int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
++int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
++int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
++X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
++X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
++void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
++int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
+                              unsigned long flags);
+-int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
++int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
+ 
+-int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
+-int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
+-int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
++int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
++int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
+                                   int lastpos);
+-int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
++int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
+                                        int lastpos);
+-X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
+-X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
+-void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
++X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
++X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
++void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
+                                   int *idx);
+-int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
++int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
+                                 int crit, unsigned long flags);
+-int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
++int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
+ 
+-int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
+-int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
+-int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
++int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
++int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
++int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
+                                    int lastpos);
+-int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
++int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
+                                         int lastpos);
+-X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
+-X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
+-void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
++X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
++void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
+                                    int *idx);
+-int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
++int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
+                                  int crit, unsigned long flags);
+-int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
+-const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
++int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
++const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
+ 
+ DECLARE_ASN1_FUNCTIONS(OCSP_SINGLERESP)
+ DECLARE_ASN1_FUNCTIONS(OCSP_CERTSTATUS)
+@@ -334,14 +334,14 @@ DECLARE_ASN1_FUNCTIONS(OCSP_REQINFO)
+ DECLARE_ASN1_FUNCTIONS(OCSP_CRLID)
+ DECLARE_ASN1_FUNCTIONS(OCSP_SERVICELOC)
+ 
+-const char *OCSP_response_status_str(long s);
+-const char *OCSP_cert_status_str(long s);
+-const char *OCSP_crl_reason_str(long s);
++const char * __cdecl OCSP_response_status_str(long s);
++const char * __cdecl OCSP_cert_status_str(long s);
++const char * __cdecl OCSP_crl_reason_str(long s);
+ 
+-int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
+-int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
++int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
++int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
+ 
+-int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
++int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
+                       X509_STORE *st, unsigned long flags);
+ 
+ 
+diff --git a/include/openssl/ocsperr.h b/include/openssl/ocsperr.h
+index 8dd9e01a17..bb512da35d 100644
+--- a/include/openssl/ocsperr.h
++++ b/include/openssl/ocsperr.h
+@@ -22,7 +22,7 @@
+ #  ifdef  __cplusplus
+ extern "C"
+ #  endif
+-int ERR_load_OCSP_strings(void);
++int __cdecl ERR_load_OCSP_strings(void);
+ 
+ /*
+  * OCSP function codes.
 diff --git a/include/openssl/pkcs12.h b/include/openssl/pkcs12.h
 index 3f43dad6d9..2ba3a1b816 100644
 --- a/include/openssl/pkcs12.h
@@ -31370,1181 +32538,2166 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/ocsp/ocsp_cl.c b/crypto/ocsp/ocsp_cl.c
-index 739ac01807..a6e26cb903 100644
---- a/crypto/ocsp/ocsp_cl.c
-+++ b/crypto/ocsp/ocsp_cl.c
-@@ -28,7 +28,7 @@
-  * useful if we want to add extensions.
-  */
- 
--OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
-+OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
- {
-     OCSP_ONEREQ *one = NULL;
- 
-@@ -48,7 +48,7 @@ OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid)
- 
- /* Set requestorName from an X509_NAME structure */
- 
--int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
-+int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
- {
-     GENERAL_NAME *gen;
- 
-@@ -67,7 +67,7 @@ int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm)
- 
- /* Add a certificate to an OCSP request */
- 
--int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
-+int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
- {
-     OCSP_SIGNATURE *sig;
-     if (req->optionalSignature == NULL)
-@@ -93,7 +93,7 @@ int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert)
-  * in the request. Behaves like PKCS7_sign().
-  */
- 
--int OCSP_request_sign(OCSP_REQUEST *req,
-+int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
-                       X509 *signer,
-                       EVP_PKEY *key,
-                       const EVP_MD *dgst,
-@@ -136,7 +136,7 @@ int OCSP_request_sign(OCSP_REQUEST *req,
- 
- /* Get response status */
- 
--int OCSP_response_status(OCSP_RESPONSE *resp)
-+int __cdecl OCSP_response_status(OCSP_RESPONSE *resp)
- {
-     return ASN1_ENUMERATED_get(resp->responseStatus);
- }
-@@ -146,7 +146,7 @@ int OCSP_response_status(OCSP_RESPONSE *resp)
-  * present.
-  */
- 
--OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
-+OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp)
- {
-     OCSP_RESPBYTES *rb;
-     rb = resp->responseBytes;
-@@ -162,17 +162,17 @@ OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp)
-     return ASN1_item_unpack(rb->response, ASN1_ITEM_rptr(OCSP_BASICRESP));
- }
- 
--const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
-+const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs)
- {
-     return bs->signature;
- }
- 
--const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
-+const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs)
- {
-     return &bs->signatureAlgorithm;
- }
- 
--const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
-+const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
- {
-     return &bs->tbsResponseData;
- }
-@@ -181,7 +181,7 @@ const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs)
-  * Return number of OCSP_SINGLERESP responses present in a basic response.
-  */
- 
--int OCSP_resp_count(OCSP_BASICRESP *bs)
-+int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs)
- {
-     if (!bs)
-         return -1;
-@@ -190,24 +190,24 @@ int OCSP_resp_count(OCSP_BASICRESP *bs)
- 
- /* Extract an OCSP_SINGLERESP response with a given index */
- 
--OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
-+OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx)
- {
-     if (!bs)
-         return NULL;
-     return sk_OCSP_SINGLERESP_value(bs->tbsResponseData.responses, idx);
- }
- 
--const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
-+const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs)
- {
-     return bs->tbsResponseData.producedAt;
- }
- 
--const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
-+const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs)
- {
-     return bs->certs;
- }
- 
--int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-+int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-                       const ASN1_OCTET_STRING **pid,
-                       const X509_NAME **pname)
- {
-@@ -225,7 +225,7 @@ int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-     return 1;
- }
- 
--int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
-+int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
-                       ASN1_OCTET_STRING **pid,
-                       X509_NAME **pname)
- {
-@@ -247,7 +247,7 @@ int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
- 
- /* Look single response matching a given certificate ID */
- 
--int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
-+int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
- {
-     int i;
-     STACK_OF(OCSP_SINGLERESP) *sresp;
-@@ -273,7 +273,7 @@ int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last)
-  * revoked. Returns numerical value of status.
-  */
- 
--int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
-+int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
-                             ASN1_GENERALIZEDTIME **revtime,
-                             ASN1_GENERALIZEDTIME **thisupd,
-                             ASN1_GENERALIZEDTIME **nextupd)
-@@ -307,7 +307,7 @@ int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
-  * found extract status information. Return 0 is successful.
-  */
- 
--int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-+int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-                           int *reason,
-                           ASN1_GENERALIZEDTIME **revtime,
-                           ASN1_GENERALIZEDTIME **thisupd,
-@@ -335,7 +335,7 @@ int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-  * parameter specifies the maximum age the thisUpdate field can be.
-  */
- 
--int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-+int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-                         ASN1_GENERALIZEDTIME *nextupd, long nsec, long maxsec)
- {
-     int ret = 1;
-@@ -390,7 +390,7 @@ int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-     return ret;
- }
- 
--const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
-+const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *single)
- {
-     return single->certId;
- }
-diff --git a/crypto/ocsp/ocsp_err.c b/crypto/ocsp/ocsp_err.c
-index 660e193665..6b4c8eb9c1 100644
---- a/crypto/ocsp/ocsp_err.c
-+++ b/crypto/ocsp/ocsp_err.c
-@@ -89,7 +89,7 @@ static const ERR_STRING_DATA OCSP_str_reasons[] = {
+diff --git a/crypto/pem/pem_err.c b/crypto/pem/pem_err.c
+index f642030aa5..ee032ca46b 100644
+--- a/crypto/pem/pem_err.c
++++ b/crypto/pem/pem_err.c
+@@ -114,7 +114,7 @@ static const ERR_STRING_DATA PEM_str_reasons[] = {
  
  #endif
  
--int ERR_load_OCSP_strings(void)
-+int __cdecl ERR_load_OCSP_strings(void)
+-int ERR_load_PEM_strings(void)
++int __cdecl ERR_load_PEM_strings(void)
  {
  #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(OCSP_str_functs[0].error) == NULL) {
-diff --git a/crypto/ocsp/ocsp_ext.c b/crypto/ocsp/ocsp_ext.c
-index 3ab5308a12..6e5fb668c5 100644
---- a/crypto/ocsp/ocsp_ext.c
-+++ b/crypto/ocsp/ocsp_ext.c
-@@ -20,53 +20,53 @@
+     if (ERR_func_error_string(PEM_str_functs[0].error) == NULL) {
+diff --git a/crypto/pem/pem_info.c b/crypto/pem/pem_info.c
+index f90cb44650..745c4235af 100644
+--- a/crypto/pem/pem_info.c
++++ b/crypto/pem/pem_info.c
+@@ -18,7 +18,7 @@
+ #include <openssl/dsa.h>
  
- /* OCSP request extensions */
- 
--int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
-+int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x)
+ #ifndef OPENSSL_NO_STDIO
+-STACK_OF(X509_INFO) *PEM_X509_INFO_read(FILE *fp, STACK_OF(X509_INFO) *sk,
++STACK_OF(X509_INFO) * __cdecl PEM_X509_INFO_read(FILE *fp, STACK_OF(X509_INFO) *sk,
+                                         pem_password_cb *cb, void *u)
  {
-     return X509v3_get_ext_count(x->tbsRequest.requestExtensions);
+     BIO *b;
+@@ -35,7 +35,7 @@ STACK_OF(X509_INFO) *PEM_X509_INFO_read(FILE *fp, STACK_OF(X509_INFO) *sk,
+ }
+ #endif
+ 
+-STACK_OF(X509_INFO) *PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
++STACK_OF(X509_INFO) * __cdecl PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
+                                             pem_password_cb *cb, void *u)
+ {
+     X509_INFO *xi = NULL;
+@@ -244,7 +244,7 @@ STACK_OF(X509_INFO) *PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
  }
  
--int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
-+int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos)
+ /* A TJH addition */
+-int PEM_X509_INFO_write_bio(BIO *bp, X509_INFO *xi, EVP_CIPHER *enc,
++int __cdecl PEM_X509_INFO_write_bio(BIO *bp, X509_INFO *xi, EVP_CIPHER *enc,
+                             unsigned char *kstr, int klen,
+                             pem_password_cb *cb, void *u)
  {
-     return (X509v3_get_ext_by_NID
-             (x->tbsRequest.requestExtensions, nid, lastpos));
+diff --git a/crypto/pem/pem_lib.c b/crypto/pem/pem_lib.c
+index 4bb86463fa..8f6c55a7dd 100644
+--- a/crypto/pem/pem_lib.c
++++ b/crypto/pem/pem_lib.c
+@@ -28,7 +28,7 @@ static int load_iv(char **fromp, unsigned char *to, int num);
+ static int check_pem(const char *nm, const char *name);
+ int pem_check_suffix(const char *pem_str, const char *suffix);
+ 
+-int PEM_def_callback(char *buf, int num, int rwflag, void *userdata)
++int __cdecl PEM_def_callback(char *buf, int num, int rwflag, void *userdata)
+ {
+     int i, min_len;
+     const char *prompt;
+@@ -63,7 +63,7 @@ int PEM_def_callback(char *buf, int num, int rwflag, void *userdata)
+     return strlen(buf);
  }
  
--int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
-                                 int lastpos)
+-void PEM_proc_type(char *buf, int type)
++void __cdecl PEM_proc_type(char *buf, int type)
  {
-     return (X509v3_get_ext_by_OBJ
-             (x->tbsRequest.requestExtensions, obj, lastpos));
+     const char *str;
+     char *p = buf + strlen(buf);
+@@ -80,7 +80,7 @@ void PEM_proc_type(char *buf, int type)
+     BIO_snprintf(p, PEM_BUFSIZE - (size_t)(p - buf), "Proc-Type: 4,%s\n", str);
  }
  
--int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
-+int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos)
+-void PEM_dek_info(char *buf, const char *type, int len, char *str)
++void __cdecl PEM_dek_info(char *buf, const char *type, int len, char *str)
  {
-     return (X509v3_get_ext_by_critical
-             (x->tbsRequest.requestExtensions, crit, lastpos));
+     long i;
+     char *p = buf + strlen(buf);
+@@ -103,7 +103,7 @@ void PEM_dek_info(char *buf, const char *type, int len, char *str)
  }
  
--X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc)
+ #ifndef OPENSSL_NO_STDIO
+-void *PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
++void * __cdecl PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
+                     pem_password_cb *cb, void *u)
  {
-     return X509v3_get_ext(x->tbsRequest.requestExtensions, loc);
+     BIO *b;
+@@ -272,14 +272,14 @@ static int pem_bytes_read_bio_flags(unsigned char **pdata, long *plen,
+     return ret;
  }
  
--X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc)
- {
-     return X509v3_delete_ext(x->tbsRequest.requestExtensions, loc);
+-int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
++int __cdecl PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
+                        const char *name, BIO *bp, pem_password_cb *cb,
+                        void *u) {
+     return pem_bytes_read_bio_flags(pdata, plen, pnm, name, bp, cb, u,
+                                     PEM_FLAG_EAY_COMPATIBLE);
  }
  
--void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
-+void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit, int *idx)
- {
-     return X509V3_get_d2i(x->tbsRequest.requestExtensions, nid, crit, idx);
+-int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
++int __cdecl PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
+                               const char *name, BIO *bp, pem_password_cb *cb,
+                               void *u) {
+     return pem_bytes_read_bio_flags(pdata, plen, pnm, name, bp, cb, u,
+@@ -287,7 +287,7 @@ int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
  }
  
--int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
-+int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
-                               unsigned long flags)
+ #ifndef OPENSSL_NO_STDIO
+-int PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
++int __cdecl PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
+                    void *x, const EVP_CIPHER *enc, unsigned char *kstr,
+                    int klen, pem_password_cb *callback, void *u)
  {
-     return X509V3_add1_i2d(&x->tbsRequest.requestExtensions, nid, value,
-                            crit, flags);
+@@ -305,7 +305,7 @@ int PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
+ }
+ #endif
+ 
+-int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp,
++int __cdecl PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp,
+                        void *x, const EVP_CIPHER *enc, unsigned char *kstr,
+                        int klen, pem_password_cb *callback, void *u)
+ {
+@@ -405,7 +405,7 @@ int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp,
+     return ret;
  }
  
--int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
-+int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
+-int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
++int __cdecl PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
+                   pem_password_cb *callback, void *u)
  {
-     return (X509v3_add_ext(&(x->tbsRequest.requestExtensions), ex, loc) !=
-             NULL);
-@@ -74,107 +74,107 @@ int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc)
- 
- /* Single extensions */
- 
--int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
-+int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x)
+     int ok;
+@@ -478,7 +478,7 @@ int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *plen,
+  * presumably we also parse rfc822-style headers for S/MIME, so a common
+  * abstraction might well be more generally useful.
+  */
+-int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher)
++int __cdecl PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher)
  {
-     return X509v3_get_ext_count(x->singleRequestExtensions);
+     static const char ProcType[] = "Proc-Type:";
+     static const char ENCRYPTED[] = "ENCRYPTED";
+@@ -582,7 +582,7 @@ static int load_iv(char **fromp, unsigned char *to, int num)
  }
  
--int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
-+int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos)
+ #ifndef OPENSSL_NO_STDIO
+-int PEM_write(FILE *fp, const char *name, const char *header,
++int __cdecl PEM_write(FILE *fp, const char *name, const char *header,
+               const unsigned char *data, long len)
  {
-     return X509v3_get_ext_by_NID(x->singleRequestExtensions, nid, lastpos);
+     BIO *b;
+@@ -599,7 +599,7 @@ int PEM_write(FILE *fp, const char *name, const char *header,
+ }
+ #endif
+ 
+-int PEM_write_bio(BIO *bp, const char *name, const char *header,
++int __cdecl PEM_write_bio(BIO *bp, const char *name, const char *header,
+                   const unsigned char *data, long len)
+ {
+     int nlen, n, i, j, outl;
+@@ -662,7 +662,7 @@ int PEM_write_bio(BIO *bp, const char *name, const char *header,
  }
  
--int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj,
-                                int lastpos)
+ #ifndef OPENSSL_NO_STDIO
+-int PEM_read(FILE *fp, char **name, char **header, unsigned char **data,
++int __cdecl PEM_read(FILE *fp, char **name, char **header, unsigned char **data,
+              long *len)
  {
-     return X509v3_get_ext_by_OBJ(x->singleRequestExtensions, obj, lastpos);
+     BIO *b;
+@@ -882,7 +882,7 @@ err:
+  * By nature of the PEM format, all content must be printable ASCII (except
+  * for line endings).  Other characters are malformed input and will be rejected.
+  */
+-int PEM_read_bio_ex(BIO *bp, char **name_out, char **header,
++int __cdecl PEM_read_bio_ex(BIO *bp, char **name_out, char **header,
+                     unsigned char **data, long *len_out, unsigned int flags)
+ {
+     EVP_ENCODE_CTX *ctx = EVP_ENCODE_CTX_new();
+@@ -959,7 +959,7 @@ end:
+     return ret;
  }
  
--int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
-+int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos)
+-int PEM_read_bio(BIO *bp, char **name, char **header, unsigned char **data,
++int __cdecl PEM_read_bio(BIO *bp, char **name, char **header, unsigned char **data,
+                  long *len)
  {
-     return (X509v3_get_ext_by_critical
-             (x->singleRequestExtensions, crit, lastpos));
- }
+     return PEM_read_bio_ex(bp, name, header, data, len, PEM_FLAG_EAY_COMPATIBLE);
+diff --git a/crypto/pem/pem_oth.c b/crypto/pem/pem_oth.c
+index 566205331f..959c5ca5b3 100644
+--- a/crypto/pem/pem_oth.c
++++ b/crypto/pem/pem_oth.c
+@@ -17,7 +17,7 @@
  
--X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc)
+ /* Handle 'other' PEMs: not private keys */
+ 
+-void *PEM_ASN1_read_bio(d2i_of_void *d2i, const char *name, BIO *bp, void **x,
++void * __cdecl PEM_ASN1_read_bio(d2i_of_void *d2i, const char *name, BIO *bp, void **x,
+                         pem_password_cb *cb, void *u)
  {
-     return X509v3_get_ext(x->singleRequestExtensions, loc);
- }
- 
--X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc)
- {
-     return X509v3_delete_ext(x->singleRequestExtensions, loc);
- }
- 
--void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
-+void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx)
- {
-     return X509V3_get_d2i(x->singleRequestExtensions, nid, crit, idx);
- }
- 
--int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
-+int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
-                              unsigned long flags)
- {
-     return X509V3_add1_i2d(&x->singleRequestExtensions, nid, value, crit,
-                            flags);
- }
- 
--int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
-+int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc)
- {
-     return (X509v3_add_ext(&(x->singleRequestExtensions), ex, loc) != NULL);
- }
- 
- /* OCSP Basic response */
- 
--int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
-+int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x)
- {
-     return X509v3_get_ext_count(x->tbsResponseData.responseExtensions);
- }
- 
--int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
-+int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos)
- {
-     return (X509v3_get_ext_by_NID
-             (x->tbsResponseData.responseExtensions, nid, lastpos));
- }
- 
--int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
-                                   int lastpos)
- {
-     return (X509v3_get_ext_by_OBJ
-             (x->tbsResponseData.responseExtensions, obj, lastpos));
- }
- 
--int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
-+int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
-                                        int lastpos)
- {
-     return (X509v3_get_ext_by_critical
-             (x->tbsResponseData.responseExtensions, crit, lastpos));
- }
- 
--X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc)
- {
-     return X509v3_get_ext(x->tbsResponseData.responseExtensions, loc);
- }
- 
--X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc)
- {
-     return X509v3_delete_ext(x->tbsResponseData.responseExtensions, loc);
- }
- 
--void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
-+void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
-                                   int *idx)
- {
-     return X509V3_get_d2i(x->tbsResponseData.responseExtensions, nid, crit,
-                           idx);
- }
- 
--int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
-+int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
-                                 int crit, unsigned long flags)
- {
-     return X509V3_add1_i2d(&x->tbsResponseData.responseExtensions, nid,
-                            value, crit, flags);
- }
- 
--int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
-+int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
- {
-     return (X509v3_add_ext(&(x->tbsResponseData.responseExtensions), ex, loc)
-             != NULL);
-@@ -182,51 +182,51 @@ int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc)
- 
- /* OCSP single response extensions */
- 
--int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
-+int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x)
- {
-     return X509v3_get_ext_count(x->singleExtensions);
- }
- 
--int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
-+int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos)
- {
-     return X509v3_get_ext_by_NID(x->singleExtensions, nid, lastpos);
- }
- 
--int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
-                                    int lastpos)
- {
-     return X509v3_get_ext_by_OBJ(x->singleExtensions, obj, lastpos);
- }
- 
--int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
-+int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
-                                         int lastpos)
- {
-     return X509v3_get_ext_by_critical(x->singleExtensions, crit, lastpos);
- }
- 
--X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc)
- {
-     return X509v3_get_ext(x->singleExtensions, loc);
- }
- 
--X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
-+X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc)
- {
-     return X509v3_delete_ext(x->singleExtensions, loc);
- }
- 
--void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
-+void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
-                                    int *idx)
- {
-     return X509V3_get_d2i(x->singleExtensions, nid, crit, idx);
- }
- 
--int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
-+int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
-                                  int crit, unsigned long flags)
- {
-     return X509V3_add1_i2d(&x->singleExtensions, nid, value, crit, flags);
- }
- 
--int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
-+int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc)
- {
-     return (X509v3_add_ext(&(x->singleExtensions), ex, loc) != NULL);
- }
-@@ -279,14 +279,14 @@ static int ocsp_add1_nonce(STACK_OF(X509_EXTENSION) **exts,
- 
- /* Add nonce to an OCSP request */
- 
--int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
-+int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len)
- {
-     return ocsp_add1_nonce(&req->tbsRequest.requestExtensions, val, len);
- }
- 
- /* Same as above but for a response */
- 
--int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
-+int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
- {
-     return ocsp_add1_nonce(&resp->tbsResponseData.responseExtensions, val,
-                            len);
-@@ -306,7 +306,7 @@ int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len)
-  *  necessary. return == 0 is always an error.
+     const unsigned char *p = NULL;
+diff --git a/crypto/pem/pem_pk8.c b/crypto/pem/pem_pk8.c
+index ab6c4c6bde..00f09dd4e6 100644
+--- a/crypto/pem/pem_pk8.c
++++ b/crypto/pem/pem_pk8.c
+@@ -32,28 +32,28 @@ static int do_pk8pkey_fp(FILE *bp, EVP_PKEY *x, int isder,
+  * uses PKCS#5 v1.5 PBE algorithms whereas the others use PKCS#5 v2.0.
   */
  
--int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
-+int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
+-int PEM_write_bio_PKCS8PrivateKey_nid(BIO *bp, EVP_PKEY *x, int nid,
++int __cdecl PEM_write_bio_PKCS8PrivateKey_nid(BIO *bp, EVP_PKEY *x, int nid,
+                                       char *kstr, int klen,
+                                       pem_password_cb *cb, void *u)
  {
-     /*
-      * Since we are only interested in the presence or absence of
-@@ -344,7 +344,7 @@ int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs)
-  * Copy the nonce value (if any) from an OCSP request to a response.
-  */
- 
--int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
-+int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
- {
-     X509_EXTENSION *req_ext;
-     int req_idx;
-@@ -357,7 +357,7 @@ int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req)
-     return OCSP_BASICRESP_add_ext(resp, req_ext, -1);
+     return do_pk8pkey(bp, x, 0, nid, NULL, kstr, klen, cb, u);
  }
  
--X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
-+X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim)
+-int PEM_write_bio_PKCS8PrivateKey(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl PEM_write_bio_PKCS8PrivateKey(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                                   char *kstr, int klen,
+                                   pem_password_cb *cb, void *u)
  {
-     X509_EXTENSION *x = NULL;
-     OCSP_CRLID *cid = NULL;
-@@ -389,7 +389,7 @@ X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim)
+     return do_pk8pkey(bp, x, 0, -1, enc, kstr, klen, cb, u);
  }
  
- /*   AcceptableResponses ::= SEQUENCE OF OBJECT IDENTIFIER */
--X509_EXTENSION *OCSP_accept_responses_new(char **oids)
-+X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids)
+-int i2d_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl i2d_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                             char *kstr, int klen,
+                             pem_password_cb *cb, void *u)
  {
-     int nid;
-     STACK_OF(ASN1_OBJECT) *sk = NULL;
-@@ -410,7 +410,7 @@ X509_EXTENSION *OCSP_accept_responses_new(char **oids)
+     return do_pk8pkey(bp, x, 1, -1, enc, kstr, klen, cb, u);
  }
  
- /*  ArchiveCutoff ::= GeneralizedTime */
--X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
-+X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim)
+-int i2d_PKCS8PrivateKey_nid_bio(BIO *bp, EVP_PKEY *x, int nid,
++int __cdecl i2d_PKCS8PrivateKey_nid_bio(BIO *bp, EVP_PKEY *x, int nid,
+                                 char *kstr, int klen,
+                                 pem_password_cb *cb, void *u)
  {
-     X509_EXTENSION *x = NULL;
-     ASN1_GENERALIZEDTIME *gt = NULL;
-@@ -430,7 +430,7 @@ X509_EXTENSION *OCSP_archive_cutoff_new(char *tim)
-  * two--NID_ad_ocsp, NID_id_ad_caIssuers--and GeneralName value.  This method
-  * forces NID_ad_ocsp and uniformResourceLocator [6] IA5String.
-  */
--X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
-+X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls)
- {
-     X509_EXTENSION *x = NULL;
-     ASN1_IA5STRING *ia5 = NULL;
-diff --git a/crypto/ocsp/ocsp_ht.c b/crypto/ocsp/ocsp_ht.c
-index 42c3686431..b1aabd82f8 100644
---- a/crypto/ocsp/ocsp_ht.c
-+++ b/crypto/ocsp/ocsp_ht.c
-@@ -61,7 +61,7 @@ struct ocsp_req_ctx_st {
- 
- static int parse_http_line1(char *line);
- 
--OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
-+OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline)
- {
-     OCSP_REQ_CTX *rctx = OPENSSL_zalloc(sizeof(*rctx));
- 
-@@ -83,7 +83,7 @@ OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline)
-     return rctx;
+@@ -109,7 +109,7 @@ static int do_pk8pkey(BIO *bp, EVP_PKEY *x, int isder, int nid,
+     }
  }
  
--void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
-+void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
+-EVP_PKEY *d2i_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
++EVP_PKEY * __cdecl d2i_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
+                                   void *u)
  {
-     if (!rctx)
-         return;
-@@ -92,12 +92,12 @@ void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx)
-     OPENSSL_free(rctx);
+     PKCS8_PRIV_KEY_INFO *p8inf = NULL;
+@@ -147,27 +147,27 @@ EVP_PKEY *d2i_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
+ 
+ #ifndef OPENSSL_NO_STDIO
+ 
+-int i2d_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl i2d_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                            char *kstr, int klen, pem_password_cb *cb, void *u)
+ {
+     return do_pk8pkey_fp(fp, x, 1, -1, enc, kstr, klen, cb, u);
  }
  
--BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
-+BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx)
+-int i2d_PKCS8PrivateKey_nid_fp(FILE *fp, EVP_PKEY *x, int nid,
++int __cdecl i2d_PKCS8PrivateKey_nid_fp(FILE *fp, EVP_PKEY *x, int nid,
+                                char *kstr, int klen,
+                                pem_password_cb *cb, void *u)
  {
-     return rctx->mem;
+     return do_pk8pkey_fp(fp, x, 1, nid, NULL, kstr, klen, cb, u);
  }
  
--void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
-+void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
+-int PEM_write_PKCS8PrivateKey_nid(FILE *fp, EVP_PKEY *x, int nid,
++int __cdecl PEM_write_PKCS8PrivateKey_nid(FILE *fp, EVP_PKEY *x, int nid,
+                                   char *kstr, int klen,
+                                   pem_password_cb *cb, void *u)
  {
-     if (len == 0)
-         rctx->max_resp_len = OCSP_MAX_RESP_LENGTH;
-@@ -105,7 +105,7 @@ void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len)
-         rctx->max_resp_len = len;
+     return do_pk8pkey_fp(fp, x, 0, nid, NULL, kstr, klen, cb, u);
  }
  
--int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
-+int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
+-int PEM_write_PKCS8PrivateKey(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl PEM_write_PKCS8PrivateKey(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                               char *kstr, int klen, pem_password_cb *cb,
+                               void *u)
  {
-     static const char req_hdr[] =
-         "Content-Type: application/ocsp-request\r\n"
-@@ -119,7 +119,7 @@ int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it, ASN1_VALUE *val)
-     return 1;
+@@ -190,7 +190,7 @@ static int do_pk8pkey_fp(FILE *fp, EVP_PKEY *x, int isder, int nid,
+     return ret;
  }
  
--int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
-+int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
-                           ASN1_VALUE **pval, const ASN1_ITEM *it)
+-EVP_PKEY *d2i_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY **x, pem_password_cb *cb,
++EVP_PKEY * __cdecl d2i_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY **x, pem_password_cb *cb,
+                                  void *u)
  {
-     int rv, len;
-@@ -138,7 +138,7 @@ int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx,
-     return 1;
+     BIO *bp;
+diff --git a/crypto/pem/pem_pkey.c b/crypto/pem/pem_pkey.c
+index aa032d2b1c..f9ba80593b 100644
+--- a/crypto/pem/pem_pkey.c
++++ b/crypto/pem/pem_pkey.c
+@@ -102,7 +102,7 @@ int PEM_write_bio_PrivateKey(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
+     return PEM_write_bio_PrivateKey_traditional(bp, x, enc, kstr, klen, cb, u);
  }
  
--int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
-+int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
- {
-     static const char http_hdr[] = "%s %s HTTP/1.0\r\n";
- 
-@@ -151,13 +151,13 @@ int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path)
-     return 1;
+-int PEM_write_bio_PrivateKey_traditional(BIO *bp, EVP_PKEY *x,
++int __cdecl PEM_write_bio_PrivateKey_traditional(BIO *bp, EVP_PKEY *x,
+                                          const EVP_CIPHER *enc,
+                                          unsigned char *kstr, int klen,
+                                          pem_password_cb *cb, void *u)
+@@ -113,7 +113,7 @@ int PEM_write_bio_PrivateKey_traditional(BIO *bp, EVP_PKEY *x,
+                               pem_str, bp, x, enc, kstr, klen, cb, u);
  }
  
--int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
-+int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req)
+-EVP_PKEY *PEM_read_bio_Parameters(BIO *bp, EVP_PKEY **x)
++EVP_PKEY * __cdecl PEM_read_bio_Parameters(BIO *bp, EVP_PKEY **x)
  {
-     return OCSP_REQ_CTX_i2d(rctx, ASN1_ITEM_rptr(OCSP_REQUEST),
-                             (ASN1_VALUE *)req);
+     char *nm = NULL;
+     const unsigned char *p = NULL;
+@@ -151,7 +151,7 @@ EVP_PKEY *PEM_read_bio_Parameters(BIO *bp, EVP_PKEY **x)
+     return ret;
  }
  
--int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
-+int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
-                              const char *name, const char *value)
+-int PEM_write_bio_Parameters(BIO *bp, EVP_PKEY *x)
++int __cdecl PEM_write_bio_Parameters(BIO *bp, EVP_PKEY *x)
  {
-     if (!name)
-@@ -176,7 +176,7 @@ int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
-     return 1;
+     char pem_str[80];
+     if (!x->ameth || !x->ameth->param_encode)
+diff --git a/crypto/pem/pem_sign.c b/crypto/pem/pem_sign.c
+index 7e7b32ebf7..eafba5d865 100644
+--- a/crypto/pem/pem_sign.c
++++ b/crypto/pem/pem_sign.c
+@@ -14,17 +14,17 @@
+ #include <openssl/x509.h>
+ #include <openssl/pem.h>
+ 
+-int PEM_SignInit(EVP_MD_CTX *ctx, EVP_MD *type)
++int __cdecl PEM_SignInit(EVP_MD_CTX *ctx, EVP_MD *type)
+ {
+     return EVP_DigestInit_ex(ctx, type, NULL);
  }
  
--OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
-+OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
-                                int maxline)
+-int PEM_SignUpdate(EVP_MD_CTX *ctx, unsigned char *data, unsigned int count)
++int __cdecl PEM_SignUpdate(EVP_MD_CTX *ctx, unsigned char *data, unsigned int count)
  {
- 
-@@ -269,7 +269,7 @@ static int parse_http_line1(char *line)
- 
+     return EVP_DigestUpdate(ctx, data, count);
  }
  
--int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
-+int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
+-int PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
++int __cdecl PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
+                   unsigned int *siglen, EVP_PKEY *pkey)
  {
-     int i, n;
-     const unsigned char *p;
-@@ -469,7 +469,7 @@ int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx)
- 
- }
- 
--int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
-+int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
- {
-     return OCSP_REQ_CTX_nbio_d2i(rctx,
-                                  (ASN1_VALUE **)presp,
-@@ -478,7 +478,7 @@ int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx)
- 
- /* Blocking OCSP request handler: now a special case of non-blocking I/O */
- 
--OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
-+OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req)
- {
-     OCSP_RESPONSE *resp = NULL;
-     OCSP_REQ_CTX *ctx;
-diff --git a/crypto/ocsp/ocsp_lib.c b/crypto/ocsp/ocsp_lib.c
-index b8b91cc9eb..81084ae167 100644
---- a/crypto/ocsp/ocsp_lib.c
-+++ b/crypto/ocsp/ocsp_lib.c
-@@ -19,7 +19,7 @@
- 
- /* Convert a certificate and its issuer to an OCSP_CERTID */
- 
--OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-+OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-                              const X509 *issuer)
- {
-     X509_NAME *iname;
-@@ -38,7 +38,7 @@ OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-     return OCSP_cert_id_new(dgst, iname, ikey, serial);
- }
- 
--OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
-+OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
-                               const X509_NAME *issuerName,
-                               const ASN1_BIT_STRING *issuerKey,
-                               const ASN1_INTEGER *serialNumber)
-@@ -88,7 +88,7 @@ OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
+     unsigned char *m;
+diff --git a/crypto/pem/pvkfmt.c b/crypto/pem/pvkfmt.c
+index 2bbee4a306..c793cff5a5 100644
+--- a/crypto/pem/pvkfmt.c
++++ b/crypto/pem/pvkfmt.c
+@@ -382,22 +382,22 @@ static EVP_PKEY *b2i_rsa(const unsigned char **in,
      return NULL;
  }
  
--int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
-+int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+-EVP_PKEY *b2i_PrivateKey(const unsigned char **in, long length)
++EVP_PKEY * __cdecl b2i_PrivateKey(const unsigned char **in, long length)
  {
-     int ret;
-     ret = OBJ_cmp(a->hashAlgorithm.algorithm, b->hashAlgorithm.algorithm);
-@@ -100,7 +100,7 @@ int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
-     return ASN1_OCTET_STRING_cmp(&a->issuerKeyHash, &b->issuerKeyHash);
+     return do_b2i(in, length, 0);
  }
  
--int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
-+int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
+-EVP_PKEY *b2i_PublicKey(const unsigned char **in, long length)
++EVP_PKEY * __cdecl b2i_PublicKey(const unsigned char **in, long length)
  {
-     int ret;
-     ret = OCSP_id_issuer_cmp(a, b);
-@@ -114,7 +114,7 @@ int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b)
-  * whether it is SSL.
+     return do_b2i(in, length, 1);
+ }
+ 
+-EVP_PKEY *b2i_PrivateKey_bio(BIO *in)
++EVP_PKEY * __cdecl b2i_PrivateKey_bio(BIO *in)
+ {
+     return do_b2i_bio(in, 0);
+ }
+ 
+-EVP_PKEY *b2i_PublicKey_bio(BIO *in)
++EVP_PKEY * __cdecl b2i_PublicKey_bio(BIO *in)
+ {
+     return do_b2i_bio(in, 1);
+ }
+@@ -599,12 +599,12 @@ static void write_dsa(unsigned char **out, DSA *dsa, int ispub)
+     return;
+ }
+ 
+-int i2b_PrivateKey_bio(BIO *out, EVP_PKEY *pk)
++int __cdecl i2b_PrivateKey_bio(BIO *out, EVP_PKEY *pk)
+ {
+     return do_i2b_bio(out, pk, 0);
+ }
+ 
+-int i2b_PublicKey_bio(BIO *out, EVP_PKEY *pk)
++int __cdecl i2b_PublicKey_bio(BIO *out, EVP_PKEY *pk)
+ {
+     return do_i2b_bio(out, pk, 1);
+ }
+@@ -746,7 +746,7 @@ static EVP_PKEY *do_PVK_body(const unsigned char **in,
+     return ret;
+ }
+ 
+-EVP_PKEY *b2i_PVK_bio(BIO *in, pem_password_cb *cb, void *u)
++EVP_PKEY * __cdecl b2i_PVK_bio(BIO *in, pem_password_cb *cb, void *u)
+ {
+     unsigned char pvk_hdr[24], *buf = NULL;
+     const unsigned char *p;
+@@ -864,7 +864,7 @@ static int i2b_PVK(unsigned char **out, EVP_PKEY *pk, int enclevel,
+     return -1;
+ }
+ 
+-int i2b_PVK_bio(BIO *out, EVP_PKEY *pk, int enclevel,
++int __cdecl i2b_PVK_bio(BIO *out, EVP_PKEY *pk, int enclevel,
+                 pem_password_cb *cb, void *u)
+ {
+     unsigned char *tmp = NULL;
+diff --git a/crypto/pkcs12/p12_add.c b/crypto/pkcs12/p12_add.c
+index 193ed8097d..f18c196e3e 100644
+--- a/crypto/pkcs12/p12_add.c
++++ b/crypto/pkcs12/p12_add.c
+@@ -14,7 +14,7 @@
+ 
+ /* Pack an object into an OCTET STRING and turn into a safebag */
+ 
+-PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
++PKCS12_SAFEBAG * __cdecl PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+                                          int nid1, int nid2)
+ {
+     PKCS12_BAGS *bag;
+@@ -43,7 +43,7 @@ PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+ }
+ 
+ /* Turn a stack of SAFEBAGS into a PKCS#7 data Contentinfo */
+-PKCS7 *PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk)
++PKCS7 * __cdecl PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk)
+ {
+     PKCS7 *p7;
+ 
+@@ -69,7 +69,7 @@ PKCS7 *PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk)
+ }
+ 
+ /* Unpack SAFEBAGS from PKCS#7 data ContentInfo */
+-STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7data(PKCS7 *p7)
++STACK_OF(PKCS12_SAFEBAG) * __cdecl PKCS12_unpack_p7data(PKCS7 *p7)
+ {
+     if (!PKCS7_type_is_data(p7)) {
+         PKCS12err(PKCS12_F_PKCS12_UNPACK_P7DATA,
+@@ -81,7 +81,7 @@ STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7data(PKCS7 *p7)
+ 
+ /* Turn a stack of SAFEBAGS into a PKCS#7 encrypted data ContentInfo */
+ 
+-PKCS7 *PKCS12_pack_p7encdata(int pbe_nid, const char *pass, int passlen,
++PKCS7 * __cdecl PKCS12_pack_p7encdata(int pbe_nid, const char *pass, int passlen,
+                              unsigned char *salt, int saltlen, int iter,
+                              STACK_OF(PKCS12_SAFEBAG) *bags)
+ {
+@@ -127,7 +127,7 @@ PKCS7 *PKCS12_pack_p7encdata(int pbe_nid, const char *pass, int passlen,
+     return NULL;
+ }
+ 
+-STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7encdata(PKCS7 *p7, const char *pass,
++STACK_OF(PKCS12_SAFEBAG) * __cdecl PKCS12_unpack_p7encdata(PKCS7 *p7, const char *pass,
+                                                   int passlen)
+ {
+     if (!PKCS7_type_is_encrypted(p7))
+@@ -138,13 +138,13 @@ STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7encdata(PKCS7 *p7, const char *pass,
+                                    p7->d.encrypted->enc_data->enc_data, 1);
+ }
+ 
+-PKCS8_PRIV_KEY_INFO *PKCS12_decrypt_skey(const PKCS12_SAFEBAG *bag,
++PKCS8_PRIV_KEY_INFO * __cdecl PKCS12_decrypt_skey(const PKCS12_SAFEBAG *bag,
+                                          const char *pass, int passlen)
+ {
+     return PKCS8_decrypt(bag->value.shkeybag, pass, passlen);
+ }
+ 
+-int PKCS12_pack_authsafes(PKCS12 *p12, STACK_OF(PKCS7) *safes)
++int __cdecl PKCS12_pack_authsafes(PKCS12 *p12, STACK_OF(PKCS7) *safes)
+ {
+     if (ASN1_item_pack(safes, ASN1_ITEM_rptr(PKCS12_AUTHSAFES),
+                        &p12->authsafes->d.data))
+@@ -152,7 +152,7 @@ int PKCS12_pack_authsafes(PKCS12 *p12, STACK_OF(PKCS7) *safes)
+     return 0;
+ }
+ 
+-STACK_OF(PKCS7) *PKCS12_unpack_authsafes(const PKCS12 *p12)
++STACK_OF(PKCS7) * __cdecl PKCS12_unpack_authsafes(const PKCS12 *p12)
+ {
+     if (!PKCS7_type_is_data(p12->authsafes)) {
+         PKCS12err(PKCS12_F_PKCS12_UNPACK_AUTHSAFES,
+diff --git a/crypto/pkcs12/p12_attr.c b/crypto/pkcs12/p12_attr.c
+index c324f50514..81fe2259fd 100644
+--- a/crypto/pkcs12/p12_attr.c
++++ b/crypto/pkcs12/p12_attr.c
+@@ -14,7 +14,7 @@
+ 
+ /* Add a local keyid to a safebag */
+ 
+-int PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, unsigned char *name,
++int __cdecl PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, unsigned char *name,
+                           int namelen)
+ {
+     if (X509at_add1_attr_by_NID(&bag->attrib, NID_localKeyID,
+@@ -26,7 +26,7 @@ int PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, unsigned char *name,
+ 
+ /* Add key usage to PKCS#8 structure */
+ 
+-int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
++int __cdecl PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
+ {
+     unsigned char us_val = (unsigned char)usage;
+     return PKCS8_pkey_add1_attr_by_NID(p8, NID_key_usage,
+@@ -35,7 +35,7 @@ int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage)
+ 
+ /* Add a friendlyname to a safebag */
+ 
+-int PKCS12_add_friendlyname_asc(PKCS12_SAFEBAG *bag, const char *name,
++int __cdecl PKCS12_add_friendlyname_asc(PKCS12_SAFEBAG *bag, const char *name,
+                                 int namelen)
+ {
+     if (X509at_add1_attr_by_NID(&bag->attrib, NID_friendlyName,
+@@ -45,7 +45,7 @@ int PKCS12_add_friendlyname_asc(PKCS12_SAFEBAG *bag, const char *name,
+         return 0;
+ }
+ 
+-int PKCS12_add_friendlyname_utf8(PKCS12_SAFEBAG *bag, const char *name,
++int __cdecl PKCS12_add_friendlyname_utf8(PKCS12_SAFEBAG *bag, const char *name,
+                                 int namelen)
+ {
+     if (X509at_add1_attr_by_NID(&bag->attrib, NID_friendlyName,
+@@ -55,7 +55,7 @@ int PKCS12_add_friendlyname_utf8(PKCS12_SAFEBAG *bag, const char *name,
+         return 0;
+ }
+ 
+-int PKCS12_add_friendlyname_uni(PKCS12_SAFEBAG *bag,
++int __cdecl PKCS12_add_friendlyname_uni(PKCS12_SAFEBAG *bag,
+                                 const unsigned char *name, int namelen)
+ {
+     if (X509at_add1_attr_by_NID(&bag->attrib, NID_friendlyName,
+@@ -65,7 +65,7 @@ int PKCS12_add_friendlyname_uni(PKCS12_SAFEBAG *bag,
+         return 0;
+ }
+ 
+-int PKCS12_add_CSPName_asc(PKCS12_SAFEBAG *bag, const char *name, int namelen)
++int __cdecl PKCS12_add_CSPName_asc(PKCS12_SAFEBAG *bag, const char *name, int namelen)
+ {
+     if (X509at_add1_attr_by_NID(&bag->attrib, NID_ms_csp_name,
+                                 MBSTRING_ASC, (unsigned char *)name, namelen))
+@@ -74,7 +74,7 @@ int PKCS12_add_CSPName_asc(PKCS12_SAFEBAG *bag, const char *name, int namelen)
+         return 0;
+ }
+ 
+-ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
++ASN1_TYPE * __cdecl PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+                                int attr_nid)
+ {
+     X509_ATTRIBUTE *attrib;
+@@ -84,7 +84,7 @@ ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+     return X509_ATTRIBUTE_get0_type(attrib, 0);
+ }
+ 
+-char *PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag)
++char * __cdecl PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag)
+ {
+     const ASN1_TYPE *atype;
+ 
+@@ -96,7 +96,7 @@ char *PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag)
+                             atype->value.bmpstring->length);
+ }
+ 
+-const STACK_OF(X509_ATTRIBUTE) *
++const STACK_OF(X509_ATTRIBUTE) * __cdecl 
+ PKCS12_SAFEBAG_get0_attrs(const PKCS12_SAFEBAG *bag)
+ {
+     return bag->attrib;
+diff --git a/crypto/pkcs12/p12_crpt.c b/crypto/pkcs12/p12_crpt.c
+index 1448924b01..ad598a35ac 100644
+--- a/crypto/pkcs12/p12_crpt.c
++++ b/crypto/pkcs12/p12_crpt.c
+@@ -13,7 +13,7 @@
+ 
+ /* PKCS#12 PBE algorithms now in static table */
+ 
+-void PKCS12_PBE_add(void)
++void __cdecl PKCS12_PBE_add(void)
+ {
+ }
+ 
+@@ -25,7 +25,7 @@ int __cdecl PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passl
+     int saltlen, iter, ret;
+     unsigned char *salt;
+     unsigned char key[EVP_MAX_KEY_LENGTH], iv[EVP_MAX_IV_LENGTH];
+-    int (*pkcs12_key_gen)(const char *pass, int passlen,
++    int (__cdecl *pkcs12_key_gen)(const char *pass, int passlen,
+                           unsigned char *salt, int slen,
+                           int id, int iter, int n,
+                           unsigned char *out,
+diff --git a/crypto/pkcs12/p12_crt.c b/crypto/pkcs12/p12_crt.c
+index 10cf8dd589..9d980cdf33 100644
+--- a/crypto/pkcs12/p12_crt.c
++++ b/crypto/pkcs12/p12_crt.c
+@@ -28,7 +28,7 @@ static int copy_bag_attr(PKCS12_SAFEBAG *bag, EVP_PKEY *pkey, int nid)
+     return 1;
+ }
+ 
+-PKCS12 *PKCS12_create(const char *pass, const char *name, EVP_PKEY *pkey, X509 *cert,
++PKCS12 * __cdecl PKCS12_create(const char *pass, const char *name, EVP_PKEY *pkey, X509 *cert,
+                       STACK_OF(X509) *ca, int nid_key, int nid_cert, int iter,
+                       int mac_iter, int keytype)
+ {
+@@ -131,7 +131,7 @@ PKCS12 *PKCS12_create(const char *pass, const char *name, EVP_PKEY *pkey, X509 *
+ 
+ }
+ 
+-PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
++PKCS12_SAFEBAG * __cdecl PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
+ {
+     PKCS12_SAFEBAG *bag = NULL;
+     char *name;
+@@ -168,7 +168,7 @@ PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert)
+ 
+ }
+ 
+-PKCS12_SAFEBAG *PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
++PKCS12_SAFEBAG * __cdecl PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
+                                EVP_PKEY *key, int key_usage, int iter,
+                                int nid_key, const char *pass)
+ {
+@@ -202,7 +202,7 @@ PKCS12_SAFEBAG *PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
+ 
+ }
+ 
+-int PKCS12_add_safe(STACK_OF(PKCS7) **psafes, STACK_OF(PKCS12_SAFEBAG) *bags,
++int __cdecl PKCS12_add_safe(STACK_OF(PKCS7) **psafes, STACK_OF(PKCS12_SAFEBAG) *bags,
+                     int nid_safe, int iter, const char *pass)
+ {
+     PKCS7 *p7 = NULL;
+@@ -271,7 +271,7 @@ static int pkcs12_add_bag(STACK_OF(PKCS12_SAFEBAG) **pbags,
+ 
+ }
+ 
+-PKCS12 *PKCS12_add_safes(STACK_OF(PKCS7) *safes, int nid_p7)
++PKCS12 * __cdecl PKCS12_add_safes(STACK_OF(PKCS7) *safes, int nid_p7)
+ {
+     PKCS12 *p12;
+     if (nid_p7 <= 0)
+diff --git a/crypto/pkcs12/p12_decr.c b/crypto/pkcs12/p12_decr.c
+index 3c860584e8..e863a1398b 100644
+--- a/crypto/pkcs12/p12_decr.c
++++ b/crypto/pkcs12/p12_decr.c
+@@ -20,7 +20,7 @@
+  * Encrypt/Decrypt a buffer based on password and algor, result in a
+  * OPENSSL_malloc'ed buffer
+  */
+-unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
++unsigned char * __cdecl PKCS12_pbe_crypt(const X509_ALGOR *algor,
+                                 const char *pass, int passlen,
+                                 const unsigned char *in, int inlen,
+                                 unsigned char **data, int *datalen, int en_de)
+@@ -79,7 +79,7 @@ unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
+  * after use.
   */
  
--int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
-+int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
-                    int *pssl)
+-void *PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
++void * __cdecl PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
+                               const char *pass, int passlen,
+                               const ASN1_OCTET_STRING *oct, int zbuf)
  {
-     char *p, *buf;
-diff --git a/crypto/ocsp/ocsp_prn.c b/crypto/ocsp/ocsp_prn.c
-index 5605812ef7..abba225944 100644
---- a/crypto/ocsp/ocsp_prn.c
-+++ b/crypto/ocsp/ocsp_prn.c
-@@ -46,7 +46,7 @@ static const char *do_table2string(long s, const OCSP_TBLSTR *ts, size_t len)
+@@ -121,7 +121,7 @@ void *PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
+  * encoding.
+  */
  
- #define table2string(s, tbl) do_table2string(s, tbl, OSSL_NELEM(tbl))
+-ASN1_OCTET_STRING *PKCS12_item_i2d_encrypt(X509_ALGOR *algor,
++ASN1_OCTET_STRING * __cdecl PKCS12_item_i2d_encrypt(X509_ALGOR *algor,
+                                            const ASN1_ITEM *it,
+                                            const char *pass, int passlen,
+                                            void *obj, int zbuf)
+diff --git a/crypto/pkcs12/p12_init.c b/crypto/pkcs12/p12_init.c
+index 88db0f2dc4..1d81d0f25d 100644
+--- a/crypto/pkcs12/p12_init.c
++++ b/crypto/pkcs12/p12_init.c
+@@ -14,7 +14,7 @@
  
--const char *OCSP_response_status_str(long s)
-+const char * __cdecl OCSP_response_status_str(long s)
+ /* Initialise a PKCS12 structure to take data */
+ 
+-PKCS12 *PKCS12_init(int mode)
++PKCS12 * __cdecl PKCS12_init(int mode)
  {
-     static const OCSP_TBLSTR rstat_tbl[] = {
-         {OCSP_RESPONSE_STATUS_SUCCESSFUL, "successful"},
-@@ -59,7 +59,7 @@ const char *OCSP_response_status_str(long s)
-     return table2string(s, rstat_tbl);
+     PKCS12 *pkcs12;
+ 
+diff --git a/crypto/pkcs12/p12_key.c b/crypto/pkcs12/p12_key.c
+index ab31a61295..d14957992e 100644
+--- a/crypto/pkcs12/p12_key.c
++++ b/crypto/pkcs12/p12_key.c
+@@ -27,7 +27,7 @@ void h__dump(unsigned char *p, int len);
+ # define min(a,b) ((a) < (b) ? (a) : (b))
+ #endif
+ 
+-int PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
++int __cdecl PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
+                        int saltlen, int id, int iter, int n,
+                        unsigned char *out, const EVP_MD *md_type)
+ {
+@@ -50,7 +50,7 @@ int PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
+     return ret;
  }
  
--const char *OCSP_cert_status_str(long s)
-+const char * __cdecl OCSP_cert_status_str(long s)
+-int PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
++int __cdecl PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
+                         int saltlen, int id, int iter, int n,
+                         unsigned char *out, const EVP_MD *md_type)
  {
-     static const OCSP_TBLSTR cstat_tbl[] = {
-         {V_OCSP_CERTSTATUS_GOOD, "good"},
-@@ -69,7 +69,7 @@ const char *OCSP_cert_status_str(long s)
-     return table2string(s, cstat_tbl);
+@@ -73,7 +73,7 @@ int PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
+     return ret;
  }
  
--const char *OCSP_crl_reason_str(long s)
-+const char * __cdecl OCSP_crl_reason_str(long s)
+-int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
++int __cdecl PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
+                        int saltlen, int id, int iter, int n,
+                        unsigned char *out, const EVP_MD *md_type)
  {
-     static const OCSP_TBLSTR reason_tbl[] = {
-         {OCSP_REVOKED_STATUS_UNSPECIFIED, "unspecified"},
-@@ -84,7 +84,7 @@ const char *OCSP_crl_reason_str(long s)
-     return table2string(s, reason_tbl);
+diff --git a/crypto/pkcs12/p12_kiss.c b/crypto/pkcs12/p12_kiss.c
+index 7ab98385a7..5f7a53d4cd 100644
+--- a/crypto/pkcs12/p12_kiss.c
++++ b/crypto/pkcs12/p12_kiss.c
+@@ -29,7 +29,7 @@ static int parse_bag(PKCS12_SAFEBAG *bag, const char *pass, int passlen,
+  * uninitialised.
+  */
+ 
+-int PKCS12_parse(PKCS12 *p12, const char *pass, EVP_PKEY **pkey, X509 **cert,
++int __cdecl PKCS12_parse(PKCS12 *p12, const char *pass, EVP_PKEY **pkey, X509 **cert,
+                  STACK_OF(X509) **ca)
+ {
+     STACK_OF(X509) *ocerts = NULL;
+diff --git a/crypto/pkcs12/p12_mutl.c b/crypto/pkcs12/p12_mutl.c
+index 0cbbed364a..d613d16cec 100644
+--- a/crypto/pkcs12/p12_mutl.c
++++ b/crypto/pkcs12/p12_mutl.c
+@@ -15,12 +15,12 @@
+ #include <openssl/pkcs12.h>
+ #include "p12_lcl.h"
+ 
+-int PKCS12_mac_present(const PKCS12 *p12)
++int __cdecl PKCS12_mac_present(const PKCS12 *p12)
+ {
+     return p12->mac ? 1 : 0;
  }
  
--int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
-+int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
+-void PKCS12_get0_mac(const ASN1_OCTET_STRING **pmac,
++void __cdecl PKCS12_get0_mac(const ASN1_OCTET_STRING **pmac,
+                      const X509_ALGOR **pmacalg,
+                      const ASN1_OCTET_STRING **psalt,
+                      const ASN1_INTEGER **piter,
+@@ -67,9 +67,9 @@ static int pkcs12_gen_gost_mac_key(const char *pass, int passlen,
+ }
+ 
+ /* Generate a MAC */
+-static int pkcs12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
++static int __cdecl pkcs12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+                           unsigned char *mac, unsigned int *maclen,
+-                          int (*pkcs12_key_gen)(const char *pass, int passlen,
++                          int (__cdecl *pkcs12_key_gen)(const char *pass, int passlen,
+                                                 unsigned char *salt, int slen,
+                                                 int id, int iter, int n,
+                                                 unsigned char *out,
+@@ -140,14 +140,14 @@ err:
+     return ret;
+ }
+ 
+-int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
++int __cdecl PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+                    unsigned char *mac, unsigned int *maclen)
+ {
+     return pkcs12_gen_mac(p12, pass, passlen, mac, maclen, NULL);
+ }
+ 
+ /* Verify the mac */
+-int PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen)
++int __cdecl PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen)
+ {
+     unsigned char mac[EVP_MAX_MD_SIZE];
+     unsigned int maclen;
+@@ -172,7 +172,7 @@ int PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen)
+ 
+ /* Set a mac */
+ 
+-int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
++int __cdecl PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
+                    unsigned char *salt, int saltlen, int iter,
+                    const EVP_MD *md_type)
+ {
+@@ -203,7 +203,7 @@ int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
+ }
+ 
+ /* Set up a mac structure */
+-int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int saltlen,
++int __cdecl PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt, int saltlen,
+                      const EVP_MD *md_type)
+ {
+     X509_ALGOR *macalg;
+diff --git a/crypto/pkcs12/p12_npas.c b/crypto/pkcs12/p12_npas.c
+index 0ce75ed330..ba2c352e9a 100644
+--- a/crypto/pkcs12/p12_npas.c
++++ b/crypto/pkcs12/p12_npas.c
+@@ -29,7 +29,7 @@ static int alg_get(const X509_ALGOR *alg, int *pnid, int *piter,
+  * Change the password on a PKCS#12 structure.
+  */
+ 
+-int PKCS12_newpass(PKCS12 *p12, const char *oldpass, const char *newpass)
++int __cdecl PKCS12_newpass(PKCS12 *p12, const char *oldpass, const char *newpass)
+ {
+     /* Check for NULL PKCS12 structure */
+ 
+diff --git a/crypto/pkcs12/p12_p8d.c b/crypto/pkcs12/p12_p8d.c
+index d926a77df8..f12e863deb 100644
+--- a/crypto/pkcs12/p12_p8d.c
++++ b/crypto/pkcs12/p12_p8d.c
+@@ -11,7 +11,7 @@
+ #include "internal/cryptlib.h"
+ #include <openssl/pkcs12.h>
+ 
+-PKCS8_PRIV_KEY_INFO *PKCS8_decrypt(const X509_SIG *p8, const char *pass,
++PKCS8_PRIV_KEY_INFO * __cdecl PKCS8_decrypt(const X509_SIG *p8, const char *pass,
+                                    int passlen)
+ {
+     const X509_ALGOR *dalg;
+diff --git a/crypto/pkcs12/p12_p8e.c b/crypto/pkcs12/p12_p8e.c
+index 86a07e1335..d47756c2c0 100644
+--- a/crypto/pkcs12/p12_p8e.c
++++ b/crypto/pkcs12/p12_p8e.c
+@@ -12,7 +12,7 @@
+ #include <openssl/pkcs12.h>
+ #include "internal/x509_int.h"
+ 
+-X509_SIG *PKCS8_encrypt(int pbe_nid, const EVP_CIPHER *cipher,
++X509_SIG * __cdecl PKCS8_encrypt(int pbe_nid, const EVP_CIPHER *cipher,
+                         const char *pass, int passlen,
+                         unsigned char *salt, int saltlen, int iter,
+                         PKCS8_PRIV_KEY_INFO *p8inf)
+@@ -41,7 +41,7 @@ X509_SIG *PKCS8_encrypt(int pbe_nid, const EVP_CIPHER *cipher,
+     return p8;
+ }
+ 
+-X509_SIG *PKCS8_set0_pbe(const char *pass, int passlen,
++X509_SIG * __cdecl PKCS8_set0_pbe(const char *pass, int passlen,
+                          PKCS8_PRIV_KEY_INFO *p8inf, X509_ALGOR *pbe)
+ {
+     X509_SIG *p8;
+diff --git a/crypto/pkcs12/p12_sbag.c b/crypto/pkcs12/p12_sbag.c
+index a09c5b9313..846846f51e 100644
+--- a/crypto/pkcs12/p12_sbag.c
++++ b/crypto/pkcs12/p12_sbag.c
+@@ -19,32 +19,32 @@ ASN1_TYPE *PKCS12_get_attr(const PKCS12_SAFEBAG *bag, int attr_nid)
+ }
+ #endif
+ 
+-const ASN1_TYPE *PKCS12_SAFEBAG_get0_attr(const PKCS12_SAFEBAG *bag,
++const ASN1_TYPE * __cdecl PKCS12_SAFEBAG_get0_attr(const PKCS12_SAFEBAG *bag,
+                                           int attr_nid)
+ {
+     return PKCS12_get_attr_gen(bag->attrib, attr_nid);
+ }
+ 
+-ASN1_TYPE *PKCS8_get_attr(PKCS8_PRIV_KEY_INFO *p8, int attr_nid)
++ASN1_TYPE * __cdecl PKCS8_get_attr(PKCS8_PRIV_KEY_INFO *p8, int attr_nid)
+ {
+     return PKCS12_get_attr_gen(PKCS8_pkey_get0_attrs(p8), attr_nid);
+ }
+ 
+-const PKCS8_PRIV_KEY_INFO *PKCS12_SAFEBAG_get0_p8inf(const PKCS12_SAFEBAG *bag)
++const PKCS8_PRIV_KEY_INFO * __cdecl PKCS12_SAFEBAG_get0_p8inf(const PKCS12_SAFEBAG *bag)
+ {
+     if (PKCS12_SAFEBAG_get_nid(bag) != NID_keyBag)
+         return NULL;
+     return bag->value.keybag;
+ }
+ 
+-const X509_SIG *PKCS12_SAFEBAG_get0_pkcs8(const PKCS12_SAFEBAG *bag)
++const X509_SIG * __cdecl PKCS12_SAFEBAG_get0_pkcs8(const PKCS12_SAFEBAG *bag)
+ {
+     if (OBJ_obj2nid(bag->type) != NID_pkcs8ShroudedKeyBag)
+         return NULL;
+     return bag->value.shkeybag;
+ }
+ 
+-const STACK_OF(PKCS12_SAFEBAG) *
++const STACK_OF(PKCS12_SAFEBAG) * __cdecl 
+ PKCS12_SAFEBAG_get0_safes(const PKCS12_SAFEBAG *bag)
+ {
+     if (OBJ_obj2nid(bag->type) != NID_safeContentsBag)
+@@ -52,17 +52,17 @@ PKCS12_SAFEBAG_get0_safes(const PKCS12_SAFEBAG *bag)
+     return bag->value.safes;
+ }
+ 
+-const ASN1_OBJECT *PKCS12_SAFEBAG_get0_type(const PKCS12_SAFEBAG *bag)
++const ASN1_OBJECT * __cdecl PKCS12_SAFEBAG_get0_type(const PKCS12_SAFEBAG *bag)
+ {
+     return bag->type;
+ }
+ 
+-int PKCS12_SAFEBAG_get_nid(const PKCS12_SAFEBAG *bag)
++int __cdecl PKCS12_SAFEBAG_get_nid(const PKCS12_SAFEBAG *bag)
+ {
+     return OBJ_obj2nid(bag->type);
+ }
+ 
+-int PKCS12_SAFEBAG_get_bag_nid(const PKCS12_SAFEBAG *bag)
++int __cdecl PKCS12_SAFEBAG_get_bag_nid(const PKCS12_SAFEBAG *bag)
+ {
+     int btype = PKCS12_SAFEBAG_get_nid(bag);
+ 
+@@ -71,7 +71,7 @@ int PKCS12_SAFEBAG_get_bag_nid(const PKCS12_SAFEBAG *bag)
+     return OBJ_obj2nid(bag->value.bag->type);
+ }
+ 
+-X509 *PKCS12_SAFEBAG_get1_cert(const PKCS12_SAFEBAG *bag)
++X509 * __cdecl PKCS12_SAFEBAG_get1_cert(const PKCS12_SAFEBAG *bag)
+ {
+     if (PKCS12_SAFEBAG_get_nid(bag) != NID_certBag)
+         return NULL;
+@@ -81,7 +81,7 @@ X509 *PKCS12_SAFEBAG_get1_cert(const PKCS12_SAFEBAG *bag)
+                             ASN1_ITEM_rptr(X509));
+ }
+ 
+-X509_CRL *PKCS12_SAFEBAG_get1_crl(const PKCS12_SAFEBAG *bag)
++X509_CRL * __cdecl PKCS12_SAFEBAG_get1_crl(const PKCS12_SAFEBAG *bag)
+ {
+     if (PKCS12_SAFEBAG_get_nid(bag) != NID_crlBag)
+         return NULL;
+@@ -91,13 +91,13 @@ X509_CRL *PKCS12_SAFEBAG_get1_crl(const PKCS12_SAFEBAG *bag)
+                             ASN1_ITEM_rptr(X509_CRL));
+ }
+ 
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_cert(X509 *x509)
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_cert(X509 *x509)
+ {
+     return PKCS12_item_pack_safebag(x509, ASN1_ITEM_rptr(X509),
+                                     NID_x509Certificate, NID_certBag);
+ }
+ 
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_crl(X509_CRL *crl)
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_crl(X509_CRL *crl)
+ {
+     return PKCS12_item_pack_safebag(crl, ASN1_ITEM_rptr(X509_CRL),
+                                     NID_x509Crl, NID_crlBag);
+@@ -105,7 +105,7 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_crl(X509_CRL *crl)
+ 
+ /* Turn PKCS8 object into a keybag */
+ 
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8)
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8)
+ {
+     PKCS12_SAFEBAG *bag = PKCS12_SAFEBAG_new();
+ 
+@@ -120,7 +120,7 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8)
+ 
+ /* Turn PKCS8 object into a shrouded keybag */
+ 
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
++PKCS12_SAFEBAG *__cdecl PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
+ {
+     PKCS12_SAFEBAG *bag = PKCS12_SAFEBAG_new();
+ 
+@@ -134,7 +134,7 @@ PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8)
+     return bag;
+ }
+ 
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt(int pbe_nid,
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_pkcs8_encrypt(int pbe_nid,
+                                                     const char *pass,
+                                                     int passlen,
+                                                     unsigned char *salt,
+diff --git a/crypto/pkcs12/p12_utl.c b/crypto/pkcs12/p12_utl.c
+index 43b9e3a594..de61a43344 100644
+--- a/crypto/pkcs12/p12_utl.c
++++ b/crypto/pkcs12/p12_utl.c
+@@ -13,7 +13,7 @@
+ 
+ /* Cheap and nasty Unicode stuff */
+ 
+-unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
++unsigned char * __cdecl OPENSSL_asc2uni(const char *asc, int asclen,
+                                unsigned char **uni, int *unilen)
+ {
+     int ulen, i;
+@@ -40,7 +40,7 @@ unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
+     return unitmp;
+ }
+ 
+-char *OPENSSL_uni2asc(const unsigned char *uni, int unilen)
++char * __cdecl OPENSSL_uni2asc(const unsigned char *uni, int unilen)
+ {
+     int asclen, i;
+     char *asctmp;
+@@ -71,7 +71,7 @@ char *OPENSSL_uni2asc(const unsigned char *uni, int unilen)
+  * expressed not in number of UTF-16 characters, but in number of
+  * bytes the string occupies, and treat it, the length, accordingly.
+  */
+-unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
++unsigned char * __cdecl OPENSSL_utf82uni(const char *asc, int asclen,
+                                 unsigned char **uni, int *unilen)
+ {
+     int ulen, i, j;
+@@ -173,7 +173,7 @@ static int bmp_to_utf8(char *str, const unsigned char *utf16, int len)
+     return UTF8_putc((unsigned char *)str, len > 4 ? 4 : len, utf32chr);
+ }
+ 
+-char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
++char * __cdecl OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
+ {
+     int asclen, i, j;
+     char *asctmp;
+@@ -219,25 +219,25 @@ char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen)
+     return asctmp;
+ }
+ 
+-int i2d_PKCS12_bio(BIO *bp, PKCS12 *p12)
++int __cdecl i2d_PKCS12_bio(BIO *bp, PKCS12 *p12)
+ {
+     return ASN1_item_i2d_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int i2d_PKCS12_fp(FILE *fp, PKCS12 *p12)
++int __cdecl i2d_PKCS12_fp(FILE *fp, PKCS12 *p12)
+ {
+     return ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
+ }
+ #endif
+ 
+-PKCS12 *d2i_PKCS12_bio(BIO *bp, PKCS12 **p12)
++PKCS12 * __cdecl d2i_PKCS12_bio(BIO *bp, PKCS12 **p12)
+ {
+     return ASN1_item_d2i_bio(ASN1_ITEM_rptr(PKCS12), bp, p12);
+ }
+ 
+ #ifndef OPENSSL_NO_STDIO
+-PKCS12 *d2i_PKCS12_fp(FILE *fp, PKCS12 **p12)
++PKCS12 * __cdecl d2i_PKCS12_fp(FILE *fp, PKCS12 **p12)
+ {
+     return ASN1_item_d2i_fp(ASN1_ITEM_rptr(PKCS12), fp, p12);
+ }
+diff --git a/crypto/pkcs12/pk12err.c b/crypto/pkcs12/pk12err.c
+index 38ce5197ee..1721f6a907 100644
+--- a/crypto/pkcs12/pk12err.c
++++ b/crypto/pkcs12/pk12err.c
+@@ -105,7 +105,7 @@ static const ERR_STRING_DATA PKCS12_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_PKCS12_strings(void)
++int __cdecl ERR_load_PKCS12_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(PKCS12_str_functs[0].error) == NULL) {
+diff --git a/crypto/pkcs7/bio_pk7.c b/crypto/pkcs7/bio_pk7.c
+index 29feaa3544..3a8aa5af98 100644
+--- a/crypto/pkcs7/bio_pk7.c
++++ b/crypto/pkcs7/bio_pk7.c
+@@ -18,7 +18,7 @@
+ 
+ /* Streaming encode support for PKCS#7 */
+ 
+-BIO *BIO_new_PKCS7(BIO *out, PKCS7 *p7)
++BIO * __cdecl BIO_new_PKCS7(BIO *out, PKCS7 *p7)
+ {
+     return BIO_new_NDEF(out, (ASN1_VALUE *)p7, ASN1_ITEM_rptr(PKCS7));
+ }
+diff --git a/crypto/pkcs7/pk7_attr.c b/crypto/pkcs7/pk7_attr.c
+index e90bf03c52..9f46d043d7 100644
+--- a/crypto/pkcs7/pk7_attr.c
++++ b/crypto/pkcs7/pk7_attr.c
+@@ -17,7 +17,7 @@
+ #include <openssl/x509.h>
+ #include <openssl/err.h>
+ 
+-int PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
+                               STACK_OF(X509_ALGOR) *cap)
+ {
+     ASN1_STRING *seq;
+@@ -32,7 +32,7 @@ int PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
+                                       V_ASN1_SEQUENCE, seq);
+ }
+ 
+-STACK_OF(X509_ALGOR) *PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si)
++STACK_OF(X509_ALGOR) * __cdecl PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si)
+ {
+     ASN1_TYPE *cap;
+     const unsigned char *p;
+@@ -47,7 +47,7 @@ STACK_OF(X509_ALGOR) *PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si)
+ }
+ 
+ /* Basic smime-capabilities OID and optional integer arg */
+-int PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg)
++int __cdecl PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg)
+ {
+     ASN1_INTEGER *nbit = NULL;
+     X509_ALGOR *alg;
+@@ -83,7 +83,7 @@ err:
+     return 0;
+ }
+ 
+-int PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid)
++int __cdecl PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid)
+ {
+     if (PKCS7_get_signed_attribute(si, NID_pkcs9_contentType))
+         return 0;
+@@ -93,7 +93,7 @@ int PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid)
+                                       V_ASN1_OBJECT, coid);
+ }
+ 
+-int PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t)
++int __cdecl PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t)
+ {
+     if (t == NULL && (t = X509_gmtime_adj(NULL, 0)) == NULL) {
+         PKCS7err(PKCS7_F_PKCS7_ADD0_ATTRIB_SIGNING_TIME,
+@@ -104,7 +104,7 @@ int PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t)
+                                       V_ASN1_UTCTIME, t);
+ }
+ 
+-int PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
+                              const unsigned char *md, int mdlen)
+ {
+     ASN1_OCTET_STRING *os;
+diff --git a/crypto/pkcs7/pk7_doit.c b/crypto/pkcs7/pk7_doit.c
+index f63fbc50ea..9244160718 100644
+--- a/crypto/pkcs7/pk7_doit.c
++++ b/crypto/pkcs7/pk7_doit.c
+@@ -193,7 +193,7 @@ static int pkcs7_decrypt_rinfo(unsigned char **pek, int *peklen,
+     return ret;
+ }
+ 
+-BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio)
++BIO * __cdecl PKCS7_dataInit(PKCS7 *p7, BIO *bio)
  {
      int i;
-     long l;
-@@ -129,7 +129,7 @@ int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *o, unsigned long flags)
-     return 0;
+     BIO *out = NULL, *btmp = NULL;
+@@ -356,7 +356,7 @@ static int pkcs7_cmp_ri(PKCS7_RECIP_INFO *ri, X509 *pcert)
  }
  
--int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
-+int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags)
+ /* int */
+-BIO *PKCS7_dataDecode(PKCS7 *p7, EVP_PKEY *pkey, BIO *in_bio, X509 *pcert)
++BIO * __cdecl PKCS7_dataDecode(PKCS7 *p7, EVP_PKEY *pkey, BIO *in_bio, X509 *pcert)
  {
-     int i, ret = 0;
-     long l;
-diff --git a/crypto/ocsp/ocsp_srv.c b/crypto/ocsp/ocsp_srv.c
-index 6bd6f7b6d8..0cf4e6b2f6 100644
---- a/crypto/ocsp/ocsp_srv.c
-+++ b/crypto/ocsp/ocsp_srv.c
-@@ -21,22 +21,22 @@
-  * relevant information from the request.
-  */
- 
--int OCSP_request_onereq_count(OCSP_REQUEST *req)
-+int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req)
- {
-     return sk_OCSP_ONEREQ_num(req->tbsRequest.requestList);
- }
- 
--OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
-+OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i)
- {
-     return sk_OCSP_ONEREQ_value(req->tbsRequest.requestList, i);
- }
- 
--OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one)
-+OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one)
- {
-     return one->reqCert;
- }
- 
--int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
-+int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
-                       ASN1_OCTET_STRING **pikeyHash,
-                       ASN1_INTEGER **pserial, OCSP_CERTID *cid)
- {
-@@ -53,7 +53,7 @@ int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
+     int i, j;
+     BIO *out = NULL, *btmp = NULL, *etmp = NULL, *bio = NULL;
+@@ -642,7 +642,7 @@ static int do_pkcs7_signed_attrib(PKCS7_SIGNER_INFO *si, EVP_MD_CTX *mctx)
      return 1;
  }
  
--int OCSP_request_is_signed(OCSP_REQUEST *req)
-+int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req)
+-int PKCS7_dataFinal(PKCS7 *p7, BIO *bio)
++int __cdecl PKCS7_dataFinal(PKCS7 *p7, BIO *bio)
  {
-     if (req->optionalSignature)
-         return 1;
-@@ -61,7 +61,7 @@ int OCSP_request_is_signed(OCSP_REQUEST *req)
+     int ret = 0;
+     int i, j;
+@@ -816,7 +816,7 @@ int PKCS7_dataFinal(PKCS7 *p7, BIO *bio)
+     return ret;
  }
  
- /* Create an OCSP response and encode an optional basic response */
--OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
-+OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs)
+-int PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si)
++int __cdecl PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si)
  {
-     OCSP_RESPONSE *rsp = NULL;
+     EVP_MD_CTX *mctx;
+     EVP_PKEY_CTX *pctx = NULL;
+@@ -879,7 +879,7 @@ int PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si)
  
-@@ -83,7 +83,7 @@ OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs)
+ }
+ 
+-int PKCS7_dataVerify(X509_STORE *cert_store, X509_STORE_CTX *ctx, BIO *bio,
++int __cdecl PKCS7_dataVerify(X509_STORE *cert_store, X509_STORE_CTX *ctx, BIO *bio,
+                      PKCS7 *p7, PKCS7_SIGNER_INFO *si)
+ {
+     PKCS7_ISSUER_AND_SERIAL *ias;
+@@ -936,7 +936,7 @@ int PKCS7_dataVerify(X509_STORE *cert_store, X509_STORE_CTX *ctx, BIO *bio,
+     return ret;
+ }
+ 
+-int PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
+                           X509 *x509)
+ {
+     ASN1_OCTET_STRING *os;
+@@ -1048,7 +1048,7 @@ int PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
+     return ret;
+ }
+ 
+-PKCS7_ISSUER_AND_SERIAL *PKCS7_get_issuer_and_serial(PKCS7 *p7, int idx)
++PKCS7_ISSUER_AND_SERIAL * __cdecl PKCS7_get_issuer_and_serial(PKCS7 *p7, int idx)
+ {
+     STACK_OF(PKCS7_RECIP_INFO) *rsk;
+     PKCS7_RECIP_INFO *ri;
+@@ -1068,12 +1068,12 @@ PKCS7_ISSUER_AND_SERIAL *PKCS7_get_issuer_and_serial(PKCS7 *p7, int idx)
+     return ri->issuer_and_serial;
+ }
+ 
+-ASN1_TYPE *PKCS7_get_signed_attribute(PKCS7_SIGNER_INFO *si, int nid)
++ASN1_TYPE * __cdecl PKCS7_get_signed_attribute(PKCS7_SIGNER_INFO *si, int nid)
+ {
+     return get_attribute(si->auth_attr, nid);
+ }
+ 
+-ASN1_TYPE *PKCS7_get_attribute(PKCS7_SIGNER_INFO *si, int nid)
++ASN1_TYPE * __cdecl PKCS7_get_attribute(PKCS7_SIGNER_INFO *si, int nid)
+ {
+     return get_attribute(si->unauth_attr, nid);
+ }
+@@ -1087,7 +1087,7 @@ static ASN1_TYPE *get_attribute(STACK_OF(X509_ATTRIBUTE) *sk, int nid)
+     return X509_ATTRIBUTE_get0_type(xa, 0);
+ }
+ 
+-ASN1_OCTET_STRING *PKCS7_digest_from_attributes(STACK_OF(X509_ATTRIBUTE) *sk)
++ASN1_OCTET_STRING * __cdecl PKCS7_digest_from_attributes(STACK_OF(X509_ATTRIBUTE) *sk)
+ {
+     ASN1_TYPE *astype;
+     if ((astype = get_attribute(sk, NID_pkcs9_messageDigest)) == NULL)
+@@ -1095,7 +1095,7 @@ ASN1_OCTET_STRING *PKCS7_digest_from_attributes(STACK_OF(X509_ATTRIBUTE) *sk)
+     return astype->value.octet_string;
+ }
+ 
+-int PKCS7_set_signed_attributes(PKCS7_SIGNER_INFO *p7si,
++int __cdecl PKCS7_set_signed_attributes(PKCS7_SIGNER_INFO *p7si,
+                                 STACK_OF(X509_ATTRIBUTE) *sk)
+ {
+     int i;
+@@ -1114,7 +1114,7 @@ int PKCS7_set_signed_attributes(PKCS7_SIGNER_INFO *p7si,
+     return 1;
+ }
+ 
+-int PKCS7_set_attributes(PKCS7_SIGNER_INFO *p7si,
++int __cdecl PKCS7_set_attributes(PKCS7_SIGNER_INFO *p7si,
+                          STACK_OF(X509_ATTRIBUTE) *sk)
+ {
+     int i;
+@@ -1133,13 +1133,13 @@ int PKCS7_set_attributes(PKCS7_SIGNER_INFO *p7si,
+     return 1;
+ }
+ 
+-int PKCS7_add_signed_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
++int __cdecl PKCS7_add_signed_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
+                                void *value)
+ {
+     return add_attribute(&(p7si->auth_attr), nid, atrtype, value);
+ }
+ 
+-int PKCS7_add_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
++int __cdecl PKCS7_add_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
+                         void *value)
+ {
+     return add_attribute(&(p7si->unauth_attr), nid, atrtype, value);
+diff --git a/crypto/pkcs7/pk7_lib.c b/crypto/pkcs7/pk7_lib.c
+index 16b76431d1..58786a3326 100644
+--- a/crypto/pkcs7/pk7_lib.c
++++ b/crypto/pkcs7/pk7_lib.c
+@@ -14,7 +14,7 @@
+ #include "internal/asn1_int.h"
+ #include "internal/evp_int.h"
+ 
+-long PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg)
++long __cdecl PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg)
+ {
+     int nid;
+     long ret;
+@@ -60,7 +60,7 @@ long PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg)
+     return ret;
+ }
+ 
+-int PKCS7_content_new(PKCS7 *p7, int type)
++int __cdecl PKCS7_content_new(PKCS7 *p7, int type)
+ {
+     PKCS7 *ret = NULL;
+ 
+@@ -77,7 +77,7 @@ int PKCS7_content_new(PKCS7 *p7, int type)
+     return 0;
+ }
+ 
+-int PKCS7_set_content(PKCS7 *p7, PKCS7 *p7_data)
++int __cdecl PKCS7_set_content(PKCS7 *p7, PKCS7 *p7_data)
+ {
+     int i;
+ 
+@@ -104,7 +104,7 @@ int PKCS7_set_content(PKCS7 *p7, PKCS7 *p7_data)
+     return 0;
+ }
+ 
+-int PKCS7_set_type(PKCS7 *p7, int type)
++int __cdecl PKCS7_set_type(PKCS7 *p7, int type)
+ {
+     ASN1_OBJECT *obj;
+ 
+@@ -175,14 +175,14 @@ int PKCS7_set_type(PKCS7 *p7, int type)
+     return 0;
+ }
+ 
+-int PKCS7_set0_type_other(PKCS7 *p7, int type, ASN1_TYPE *other)
++int __cdecl PKCS7_set0_type_other(PKCS7 *p7, int type, ASN1_TYPE *other)
+ {
+     p7->type = OBJ_nid2obj(type);
+     p7->d.other = other;
+     return 1;
+ }
+ 
+-int PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *psi)
++int __cdecl PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *psi)
+ {
+     int i, j, nid;
+     X509_ALGOR *alg;
+@@ -235,7 +235,7 @@ int PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *psi)
+     return 1;
+ }
+ 
+-int PKCS7_add_certificate(PKCS7 *p7, X509 *x509)
++int __cdecl PKCS7_add_certificate(PKCS7 *p7, X509 *x509)
+ {
+     int i;
+     STACK_OF(X509) **sk;
+@@ -267,7 +267,7 @@ int PKCS7_add_certificate(PKCS7 *p7, X509 *x509)
+     return 1;
+ }
+ 
+-int PKCS7_add_crl(PKCS7 *p7, X509_CRL *crl)
++int __cdecl PKCS7_add_crl(PKCS7 *p7, X509_CRL *crl)
+ {
+     int i;
+     STACK_OF(X509_CRL) **sk;
+@@ -300,7 +300,7 @@ int PKCS7_add_crl(PKCS7 *p7, X509_CRL *crl)
+     return 1;
+ }
+ 
+-int PKCS7_SIGNER_INFO_set(PKCS7_SIGNER_INFO *p7i, X509 *x509, EVP_PKEY *pkey,
++int __cdecl PKCS7_SIGNER_INFO_set(PKCS7_SIGNER_INFO *p7i, X509 *x509, EVP_PKEY *pkey,
+                           const EVP_MD *dgst)
+ {
+     int ret;
+@@ -346,7 +346,7 @@ int PKCS7_SIGNER_INFO_set(PKCS7_SIGNER_INFO *p7i, X509 *x509, EVP_PKEY *pkey,
+     return 0;
+ }
+ 
+-PKCS7_SIGNER_INFO *PKCS7_add_signature(PKCS7 *p7, X509 *x509, EVP_PKEY *pkey,
++PKCS7_SIGNER_INFO * __cdecl PKCS7_add_signature(PKCS7 *p7, X509 *x509, EVP_PKEY *pkey,
+                                        const EVP_MD *dgst)
+ {
+     PKCS7_SIGNER_INFO *si = NULL;
+@@ -374,7 +374,7 @@ PKCS7_SIGNER_INFO *PKCS7_add_signature(PKCS7 *p7, X509 *x509, EVP_PKEY *pkey,
      return NULL;
  }
  
--OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
-+OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
-                                         OCSP_CERTID *cid,
-                                         int status, int reason,
-                                         ASN1_TIME *revtime,
-@@ -156,7 +156,7 @@ OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
- 
- /* Add a certificate to an OCSP request */
- 
--int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
-+int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
+-int PKCS7_set_digest(PKCS7 *p7, const EVP_MD *md)
++int __cdecl PKCS7_set_digest(PKCS7 *p7, const EVP_MD *md)
  {
-     if (resp->certs == NULL
-         && (resp->certs = sk_X509_new_null()) == NULL)
-@@ -174,7 +174,7 @@ int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert)
-  * include one or more optional certificates in the response.
-  */
+     if (PKCS7_type_is_digest(p7)) {
+         if ((p7->d.digest->md->parameter = ASN1_TYPE_new()) == NULL) {
+@@ -390,7 +390,7 @@ int PKCS7_set_digest(PKCS7 *p7, const EVP_MD *md)
+     return 1;
+ }
  
--int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
-+int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
-                     X509 *signer, EVP_MD_CTX *ctx,
-                     STACK_OF(X509) *certs, unsigned long flags)
+-STACK_OF(PKCS7_SIGNER_INFO) *PKCS7_get_signer_info(PKCS7 *p7)
++STACK_OF(PKCS7_SIGNER_INFO) * __cdecl PKCS7_get_signer_info(PKCS7 *p7)
  {
-@@ -229,7 +229,7 @@ int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
+     if (p7 == NULL || p7->d.ptr == NULL)
+         return NULL;
+@@ -402,7 +402,7 @@ STACK_OF(PKCS7_SIGNER_INFO) *PKCS7_get_signer_info(PKCS7 *p7)
+         return NULL;
+ }
+ 
+-void PKCS7_SIGNER_INFO_get0_algs(PKCS7_SIGNER_INFO *si, EVP_PKEY **pk,
++void __cdecl PKCS7_SIGNER_INFO_get0_algs(PKCS7_SIGNER_INFO *si, EVP_PKEY **pk,
+                                  X509_ALGOR **pdig, X509_ALGOR **psig)
+ {
+     if (pk)
+@@ -413,13 +413,13 @@ void PKCS7_SIGNER_INFO_get0_algs(PKCS7_SIGNER_INFO *si, EVP_PKEY **pk,
+         *psig = si->digest_enc_alg;
+ }
+ 
+-void PKCS7_RECIP_INFO_get0_alg(PKCS7_RECIP_INFO *ri, X509_ALGOR **penc)
++void __cdecl PKCS7_RECIP_INFO_get0_alg(PKCS7_RECIP_INFO *ri, X509_ALGOR **penc)
+ {
+     if (penc)
+         *penc = ri->key_enc_algor;
+ }
+ 
+-PKCS7_RECIP_INFO *PKCS7_add_recipient(PKCS7 *p7, X509 *x509)
++PKCS7_RECIP_INFO * __cdecl PKCS7_add_recipient(PKCS7 *p7, X509 *x509)
+ {
+     PKCS7_RECIP_INFO *ri;
+ 
+@@ -435,7 +435,7 @@ PKCS7_RECIP_INFO *PKCS7_add_recipient(PKCS7 *p7, X509 *x509)
+     return NULL;
+ }
+ 
+-int PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri)
++int __cdecl PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri)
+ {
+     int i;
+     STACK_OF(PKCS7_RECIP_INFO) *sk;
+@@ -459,7 +459,7 @@ int PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri)
+     return 1;
+ }
+ 
+-int PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509)
++int __cdecl PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509)
+ {
+     int ret;
+     EVP_PKEY *pkey = NULL;
+@@ -503,7 +503,7 @@ int PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509)
      return 0;
  }
  
--int OCSP_basic_sign(OCSP_BASICRESP *brsp,
-+int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
-                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
-                     STACK_OF(X509) *certs, unsigned long flags)
+-X509 *PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si)
++X509 * __cdecl PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si)
  {
-@@ -249,7 +249,7 @@ int OCSP_basic_sign(OCSP_BASICRESP *brsp,
-     return i;
+     if (PKCS7_type_is_signed(p7))
+         return (X509_find_by_issuer_and_serial(p7->d.sign->cert,
+@@ -514,7 +514,7 @@ X509 *PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si)
+         return NULL;
  }
  
--int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
-+int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+-int PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher)
++int __cdecl PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher)
  {
-     if (!X509_NAME_set(&respid->value.byName, X509_get_subject_name(cert)))
-         return 0;
-@@ -259,7 +259,7 @@ int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert)
+     int i;
+     PKCS7_ENC_CONTENT *ec;
+@@ -544,7 +544,7 @@ int PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher)
      return 1;
  }
  
--int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
-+int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+-int PKCS7_stream(unsigned char ***boundary, PKCS7 *p7)
++int __cdecl PKCS7_stream(unsigned char ***boundary, PKCS7 *p7)
  {
-     ASN1_OCTET_STRING *byKey = NULL;
-     unsigned char md[SHA_DIGEST_LENGTH];
-@@ -283,7 +283,7 @@ int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert)
+     ASN1_OCTET_STRING *os = NULL;
+ 
+diff --git a/crypto/pkcs7/pk7_mime.c b/crypto/pkcs7/pk7_mime.c
+index 19e6868148..7d05add7d1 100644
+--- a/crypto/pkcs7/pk7_mime.c
++++ b/crypto/pkcs7/pk7_mime.c
+@@ -14,19 +14,19 @@
+ 
+ /* PKCS#7 wrappers round generalised stream and MIME routines */
+ 
+-int i2d_PKCS7_bio_stream(BIO *out, PKCS7 *p7, BIO *in, int flags)
++int __cdecl i2d_PKCS7_bio_stream(BIO *out, PKCS7 *p7, BIO *in, int flags)
+ {
+     return i2d_ASN1_bio_stream(out, (ASN1_VALUE *)p7, in, flags,
+                                ASN1_ITEM_rptr(PKCS7));
+ }
+ 
+-int PEM_write_bio_PKCS7_stream(BIO *out, PKCS7 *p7, BIO *in, int flags)
++int __cdecl PEM_write_bio_PKCS7_stream(BIO *out, PKCS7 *p7, BIO *in, int flags)
+ {
+     return PEM_write_bio_ASN1_stream(out, (ASN1_VALUE *)p7, in, flags,
+                                      "PKCS7", ASN1_ITEM_rptr(PKCS7));
+ }
+ 
+-int SMIME_write_PKCS7(BIO *bio, PKCS7 *p7, BIO *data, int flags)
++int __cdecl SMIME_write_PKCS7(BIO *bio, PKCS7 *p7, BIO *data, int flags)
+ {
+     STACK_OF(X509_ALGOR) *mdalgs;
+     int ctype_nid = OBJ_obj2nid(p7->type);
+@@ -42,7 +42,7 @@ int SMIME_write_PKCS7(BIO *bio, PKCS7 *p7, BIO *data, int flags)
+                             ASN1_ITEM_rptr(PKCS7));
+ }
+ 
+-PKCS7 *SMIME_read_PKCS7(BIO *bio, BIO **bcont)
++PKCS7 * __cdecl SMIME_read_PKCS7(BIO *bio, BIO **bcont)
+ {
+     return (PKCS7 *)SMIME_read_ASN1(bio, bcont, ASN1_ITEM_rptr(PKCS7));
+ }
+diff --git a/crypto/pkcs7/pk7_smime.c b/crypto/pkcs7/pk7_smime.c
+index 44187230ef..cf0bf00d58 100644
+--- a/crypto/pkcs7/pk7_smime.c
++++ b/crypto/pkcs7/pk7_smime.c
+@@ -19,7 +19,7 @@
+ 
+ static int pkcs7_copy_existing_digest(PKCS7 *p7, PKCS7_SIGNER_INFO *si);
+ 
+-PKCS7 *PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
++PKCS7 * __cdecl PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
+                   BIO *data, int flags)
+ {
+     PKCS7 *p7;
+@@ -62,7 +62,7 @@ PKCS7 *PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
+     return NULL;
+ }
+ 
+-int PKCS7_final(PKCS7 *p7, BIO *data, int flags)
++int __cdecl PKCS7_final(PKCS7 *p7, BIO *data, int flags)
+ {
+     BIO *p7bio;
+     int ret = 0;
+@@ -106,7 +106,7 @@ static int add_digest_smcap(STACK_OF(X509_ALGOR) *sk, int nid, int arg)
      return 1;
  }
  
--int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
-+int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert)
+-PKCS7_SIGNER_INFO *PKCS7_sign_add_signer(PKCS7 *p7, X509 *signcert,
++PKCS7_SIGNER_INFO * __cdecl PKCS7_sign_add_signer(PKCS7 *p7, X509 *signcert,
+                                          EVP_PKEY *pkey, const EVP_MD *md,
+                                          int flags)
  {
-     if (respid->type == V_OCSP_RESPID_KEY) {
-         unsigned char md[SHA_DIGEST_LENGTH];
-diff --git a/crypto/ocsp/ocsp_vfy.c b/crypto/ocsp/ocsp_vfy.c
-index 9a8d343866..e6933c19ef 100644
---- a/crypto/ocsp/ocsp_vfy.c
-+++ b/crypto/ocsp/ocsp_vfy.c
-@@ -27,7 +27,7 @@ static int ocsp_req_find_signer(X509 **psigner, OCSP_REQUEST *req,
- 
- /* Verify a basic response message */
- 
--int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
-+int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
-                       X509_STORE *st, unsigned long flags)
- {
-     X509 *signer, *x;
-@@ -138,7 +138,7 @@ int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
-     goto end;
+@@ -201,7 +201,7 @@ static int pkcs7_copy_existing_digest(PKCS7 *p7, PKCS7_SIGNER_INFO *si)
+     return 0;
  }
  
--int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
-+int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
-                           STACK_OF(X509) *extra_certs)
+-int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
++int __cdecl PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
+                  BIO *indata, BIO *out, int flags)
  {
-     int ret;
-@@ -336,7 +336,7 @@ static int ocsp_check_delegated(X509 *x)
-  * trust value.
-  */
+     STACK_OF(X509) *signers;
+@@ -369,7 +369,7 @@ int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
+     return ret;
+ }
  
--int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
-+int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
-                         X509_STORE *store, unsigned long flags)
+-STACK_OF(X509) *PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
++STACK_OF(X509) * __cdecl PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
+                                    int flags)
  {
-     X509 *signer;
-diff --git a/include/openssl/ocsp.h b/include/openssl/ocsp.h
-index c0accac758..2ef8968d5e 100644
---- a/include/openssl/ocsp.h
-+++ b/include/openssl/ocsp.h
-@@ -148,175 +148,175 @@ typedef struct ocsp_service_locator_st OCSP_SERVICELOC;
+     STACK_OF(X509) *signers;
+@@ -433,7 +433,7 @@ STACK_OF(X509) *PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
  
- OCSP_CERTID * __cdecl OCSP_CERTID_dup(OCSP_CERTID *id);
+ /* Build a complete PKCS#7 enveloped data */
  
--OCSP_RESPONSE *OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
--OCSP_REQ_CTX *OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
-+OCSP_RESPONSE * __cdecl OCSP_sendreq_bio(BIO *b, const char *path, OCSP_REQUEST *req);
-+OCSP_REQ_CTX * __cdecl OCSP_sendreq_new(BIO *io, const char *path, OCSP_REQUEST *req,
-                                int maxline);
--int OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
--int OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
--OCSP_REQ_CTX *OCSP_REQ_CTX_new(BIO *io, int maxline);
--void OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
--void OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
--int OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
-+int __cdecl OCSP_REQ_CTX_nbio(OCSP_REQ_CTX *rctx);
-+int __cdecl OCSP_sendreq_nbio(OCSP_RESPONSE **presp, OCSP_REQ_CTX *rctx);
-+OCSP_REQ_CTX * __cdecl OCSP_REQ_CTX_new(BIO *io, int maxline);
-+void __cdecl OCSP_REQ_CTX_free(OCSP_REQ_CTX *rctx);
-+void __cdecl OCSP_set_max_response_length(OCSP_REQ_CTX *rctx, unsigned long len);
-+int __cdecl OCSP_REQ_CTX_i2d(OCSP_REQ_CTX *rctx, const ASN1_ITEM *it,
-                      ASN1_VALUE *val);
--int OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
-+int __cdecl OCSP_REQ_CTX_nbio_d2i(OCSP_REQ_CTX *rctx, ASN1_VALUE **pval,
-                           const ASN1_ITEM *it);
--BIO *OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
--int OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
--int OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
--int OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
-+BIO * __cdecl OCSP_REQ_CTX_get0_mem_bio(OCSP_REQ_CTX *rctx);
-+int __cdecl OCSP_REQ_CTX_http(OCSP_REQ_CTX *rctx, const char *op, const char *path);
-+int __cdecl OCSP_REQ_CTX_set1_req(OCSP_REQ_CTX *rctx, OCSP_REQUEST *req);
-+int __cdecl OCSP_REQ_CTX_add1_header(OCSP_REQ_CTX *rctx,
-                              const char *name, const char *value);
+-PKCS7 *PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
++PKCS7 * __cdecl PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
+                      int flags)
+ {
+     PKCS7 *p7;
+@@ -474,7 +474,7 @@ PKCS7 *PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
  
--OCSP_CERTID *OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-+OCSP_CERTID * __cdecl OCSP_cert_to_id(const EVP_MD *dgst, const X509 *subject,
-                              const X509 *issuer);
+ }
  
--OCSP_CERTID *OCSP_cert_id_new(const EVP_MD *dgst,
-+OCSP_CERTID * __cdecl OCSP_cert_id_new(const EVP_MD *dgst,
-                               const X509_NAME *issuerName,
-                               const ASN1_BIT_STRING *issuerKey,
-                               const ASN1_INTEGER *serialNumber);
+-int PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data, int flags)
++int __cdecl PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data, int flags)
+ {
+     BIO *tmpmem;
+     int ret = 0, i;
+diff --git a/crypto/pkcs7/pkcs7err.c b/crypto/pkcs7/pkcs7err.c
+index 07490c1a58..ee81c47365 100644
+--- a/crypto/pkcs7/pkcs7err.c
++++ b/crypto/pkcs7/pkcs7err.c
+@@ -144,7 +144,7 @@ static const ERR_STRING_DATA PKCS7_str_reasons[] = {
  
--OCSP_ONEREQ *OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
-+OCSP_ONEREQ * __cdecl OCSP_request_add0_id(OCSP_REQUEST *req, OCSP_CERTID *cid);
+ #endif
  
--int OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
--int OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
--int OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
--int OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
-+int __cdecl OCSP_request_add1_nonce(OCSP_REQUEST *req, unsigned char *val, int len);
-+int __cdecl OCSP_basic_add1_nonce(OCSP_BASICRESP *resp, unsigned char *val, int len);
-+int __cdecl OCSP_check_nonce(OCSP_REQUEST *req, OCSP_BASICRESP *bs);
-+int __cdecl OCSP_copy_nonce(OCSP_BASICRESP *resp, OCSP_REQUEST *req);
+-int ERR_load_PKCS7_strings(void)
++int __cdecl ERR_load_PKCS7_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(PKCS7_str_functs[0].error) == NULL) {
+diff --git a/crypto/x509/x_all.c b/crypto/x509/x_all.c
+index 741320d1b8..98b9c7000a 100644
+--- a/crypto/x509/x_all.c
++++ b/crypto/x509/x_all.c
+@@ -151,23 +151,23 @@ int i2d_X509_CRL_bio(BIO *bp, X509_CRL *crl)
+ }
  
--int OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
--int OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
-+int __cdecl OCSP_request_set1_name(OCSP_REQUEST *req, X509_NAME *nm);
-+int __cdecl OCSP_request_add1_cert(OCSP_REQUEST *req, X509 *cert);
+ #ifndef OPENSSL_NO_STDIO
+-PKCS7 *d2i_PKCS7_fp(FILE *fp, PKCS7 **p7)
++PKCS7 * __cdecl d2i_PKCS7_fp(FILE *fp, PKCS7 **p7)
+ {
+     return ASN1_item_d2i_fp(ASN1_ITEM_rptr(PKCS7), fp, p7);
+ }
  
--int OCSP_request_sign(OCSP_REQUEST *req,
-+int __cdecl OCSP_request_sign(OCSP_REQUEST *req,
-                       X509 *signer,
-                       EVP_PKEY *key,
-                       const EVP_MD *dgst,
-                       STACK_OF(X509) *certs, unsigned long flags);
+-int i2d_PKCS7_fp(FILE *fp, PKCS7 *p7)
++int __cdecl i2d_PKCS7_fp(FILE *fp, PKCS7 *p7)
+ {
+     return ASN1_item_i2d_fp(ASN1_ITEM_rptr(PKCS7), fp, p7);
+ }
+ #endif
  
--int OCSP_response_status(OCSP_RESPONSE *resp);
--OCSP_BASICRESP *OCSP_response_get1_basic(OCSP_RESPONSE *resp);
-+int __cdecl OCSP_response_status(OCSP_RESPONSE *resp);
-+OCSP_BASICRESP * __cdecl OCSP_response_get1_basic(OCSP_RESPONSE *resp);
+-PKCS7 *d2i_PKCS7_bio(BIO *bp, PKCS7 **p7)
++PKCS7 * __cdecl d2i_PKCS7_bio(BIO *bp, PKCS7 **p7)
+ {
+     return ASN1_item_d2i_bio(ASN1_ITEM_rptr(PKCS7), bp, p7);
+ }
  
--const ASN1_OCTET_STRING *OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
--const X509_ALGOR *OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
--const OCSP_RESPDATA *OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
--int OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
-+const ASN1_OCTET_STRING * __cdecl OCSP_resp_get0_signature(const OCSP_BASICRESP *bs);
-+const X509_ALGOR * __cdecl OCSP_resp_get0_tbs_sigalg(const OCSP_BASICRESP *bs);
-+const OCSP_RESPDATA * __cdecl OCSP_resp_get0_respdata(const OCSP_BASICRESP *bs);
-+int __cdecl OCSP_resp_get0_signer(OCSP_BASICRESP *bs, X509 **signer,
-                           STACK_OF(X509) *extra_certs);
+-int i2d_PKCS7_bio(BIO *bp, PKCS7 *p7)
++int __cdecl i2d_PKCS7_bio(BIO *bp, PKCS7 *p7)
+ {
+     return ASN1_item_i2d_bio(ASN1_ITEM_rptr(PKCS7), bp, p7);
+ }
+@@ -401,7 +401,7 @@ int X509_NAME_digest(const X509_NAME *data, const EVP_MD *type,
+             (ASN1_ITEM_rptr(X509_NAME), type, (char *)data, md, len));
+ }
  
--int OCSP_resp_count(OCSP_BASICRESP *bs);
--OCSP_SINGLERESP *OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
--const ASN1_GENERALIZEDTIME *OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
--const STACK_OF(X509) *OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
--int OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-+int __cdecl OCSP_resp_count(OCSP_BASICRESP *bs);
-+OCSP_SINGLERESP * __cdecl OCSP_resp_get0(OCSP_BASICRESP *bs, int idx);
-+const ASN1_GENERALIZEDTIME * __cdecl OCSP_resp_get0_produced_at(const OCSP_BASICRESP* bs);
-+const STACK_OF(X509) * __cdecl OCSP_resp_get0_certs(const OCSP_BASICRESP *bs);
-+int __cdecl OCSP_resp_get0_id(const OCSP_BASICRESP *bs,
-                       const ASN1_OCTET_STRING **pid,
-                       const X509_NAME **pname);
--int OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
-+int __cdecl OCSP_resp_get1_id(const OCSP_BASICRESP *bs,
-                       ASN1_OCTET_STRING **pid,
-                       X509_NAME **pname);
+-int PKCS7_ISSUER_AND_SERIAL_digest(PKCS7_ISSUER_AND_SERIAL *data,
++int __cdecl PKCS7_ISSUER_AND_SERIAL_digest(PKCS7_ISSUER_AND_SERIAL *data,
+                                    const EVP_MD *type, unsigned char *md,
+                                    unsigned int *len)
+ {
+diff --git a/include/openssl/pem.h b/include/openssl/pem.h
+index 2ef5b5d04c..122c277c24 100644
+--- a/include/openssl/pem.h
++++ b/include/openssl/pem.h
+@@ -230,60 +230,60 @@ int PEM_write_bio_##name(BIO *bp, type *x, const EVP_CIPHER *enc, \
+         DECLARE_PEM_write_cb(name, type)
+ typedef int pem_password_cb (char *buf, int size, int rwflag, void *userdata);
  
--int OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
--int OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
-+int __cdecl OCSP_resp_find(OCSP_BASICRESP *bs, OCSP_CERTID *id, int last);
-+int __cdecl OCSP_single_get0_status(OCSP_SINGLERESP *single, int *reason,
-                             ASN1_GENERALIZEDTIME **revtime,
-                             ASN1_GENERALIZEDTIME **thisupd,
-                             ASN1_GENERALIZEDTIME **nextupd);
--int OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-+int __cdecl OCSP_resp_find_status(OCSP_BASICRESP *bs, OCSP_CERTID *id, int *status,
-                           int *reason,
-                           ASN1_GENERALIZEDTIME **revtime,
-                           ASN1_GENERALIZEDTIME **thisupd,
-                           ASN1_GENERALIZEDTIME **nextupd);
--int OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-+int __cdecl OCSP_check_validity(ASN1_GENERALIZEDTIME *thisupd,
-                         ASN1_GENERALIZEDTIME *nextupd, long sec, long maxsec);
+-int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher);
+-int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *len,
++int __cdecl PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher);
++int __cdecl PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *len,
+                   pem_password_cb *callback, void *u);
  
--int OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
-+int __cdecl OCSP_request_verify(OCSP_REQUEST *req, STACK_OF(X509) *certs,
-                         X509_STORE *store, unsigned long flags);
+-int PEM_read_bio(BIO *bp, char **name, char **header,
++int __cdecl PEM_read_bio(BIO *bp, char **name, char **header,
+                  unsigned char **data, long *len);
+ #   define PEM_FLAG_SECURE             0x1
+ #   define PEM_FLAG_EAY_COMPATIBLE     0x2
+ #   define PEM_FLAG_ONLY_B64           0x4
+-int PEM_read_bio_ex(BIO *bp, char **name, char **header,
++int __cdecl PEM_read_bio_ex(BIO *bp, char **name, char **header,
+                     unsigned char **data, long *len, unsigned int flags);
+-int PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
++int __cdecl PEM_bytes_read_bio_secmem(unsigned char **pdata, long *plen, char **pnm,
+                               const char *name, BIO *bp, pem_password_cb *cb,
+                               void *u);
+-int PEM_write_bio(BIO *bp, const char *name, const char *hdr,
++int __cdecl PEM_write_bio(BIO *bp, const char *name, const char *hdr,
+                   const unsigned char *data, long len);
+-int PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
++int __cdecl PEM_bytes_read_bio(unsigned char **pdata, long *plen, char **pnm,
+                        const char *name, BIO *bp, pem_password_cb *cb,
+                        void *u);
+-void *PEM_ASN1_read_bio(d2i_of_void *d2i, const char *name, BIO *bp, void **x,
++void * __cdecl PEM_ASN1_read_bio(d2i_of_void *d2i, const char *name, BIO *bp, void **x,
+                         pem_password_cb *cb, void *u);
+-int PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp, void *x,
++int __cdecl PEM_ASN1_write_bio(i2d_of_void *i2d, const char *name, BIO *bp, void *x,
+                        const EVP_CIPHER *enc, unsigned char *kstr, int klen,
+                        pem_password_cb *cb, void *u);
  
--int OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
-+int __cdecl OCSP_parse_url(const char *url, char **phost, char **pport, char **ppath,
-                    int *pssl);
+-STACK_OF(X509_INFO) *PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
++STACK_OF(X509_INFO) * __cdecl PEM_X509_INFO_read_bio(BIO *bp, STACK_OF(X509_INFO) *sk,
+                                             pem_password_cb *cb, void *u);
+-int PEM_X509_INFO_write_bio(BIO *bp, X509_INFO *xi, EVP_CIPHER *enc,
++int __cdecl PEM_X509_INFO_write_bio(BIO *bp, X509_INFO *xi, EVP_CIPHER *enc,
+                             unsigned char *kstr, int klen,
+                             pem_password_cb *cd, void *u);
  
--int OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
--int OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
-+int __cdecl OCSP_id_issuer_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
-+int __cdecl OCSP_id_cmp(const OCSP_CERTID *a, const OCSP_CERTID *b);
+ #ifndef OPENSSL_NO_STDIO
+-int PEM_read(FILE *fp, char **name, char **header,
++int __cdecl PEM_read(FILE *fp, char **name, char **header,
+              unsigned char **data, long *len);
+-int PEM_write(FILE *fp, const char *name, const char *hdr,
++int __cdecl PEM_write(FILE *fp, const char *name, const char *hdr,
+               const unsigned char *data, long len);
+-void *PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
++void * __cdecl PEM_ASN1_read(d2i_of_void *d2i, const char *name, FILE *fp, void **x,
+                     pem_password_cb *cb, void *u);
+-int PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
++int __cdecl PEM_ASN1_write(i2d_of_void *i2d, const char *name, FILE *fp,
+                    void *x, const EVP_CIPHER *enc, unsigned char *kstr,
+                    int klen, pem_password_cb *callback, void *u);
+-STACK_OF(X509_INFO) *PEM_X509_INFO_read(FILE *fp, STACK_OF(X509_INFO) *sk,
++STACK_OF(X509_INFO) * __cdecl PEM_X509_INFO_read(FILE *fp, STACK_OF(X509_INFO) *sk,
+                                         pem_password_cb *cb, void *u);
+ #endif
  
--int OCSP_request_onereq_count(OCSP_REQUEST *req);
--OCSP_ONEREQ *OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
--OCSP_CERTID *OCSP_onereq_get0_id(OCSP_ONEREQ *one);
--int OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
-+int __cdecl OCSP_request_onereq_count(OCSP_REQUEST *req);
-+OCSP_ONEREQ * __cdecl OCSP_request_onereq_get0(OCSP_REQUEST *req, int i);
-+OCSP_CERTID * __cdecl OCSP_onereq_get0_id(OCSP_ONEREQ *one);
-+int __cdecl OCSP_id_get0_info(ASN1_OCTET_STRING **piNameHash, ASN1_OBJECT **pmd,
-                       ASN1_OCTET_STRING **pikeyHash,
-                       ASN1_INTEGER **pserial, OCSP_CERTID *cid);
--int OCSP_request_is_signed(OCSP_REQUEST *req);
--OCSP_RESPONSE *OCSP_response_create(int status, OCSP_BASICRESP *bs);
--OCSP_SINGLERESP *OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
-+int __cdecl OCSP_request_is_signed(OCSP_REQUEST *req);
-+OCSP_RESPONSE * __cdecl OCSP_response_create(int status, OCSP_BASICRESP *bs);
-+OCSP_SINGLERESP * __cdecl OCSP_basic_add1_status(OCSP_BASICRESP *rsp,
-                                         OCSP_CERTID *cid,
-                                         int status, int reason,
-                                         ASN1_TIME *revtime,
-                                         ASN1_TIME *thisupd,
-                                         ASN1_TIME *nextupd);
--int OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
--int OCSP_basic_sign(OCSP_BASICRESP *brsp,
-+int __cdecl OCSP_basic_add1_cert(OCSP_BASICRESP *resp, X509 *cert);
-+int __cdecl OCSP_basic_sign(OCSP_BASICRESP *brsp,
-                     X509 *signer, EVP_PKEY *key, const EVP_MD *dgst,
-                     STACK_OF(X509) *certs, unsigned long flags);
--int OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
-+int __cdecl OCSP_basic_sign_ctx(OCSP_BASICRESP *brsp,
-                         X509 *signer, EVP_MD_CTX *ctx,
-                         STACK_OF(X509) *certs, unsigned long flags);
--int OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
--int OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
--int OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
-+int __cdecl OCSP_RESPID_set_by_name(OCSP_RESPID *respid, X509 *cert);
-+int __cdecl OCSP_RESPID_set_by_key(OCSP_RESPID *respid, X509 *cert);
-+int __cdecl OCSP_RESPID_match(OCSP_RESPID *respid, X509 *cert);
+-int PEM_SignInit(EVP_MD_CTX *ctx, EVP_MD *type);
+-int PEM_SignUpdate(EVP_MD_CTX *ctx, unsigned char *d, unsigned int cnt);
+-int PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
++int __cdecl PEM_SignInit(EVP_MD_CTX *ctx, EVP_MD *type);
++int __cdecl PEM_SignUpdate(EVP_MD_CTX *ctx, unsigned char *d, unsigned int cnt);
++int __cdecl PEM_SignFinal(EVP_MD_CTX *ctx, unsigned char *sigret,
+                   unsigned int *siglen, EVP_PKEY *pkey);
  
--X509_EXTENSION *OCSP_crlID_new(const char *url, long *n, char *tim);
-+X509_EXTENSION * __cdecl OCSP_crlID_new(const char *url, long *n, char *tim);
+ /* The default pem_password_cb that's used internally */
+-int PEM_def_callback(char *buf, int num, int rwflag, void *userdata);
+-void PEM_proc_type(char *buf, int type);
+-void PEM_dek_info(char *buf, const char *type, int len, char *str);
++int __cdecl PEM_def_callback(char *buf, int num, int rwflag, void *userdata);
++void __cdecl PEM_proc_type(char *buf, int type);
++void __cdecl PEM_dek_info(char *buf, const char *type, int len, char *str);
  
--X509_EXTENSION *OCSP_accept_responses_new(char **oids);
-+X509_EXTENSION * __cdecl OCSP_accept_responses_new(char **oids);
+ # include <openssl/symhacks.h>
  
--X509_EXTENSION *OCSP_archive_cutoff_new(char *tim);
-+X509_EXTENSION * __cdecl OCSP_archive_cutoff_new(char *tim);
+@@ -318,56 +318,56 @@ DECLARE_PEM_write_const(DHxparams, DH)
+ DECLARE_PEM_rw_cb(PrivateKey, EVP_PKEY)
+ DECLARE_PEM_rw(PUBKEY, EVP_PKEY)
  
--X509_EXTENSION *OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
-+X509_EXTENSION * __cdecl OCSP_url_svcloc_new(X509_NAME *issuer, const char **urls);
+-int PEM_write_bio_PrivateKey_traditional(BIO *bp, EVP_PKEY *x,
++int __cdecl PEM_write_bio_PrivateKey_traditional(BIO *bp, EVP_PKEY *x,
+                                          const EVP_CIPHER *enc,
+                                          unsigned char *kstr, int klen,
+                                          pem_password_cb *cb, void *u);
  
--int OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
--int OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
--int OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_REQUEST_get_ext_count(OCSP_REQUEST *x);
-+int __cdecl OCSP_REQUEST_get_ext_by_NID(OCSP_REQUEST *x, int nid, int lastpos);
-+int __cdecl OCSP_REQUEST_get_ext_by_OBJ(OCSP_REQUEST *x, const ASN1_OBJECT *obj,
-                                 int lastpos);
--int OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
--X509_EXTENSION *OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
--X509_EXTENSION *OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
--void *OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
-+int __cdecl OCSP_REQUEST_get_ext_by_critical(OCSP_REQUEST *x, int crit, int lastpos);
-+X509_EXTENSION * __cdecl OCSP_REQUEST_get_ext(OCSP_REQUEST *x, int loc);
-+X509_EXTENSION * __cdecl OCSP_REQUEST_delete_ext(OCSP_REQUEST *x, int loc);
-+void * __cdecl OCSP_REQUEST_get1_ext_d2i(OCSP_REQUEST *x, int nid, int *crit,
-                                 int *idx);
--int OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
-+int __cdecl OCSP_REQUEST_add1_ext_i2d(OCSP_REQUEST *x, int nid, void *value, int crit,
-                               unsigned long flags);
--int OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
--
--int OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
--int OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
--int OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
--int OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
--X509_EXTENSION *OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
--X509_EXTENSION *OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
--void *OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
--int OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
-+int __cdecl OCSP_REQUEST_add_ext(OCSP_REQUEST *x, X509_EXTENSION *ex, int loc);
-+
-+int __cdecl OCSP_ONEREQ_get_ext_count(OCSP_ONEREQ *x);
-+int __cdecl OCSP_ONEREQ_get_ext_by_NID(OCSP_ONEREQ *x, int nid, int lastpos);
-+int __cdecl OCSP_ONEREQ_get_ext_by_OBJ(OCSP_ONEREQ *x, const ASN1_OBJECT *obj, int lastpos);
-+int __cdecl OCSP_ONEREQ_get_ext_by_critical(OCSP_ONEREQ *x, int crit, int lastpos);
-+X509_EXTENSION * __cdecl OCSP_ONEREQ_get_ext(OCSP_ONEREQ *x, int loc);
-+X509_EXTENSION * __cdecl OCSP_ONEREQ_delete_ext(OCSP_ONEREQ *x, int loc);
-+void * __cdecl OCSP_ONEREQ_get1_ext_d2i(OCSP_ONEREQ *x, int nid, int *crit, int *idx);
-+int __cdecl OCSP_ONEREQ_add1_ext_i2d(OCSP_ONEREQ *x, int nid, void *value, int crit,
-                              unsigned long flags);
--int OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
-+int __cdecl OCSP_ONEREQ_add_ext(OCSP_ONEREQ *x, X509_EXTENSION *ex, int loc);
+-int PEM_write_bio_PKCS8PrivateKey_nid(BIO *bp, EVP_PKEY *x, int nid,
++int __cdecl PEM_write_bio_PKCS8PrivateKey_nid(BIO *bp, EVP_PKEY *x, int nid,
+                                       char *kstr, int klen,
+                                       pem_password_cb *cb, void *u);
+-int PEM_write_bio_PKCS8PrivateKey(BIO *, EVP_PKEY *, const EVP_CIPHER *,
++int __cdecl PEM_write_bio_PKCS8PrivateKey(BIO *, EVP_PKEY *, const EVP_CIPHER *,
+                                   char *, int, pem_password_cb *, void *);
+-int i2d_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl i2d_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                             char *kstr, int klen,
+                             pem_password_cb *cb, void *u);
+-int i2d_PKCS8PrivateKey_nid_bio(BIO *bp, EVP_PKEY *x, int nid,
++int __cdecl i2d_PKCS8PrivateKey_nid_bio(BIO *bp, EVP_PKEY *x, int nid,
+                                 char *kstr, int klen,
+                                 pem_password_cb *cb, void *u);
+-EVP_PKEY *d2i_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
++EVP_PKEY * __cdecl d2i_PKCS8PrivateKey_bio(BIO *bp, EVP_PKEY **x, pem_password_cb *cb,
+                                   void *u);
  
--int OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
--int OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
--int OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_BASICRESP_get_ext_count(OCSP_BASICRESP *x);
-+int __cdecl OCSP_BASICRESP_get_ext_by_NID(OCSP_BASICRESP *x, int nid, int lastpos);
-+int __cdecl OCSP_BASICRESP_get_ext_by_OBJ(OCSP_BASICRESP *x, const ASN1_OBJECT *obj,
-                                   int lastpos);
--int OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
-+int __cdecl OCSP_BASICRESP_get_ext_by_critical(OCSP_BASICRESP *x, int crit,
-                                        int lastpos);
--X509_EXTENSION *OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
--X509_EXTENSION *OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
--void *OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
-+X509_EXTENSION * __cdecl OCSP_BASICRESP_get_ext(OCSP_BASICRESP *x, int loc);
-+X509_EXTENSION * __cdecl OCSP_BASICRESP_delete_ext(OCSP_BASICRESP *x, int loc);
-+void * __cdecl OCSP_BASICRESP_get1_ext_d2i(OCSP_BASICRESP *x, int nid, int *crit,
-                                   int *idx);
--int OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
-+int __cdecl OCSP_BASICRESP_add1_ext_i2d(OCSP_BASICRESP *x, int nid, void *value,
-                                 int crit, unsigned long flags);
--int OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
-+int __cdecl OCSP_BASICRESP_add_ext(OCSP_BASICRESP *x, X509_EXTENSION *ex, int loc);
+ # ifndef OPENSSL_NO_STDIO
+-int i2d_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl i2d_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                            char *kstr, int klen,
+                            pem_password_cb *cb, void *u);
+-int i2d_PKCS8PrivateKey_nid_fp(FILE *fp, EVP_PKEY *x, int nid,
++int __cdecl i2d_PKCS8PrivateKey_nid_fp(FILE *fp, EVP_PKEY *x, int nid,
+                                char *kstr, int klen,
+                                pem_password_cb *cb, void *u);
+-int PEM_write_PKCS8PrivateKey_nid(FILE *fp, EVP_PKEY *x, int nid,
++int __cdecl PEM_write_PKCS8PrivateKey_nid(FILE *fp, EVP_PKEY *x, int nid,
+                                   char *kstr, int klen,
+                                   pem_password_cb *cb, void *u);
  
--int OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
--int OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
--int OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
-+int __cdecl OCSP_SINGLERESP_get_ext_count(OCSP_SINGLERESP *x);
-+int __cdecl OCSP_SINGLERESP_get_ext_by_NID(OCSP_SINGLERESP *x, int nid, int lastpos);
-+int __cdecl OCSP_SINGLERESP_get_ext_by_OBJ(OCSP_SINGLERESP *x, const ASN1_OBJECT *obj,
-                                    int lastpos);
--int OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
-+int __cdecl OCSP_SINGLERESP_get_ext_by_critical(OCSP_SINGLERESP *x, int crit,
-                                         int lastpos);
--X509_EXTENSION *OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
--X509_EXTENSION *OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
--void *OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
-+X509_EXTENSION * __cdecl OCSP_SINGLERESP_get_ext(OCSP_SINGLERESP *x, int loc);
-+X509_EXTENSION * __cdecl OCSP_SINGLERESP_delete_ext(OCSP_SINGLERESP *x, int loc);
-+void * __cdecl OCSP_SINGLERESP_get1_ext_d2i(OCSP_SINGLERESP *x, int nid, int *crit,
-                                    int *idx);
--int OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
-+int __cdecl OCSP_SINGLERESP_add1_ext_i2d(OCSP_SINGLERESP *x, int nid, void *value,
-                                  int crit, unsigned long flags);
--int OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
--const OCSP_CERTID *OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
-+int __cdecl OCSP_SINGLERESP_add_ext(OCSP_SINGLERESP *x, X509_EXTENSION *ex, int loc);
-+const OCSP_CERTID * __cdecl OCSP_SINGLERESP_get0_id(const OCSP_SINGLERESP *x);
+-EVP_PKEY *d2i_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY **x, pem_password_cb *cb,
++EVP_PKEY * __cdecl d2i_PKCS8PrivateKey_fp(FILE *fp, EVP_PKEY **x, pem_password_cb *cb,
+                                  void *u);
  
- DECLARE_ASN1_FUNCTIONS(OCSP_SINGLERESP)
- DECLARE_ASN1_FUNCTIONS(OCSP_CERTSTATUS)
-@@ -334,14 +334,14 @@ DECLARE_ASN1_FUNCTIONS(OCSP_REQINFO)
- DECLARE_ASN1_FUNCTIONS(OCSP_CRLID)
- DECLARE_ASN1_FUNCTIONS(OCSP_SERVICELOC)
+-int PEM_write_PKCS8PrivateKey(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
++int __cdecl PEM_write_PKCS8PrivateKey(FILE *fp, EVP_PKEY *x, const EVP_CIPHER *enc,
+                               char *kstr, int klen, pem_password_cb *cd,
+                               void *u);
+ # endif
+-EVP_PKEY *PEM_read_bio_Parameters(BIO *bp, EVP_PKEY **x);
+-int PEM_write_bio_Parameters(BIO *bp, EVP_PKEY *x);
++EVP_PKEY * __cdecl PEM_read_bio_Parameters(BIO *bp, EVP_PKEY **x);
++int __cdecl PEM_write_bio_Parameters(BIO *bp, EVP_PKEY *x);
  
--const char *OCSP_response_status_str(long s);
--const char *OCSP_cert_status_str(long s);
--const char *OCSP_crl_reason_str(long s);
-+const char * __cdecl OCSP_response_status_str(long s);
-+const char * __cdecl OCSP_cert_status_str(long s);
-+const char * __cdecl OCSP_crl_reason_str(long s);
- 
--int OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
--int OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
-+int __cdecl OCSP_REQUEST_print(BIO *bp, OCSP_REQUEST *a, unsigned long flags);
-+int __cdecl OCSP_RESPONSE_print(BIO *bp, OCSP_RESPONSE *o, unsigned long flags);
- 
--int OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
-+int __cdecl OCSP_basic_verify(OCSP_BASICRESP *bs, STACK_OF(X509) *certs,
-                       X509_STORE *st, unsigned long flags);
- 
- 
-diff --git a/include/openssl/ocsperr.h b/include/openssl/ocsperr.h
-index 8dd9e01a17..bb512da35d 100644
---- a/include/openssl/ocsperr.h
-+++ b/include/openssl/ocsperr.h
-@@ -22,7 +22,7 @@
- #  ifdef  __cplusplus
- extern "C"
+ # ifndef OPENSSL_NO_DSA
+-EVP_PKEY *b2i_PrivateKey(const unsigned char **in, long length);
+-EVP_PKEY *b2i_PublicKey(const unsigned char **in, long length);
+-EVP_PKEY *b2i_PrivateKey_bio(BIO *in);
+-EVP_PKEY *b2i_PublicKey_bio(BIO *in);
+-int i2b_PrivateKey_bio(BIO *out, EVP_PKEY *pk);
+-int i2b_PublicKey_bio(BIO *out, EVP_PKEY *pk);
++EVP_PKEY * __cdecl b2i_PrivateKey(const unsigned char **in, long length);
++EVP_PKEY * __cdecl b2i_PublicKey(const unsigned char **in, long length);
++EVP_PKEY * __cdecl b2i_PrivateKey_bio(BIO *in);
++EVP_PKEY * __cdecl b2i_PublicKey_bio(BIO *in);
++int __cdecl i2b_PrivateKey_bio(BIO *out, EVP_PKEY *pk);
++int __cdecl i2b_PublicKey_bio(BIO *out, EVP_PKEY *pk);
+ #  ifndef OPENSSL_NO_RC4
+-EVP_PKEY *b2i_PVK_bio(BIO *in, pem_password_cb *cb, void *u);
+-int i2b_PVK_bio(BIO *out, EVP_PKEY *pk, int enclevel,
++EVP_PKEY * __cdecl b2i_PVK_bio(BIO *in, pem_password_cb *cb, void *u);
++int __cdecl i2b_PVK_bio(BIO *out, EVP_PKEY *pk, int enclevel,
+                 pem_password_cb *cb, void *u);
  #  endif
--int ERR_load_OCSP_strings(void);
-+int __cdecl ERR_load_OCSP_strings(void);
+ # endif
+diff --git a/include/openssl/pemerr.h b/include/openssl/pemerr.h
+index 0c45918f3c..ae70878350 100644
+--- a/include/openssl/pemerr.h
++++ b/include/openssl/pemerr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_PEM_strings(void);
++int __cdecl ERR_load_PEM_strings(void);
  
  /*
-  * OCSP function codes.
+  * PEM function codes.
+diff --git a/include/openssl/pkcs12.h b/include/openssl/pkcs12.h
+index 2ba3a1b816..ba93fb6e70 100644
+--- a/include/openssl/pkcs12.h
++++ b/include/openssl/pkcs12.h
+@@ -74,115 +74,115 @@ typedef struct pkcs12_bag_st PKCS12_BAGS;
+ 
+ DEPRECATEDIN_1_1_0(ASN1_TYPE *PKCS12_get_attr(const PKCS12_SAFEBAG *bag, int attr_nid))
+ 
+-ASN1_TYPE *PKCS8_get_attr(PKCS8_PRIV_KEY_INFO *p8, int attr_nid);
+-int PKCS12_mac_present(const PKCS12 *p12);
+-void PKCS12_get0_mac(const ASN1_OCTET_STRING **pmac,
++ASN1_TYPE * __cdecl PKCS8_get_attr(PKCS8_PRIV_KEY_INFO *p8, int attr_nid);
++int __cdecl PKCS12_mac_present(const PKCS12 *p12);
++void __cdecl PKCS12_get0_mac(const ASN1_OCTET_STRING **pmac,
+                      const X509_ALGOR **pmacalg,
+                      const ASN1_OCTET_STRING **psalt,
+                      const ASN1_INTEGER **piter,
+                      const PKCS12 *p12);
+ 
+-const ASN1_TYPE *PKCS12_SAFEBAG_get0_attr(const PKCS12_SAFEBAG *bag,
++const ASN1_TYPE * __cdecl PKCS12_SAFEBAG_get0_attr(const PKCS12_SAFEBAG *bag,
+                                           int attr_nid);
+-const ASN1_OBJECT *PKCS12_SAFEBAG_get0_type(const PKCS12_SAFEBAG *bag);
+-int PKCS12_SAFEBAG_get_nid(const PKCS12_SAFEBAG *bag);
+-int PKCS12_SAFEBAG_get_bag_nid(const PKCS12_SAFEBAG *bag);
++const ASN1_OBJECT * __cdecl PKCS12_SAFEBAG_get0_type(const PKCS12_SAFEBAG *bag);
++int __cdecl PKCS12_SAFEBAG_get_nid(const PKCS12_SAFEBAG *bag);
++int __cdecl PKCS12_SAFEBAG_get_bag_nid(const PKCS12_SAFEBAG *bag);
+ 
+-X509 *PKCS12_SAFEBAG_get1_cert(const PKCS12_SAFEBAG *bag);
+-X509_CRL *PKCS12_SAFEBAG_get1_crl(const PKCS12_SAFEBAG *bag);
+-const STACK_OF(PKCS12_SAFEBAG) *
++X509 * __cdecl PKCS12_SAFEBAG_get1_cert(const PKCS12_SAFEBAG *bag);
++X509_CRL * __cdecl PKCS12_SAFEBAG_get1_crl(const PKCS12_SAFEBAG *bag);
++const STACK_OF(PKCS12_SAFEBAG) * __cdecl 
+ PKCS12_SAFEBAG_get0_safes(const PKCS12_SAFEBAG *bag);
+-const PKCS8_PRIV_KEY_INFO *PKCS12_SAFEBAG_get0_p8inf(const PKCS12_SAFEBAG *bag);
+-const X509_SIG *PKCS12_SAFEBAG_get0_pkcs8(const PKCS12_SAFEBAG *bag);
+-
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_cert(X509 *x509);
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_crl(X509_CRL *crl);
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8);
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8);
+-PKCS12_SAFEBAG *PKCS12_SAFEBAG_create_pkcs8_encrypt(int pbe_nid,
++const PKCS8_PRIV_KEY_INFO * __cdecl PKCS12_SAFEBAG_get0_p8inf(const PKCS12_SAFEBAG *bag);
++const X509_SIG * __cdecl PKCS12_SAFEBAG_get0_pkcs8(const PKCS12_SAFEBAG *bag);
++
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_cert(X509 *x509);
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_crl(X509_CRL *crl);
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create0_p8inf(PKCS8_PRIV_KEY_INFO *p8);
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create0_pkcs8(X509_SIG *p8);
++PKCS12_SAFEBAG * __cdecl PKCS12_SAFEBAG_create_pkcs8_encrypt(int pbe_nid,
+                                                     const char *pass,
+                                                     int passlen,
+                                                     unsigned char *salt,
+                                                     int saltlen, int iter,
+                                                     PKCS8_PRIV_KEY_INFO *p8inf);
+ 
+-PKCS12_SAFEBAG *PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
++PKCS12_SAFEBAG * __cdecl PKCS12_item_pack_safebag(void *obj, const ASN1_ITEM *it,
+                                          int nid1, int nid2);
+-PKCS8_PRIV_KEY_INFO *PKCS8_decrypt(const X509_SIG *p8, const char *pass,
++PKCS8_PRIV_KEY_INFO * __cdecl PKCS8_decrypt(const X509_SIG *p8, const char *pass,
+                                    int passlen);
+-PKCS8_PRIV_KEY_INFO *PKCS12_decrypt_skey(const PKCS12_SAFEBAG *bag,
++PKCS8_PRIV_KEY_INFO * __cdecl PKCS12_decrypt_skey(const PKCS12_SAFEBAG *bag,
+                                          const char *pass, int passlen);
+-X509_SIG *PKCS8_encrypt(int pbe_nid, const EVP_CIPHER *cipher,
++X509_SIG * __cdecl PKCS8_encrypt(int pbe_nid, const EVP_CIPHER *cipher,
+                         const char *pass, int passlen, unsigned char *salt,
+                         int saltlen, int iter, PKCS8_PRIV_KEY_INFO *p8);
+-X509_SIG *PKCS8_set0_pbe(const char *pass, int passlen,
++X509_SIG * __cdecl PKCS8_set0_pbe(const char *pass, int passlen,
+                         PKCS8_PRIV_KEY_INFO *p8inf, X509_ALGOR *pbe);
+-PKCS7 *PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk);
+-STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7data(PKCS7 *p7);
+-PKCS7 *PKCS12_pack_p7encdata(int pbe_nid, const char *pass, int passlen,
++PKCS7 * __cdecl PKCS12_pack_p7data(STACK_OF(PKCS12_SAFEBAG) *sk);
++STACK_OF(PKCS12_SAFEBAG) * __cdecl PKCS12_unpack_p7data(PKCS7 *p7);
++PKCS7 * __cdecl PKCS12_pack_p7encdata(int pbe_nid, const char *pass, int passlen,
+                              unsigned char *salt, int saltlen, int iter,
+                              STACK_OF(PKCS12_SAFEBAG) *bags);
+-STACK_OF(PKCS12_SAFEBAG) *PKCS12_unpack_p7encdata(PKCS7 *p7, const char *pass,
++STACK_OF(PKCS12_SAFEBAG) * __cdecl PKCS12_unpack_p7encdata(PKCS7 *p7, const char *pass,
+                                                   int passlen);
+ 
+-int PKCS12_pack_authsafes(PKCS12 *p12, STACK_OF(PKCS7) *safes);
+-STACK_OF(PKCS7) *PKCS12_unpack_authsafes(const PKCS12 *p12);
++int __cdecl PKCS12_pack_authsafes(PKCS12 *p12, STACK_OF(PKCS7) *safes);
++STACK_OF(PKCS7) * __cdecl PKCS12_unpack_authsafes(const PKCS12 *p12);
+ 
+-int PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, unsigned char *name,
++int __cdecl PKCS12_add_localkeyid(PKCS12_SAFEBAG *bag, unsigned char *name,
+                           int namelen);
+-int PKCS12_add_friendlyname_asc(PKCS12_SAFEBAG *bag, const char *name,
++int __cdecl PKCS12_add_friendlyname_asc(PKCS12_SAFEBAG *bag, const char *name,
+                                 int namelen);
+-int PKCS12_add_friendlyname_utf8(PKCS12_SAFEBAG *bag, const char *name,
++int __cdecl PKCS12_add_friendlyname_utf8(PKCS12_SAFEBAG *bag, const char *name,
+                                  int namelen);
+-int PKCS12_add_CSPName_asc(PKCS12_SAFEBAG *bag, const char *name,
++int __cdecl PKCS12_add_CSPName_asc(PKCS12_SAFEBAG *bag, const char *name,
+                            int namelen);
+-int PKCS12_add_friendlyname_uni(PKCS12_SAFEBAG *bag,
++int __cdecl PKCS12_add_friendlyname_uni(PKCS12_SAFEBAG *bag,
+                                 const unsigned char *name, int namelen);
+-int PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage);
+-ASN1_TYPE *PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
++int __cdecl PKCS8_add_keyusage(PKCS8_PRIV_KEY_INFO *p8, int usage);
++ASN1_TYPE * __cdecl PKCS12_get_attr_gen(const STACK_OF(X509_ATTRIBUTE) *attrs,
+                                int attr_nid);
+-char *PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag);
+-const STACK_OF(X509_ATTRIBUTE) *
++char * __cdecl PKCS12_get_friendlyname(PKCS12_SAFEBAG *bag);
++const STACK_OF(X509_ATTRIBUTE) * __cdecl 
+ PKCS12_SAFEBAG_get0_attrs(const PKCS12_SAFEBAG *bag);
+-unsigned char *PKCS12_pbe_crypt(const X509_ALGOR *algor,
++unsigned char * __cdecl PKCS12_pbe_crypt(const X509_ALGOR *algor,
+                                 const char *pass, int passlen,
+                                 const unsigned char *in, int inlen,
+                                 unsigned char **data, int *datalen,
+                                 int en_de);
+-void *PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
++void * __cdecl PKCS12_item_decrypt_d2i(const X509_ALGOR *algor, const ASN1_ITEM *it,
+                               const char *pass, int passlen,
+                               const ASN1_OCTET_STRING *oct, int zbuf);
+-ASN1_OCTET_STRING *PKCS12_item_i2d_encrypt(X509_ALGOR *algor,
++ASN1_OCTET_STRING * __cdecl PKCS12_item_i2d_encrypt(X509_ALGOR *algor,
+                                            const ASN1_ITEM *it,
+                                            const char *pass, int passlen,
+                                            void *obj, int zbuf);
+-PKCS12 *PKCS12_init(int mode);
+-int PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
++PKCS12 * __cdecl PKCS12_init(int mode);
++int __cdecl PKCS12_key_gen_asc(const char *pass, int passlen, unsigned char *salt,
+                        int saltlen, int id, int iter, int n,
+                        unsigned char *out, const EVP_MD *md_type);
+-int PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
++int __cdecl PKCS12_key_gen_uni(unsigned char *pass, int passlen, unsigned char *salt,
+                        int saltlen, int id, int iter, int n,
+                        unsigned char *out, const EVP_MD *md_type);
+-int PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
++int __cdecl PKCS12_key_gen_utf8(const char *pass, int passlen, unsigned char *salt,
+                         int saltlen, int id, int iter, int n,
+                         unsigned char *out, const EVP_MD *md_type);
+ int __cdecl PKCS12_PBE_keyivgen(EVP_CIPHER_CTX *ctx, const char *pass, int passlen,
+                         ASN1_TYPE *param, const EVP_CIPHER *cipher,
+                         const EVP_MD *md_type, int en_de);
+-int PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
++int __cdecl PKCS12_gen_mac(PKCS12 *p12, const char *pass, int passlen,
+                    unsigned char *mac, unsigned int *maclen);
+-int PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen);
+-int PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
++int __cdecl PKCS12_verify_mac(PKCS12 *p12, const char *pass, int passlen);
++int __cdecl PKCS12_set_mac(PKCS12 *p12, const char *pass, int passlen,
+                    unsigned char *salt, int saltlen, int iter,
+                    const EVP_MD *md_type);
+-int PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt,
++int __cdecl PKCS12_setup_mac(PKCS12 *p12, int iter, unsigned char *salt,
+                      int saltlen, const EVP_MD *md_type);
+-unsigned char *OPENSSL_asc2uni(const char *asc, int asclen,
++unsigned char * __cdecl OPENSSL_asc2uni(const char *asc, int asclen,
+                                unsigned char **uni, int *unilen);
+-char *OPENSSL_uni2asc(const unsigned char *uni, int unilen);
+-unsigned char *OPENSSL_utf82uni(const char *asc, int asclen,
++char * __cdecl OPENSSL_uni2asc(const unsigned char *uni, int unilen);
++unsigned char * __cdecl OPENSSL_utf82uni(const char *asc, int asclen,
+                                 unsigned char **uni, int *unilen);
+-char *OPENSSL_uni2utf8(const unsigned char *uni, int unilen);
++char * __cdecl OPENSSL_uni2utf8(const unsigned char *uni, int unilen);
+ 
+ DECLARE_ASN1_FUNCTIONS(PKCS12)
+ DECLARE_ASN1_FUNCTIONS(PKCS12_MAC_DATA)
+@@ -192,30 +192,30 @@ DECLARE_ASN1_FUNCTIONS(PKCS12_BAGS)
+ DECLARE_ASN1_ITEM(PKCS12_SAFEBAGS)
+ DECLARE_ASN1_ITEM(PKCS12_AUTHSAFES)
+ 
+-void PKCS12_PBE_add(void);
+-int PKCS12_parse(PKCS12 *p12, const char *pass, EVP_PKEY **pkey, X509 **cert,
++void __cdecl PKCS12_PBE_add(void);
++int __cdecl PKCS12_parse(PKCS12 *p12, const char *pass, EVP_PKEY **pkey, X509 **cert,
+                  STACK_OF(X509) **ca);
+-PKCS12 *PKCS12_create(const char *pass, const char *name, EVP_PKEY *pkey,
++PKCS12 * __cdecl PKCS12_create(const char *pass, const char *name, EVP_PKEY *pkey,
+                       X509 *cert, STACK_OF(X509) *ca, int nid_key, int nid_cert,
+                       int iter, int mac_iter, int keytype);
+ 
+-PKCS12_SAFEBAG *PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert);
+-PKCS12_SAFEBAG *PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
++PKCS12_SAFEBAG * __cdecl PKCS12_add_cert(STACK_OF(PKCS12_SAFEBAG) **pbags, X509 *cert);
++PKCS12_SAFEBAG * __cdecl PKCS12_add_key(STACK_OF(PKCS12_SAFEBAG) **pbags,
+                                EVP_PKEY *key, int key_usage, int iter,
+                                int key_nid, const char *pass);
+-int PKCS12_add_safe(STACK_OF(PKCS7) **psafes, STACK_OF(PKCS12_SAFEBAG) *bags,
++int __cdecl PKCS12_add_safe(STACK_OF(PKCS7) **psafes, STACK_OF(PKCS12_SAFEBAG) *bags,
+                     int safe_nid, int iter, const char *pass);
+-PKCS12 *PKCS12_add_safes(STACK_OF(PKCS7) *safes, int p7_nid);
++PKCS12 * __cdecl PKCS12_add_safes(STACK_OF(PKCS7) *safes, int p7_nid);
+ 
+-int i2d_PKCS12_bio(BIO *bp, PKCS12 *p12);
++int __cdecl i2d_PKCS12_bio(BIO *bp, PKCS12 *p12);
+ # ifndef OPENSSL_NO_STDIO
+-int i2d_PKCS12_fp(FILE *fp, PKCS12 *p12);
++int __cdecl i2d_PKCS12_fp(FILE *fp, PKCS12 *p12);
+ # endif
+-PKCS12 *d2i_PKCS12_bio(BIO *bp, PKCS12 **p12);
++PKCS12 * __cdecl d2i_PKCS12_bio(BIO *bp, PKCS12 **p12);
+ # ifndef OPENSSL_NO_STDIO
+-PKCS12 *d2i_PKCS12_fp(FILE *fp, PKCS12 **p12);
++PKCS12 * __cdecl d2i_PKCS12_fp(FILE *fp, PKCS12 **p12);
+ # endif
+-int PKCS12_newpass(PKCS12 *p12, const char *oldpass, const char *newpass);
++int __cdecl PKCS12_newpass(PKCS12 *p12, const char *oldpass, const char *newpass);
+ 
+ # ifdef  __cplusplus
+ }
+diff --git a/include/openssl/pkcs12err.h b/include/openssl/pkcs12err.h
+index eff5eb2602..7e661eb51d 100644
+--- a/include/openssl/pkcs12err.h
++++ b/include/openssl/pkcs12err.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_PKCS12_strings(void);
++int __cdecl ERR_load_PKCS12_strings(void);
+ 
+ /*
+  * PKCS12 function codes.
+diff --git a/include/openssl/pkcs7.h b/include/openssl/pkcs7.h
+index 6aa4a89a01..d46c2eccf5 100644
+--- a/include/openssl/pkcs7.h
++++ b/include/openssl/pkcs7.h
+@@ -203,18 +203,18 @@ DEFINE_STACK_OF(PKCS7)
+ 
+ DECLARE_ASN1_FUNCTIONS(PKCS7_ISSUER_AND_SERIAL)
+ 
+-int PKCS7_ISSUER_AND_SERIAL_digest(PKCS7_ISSUER_AND_SERIAL *data,
++int __cdecl PKCS7_ISSUER_AND_SERIAL_digest(PKCS7_ISSUER_AND_SERIAL *data,
+                                    const EVP_MD *type, unsigned char *md,
+                                    unsigned int *len);
+ # ifndef OPENSSL_NO_STDIO
+-PKCS7 *d2i_PKCS7_fp(FILE *fp, PKCS7 **p7);
+-int i2d_PKCS7_fp(FILE *fp, PKCS7 *p7);
++PKCS7 * __cdecl d2i_PKCS7_fp(FILE *fp, PKCS7 **p7);
++int __cdecl i2d_PKCS7_fp(FILE *fp, PKCS7 *p7);
+ # endif
+ PKCS7 * __cdecl PKCS7_dup(PKCS7 *p7);
+-PKCS7 *d2i_PKCS7_bio(BIO *bp, PKCS7 **p7);
+-int i2d_PKCS7_bio(BIO *bp, PKCS7 *p7);
+-int i2d_PKCS7_bio_stream(BIO *out, PKCS7 *p7, BIO *in, int flags);
+-int PEM_write_bio_PKCS7_stream(BIO *out, PKCS7 *p7, BIO *in, int flags);
++PKCS7 * __cdecl d2i_PKCS7_bio(BIO *bp, PKCS7 **p7);
++int __cdecl i2d_PKCS7_bio(BIO *bp, PKCS7 *p7);
++int __cdecl i2d_PKCS7_bio_stream(BIO *out, PKCS7 *p7, BIO *in, int flags);
++int __cdecl PEM_write_bio_PKCS7_stream(BIO *out, PKCS7 *p7, BIO *in, int flags);
+ 
+ DECLARE_ASN1_FUNCTIONS(PKCS7_SIGNER_INFO)
+ DECLARE_ASN1_FUNCTIONS(PKCS7_RECIP_INFO)
+@@ -232,86 +232,86 @@ DECLARE_ASN1_ITEM(PKCS7_ATTR_VERIFY)
+ DECLARE_ASN1_NDEF_FUNCTION(PKCS7)
+ DECLARE_ASN1_PRINT_FUNCTION(PKCS7)
+ 
+-long PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg);
++long __cdecl PKCS7_ctrl(PKCS7 *p7, int cmd, long larg, char *parg);
+ 
+-int PKCS7_set_type(PKCS7 *p7, int type);
+-int PKCS7_set0_type_other(PKCS7 *p7, int type, ASN1_TYPE *other);
+-int PKCS7_set_content(PKCS7 *p7, PKCS7 *p7_data);
+-int PKCS7_SIGNER_INFO_set(PKCS7_SIGNER_INFO *p7i, X509 *x509, EVP_PKEY *pkey,
++int __cdecl PKCS7_set_type(PKCS7 *p7, int type);
++int __cdecl PKCS7_set0_type_other(PKCS7 *p7, int type, ASN1_TYPE *other);
++int __cdecl PKCS7_set_content(PKCS7 *p7, PKCS7 *p7_data);
++int __cdecl PKCS7_SIGNER_INFO_set(PKCS7_SIGNER_INFO *p7i, X509 *x509, EVP_PKEY *pkey,
+                           const EVP_MD *dgst);
+-int PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si);
+-int PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *p7i);
+-int PKCS7_add_certificate(PKCS7 *p7, X509 *x509);
+-int PKCS7_add_crl(PKCS7 *p7, X509_CRL *x509);
+-int PKCS7_content_new(PKCS7 *p7, int nid);
+-int PKCS7_dataVerify(X509_STORE *cert_store, X509_STORE_CTX *ctx,
++int __cdecl PKCS7_SIGNER_INFO_sign(PKCS7_SIGNER_INFO *si);
++int __cdecl PKCS7_add_signer(PKCS7 *p7, PKCS7_SIGNER_INFO *p7i);
++int __cdecl PKCS7_add_certificate(PKCS7 *p7, X509 *x509);
++int __cdecl PKCS7_add_crl(PKCS7 *p7, X509_CRL *x509);
++int __cdecl PKCS7_content_new(PKCS7 *p7, int nid);
++int __cdecl PKCS7_dataVerify(X509_STORE *cert_store, X509_STORE_CTX *ctx,
+                      BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si);
+-int PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_signatureVerify(BIO *bio, PKCS7 *p7, PKCS7_SIGNER_INFO *si,
+                           X509 *x509);
+ 
+-BIO *PKCS7_dataInit(PKCS7 *p7, BIO *bio);
+-int PKCS7_dataFinal(PKCS7 *p7, BIO *bio);
+-BIO *PKCS7_dataDecode(PKCS7 *p7, EVP_PKEY *pkey, BIO *in_bio, X509 *pcert);
++BIO * __cdecl PKCS7_dataInit(PKCS7 *p7, BIO *bio);
++int __cdecl PKCS7_dataFinal(PKCS7 *p7, BIO *bio);
++BIO * __cdecl PKCS7_dataDecode(PKCS7 *p7, EVP_PKEY *pkey, BIO *in_bio, X509 *pcert);
+ 
+-PKCS7_SIGNER_INFO *PKCS7_add_signature(PKCS7 *p7, X509 *x509,
++PKCS7_SIGNER_INFO * __cdecl PKCS7_add_signature(PKCS7 *p7, X509 *x509,
+                                        EVP_PKEY *pkey, const EVP_MD *dgst);
+-X509 *PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si);
+-int PKCS7_set_digest(PKCS7 *p7, const EVP_MD *md);
+-STACK_OF(PKCS7_SIGNER_INFO) *PKCS7_get_signer_info(PKCS7 *p7);
++X509 * __cdecl PKCS7_cert_from_signer_info(PKCS7 *p7, PKCS7_SIGNER_INFO *si);
++int __cdecl PKCS7_set_digest(PKCS7 *p7, const EVP_MD *md);
++STACK_OF(PKCS7_SIGNER_INFO) * __cdecl PKCS7_get_signer_info(PKCS7 *p7);
+ 
+-PKCS7_RECIP_INFO *PKCS7_add_recipient(PKCS7 *p7, X509 *x509);
+-void PKCS7_SIGNER_INFO_get0_algs(PKCS7_SIGNER_INFO *si, EVP_PKEY **pk,
++PKCS7_RECIP_INFO * __cdecl PKCS7_add_recipient(PKCS7 *p7, X509 *x509);
++void __cdecl PKCS7_SIGNER_INFO_get0_algs(PKCS7_SIGNER_INFO *si, EVP_PKEY **pk,
+                                  X509_ALGOR **pdig, X509_ALGOR **psig);
+-void PKCS7_RECIP_INFO_get0_alg(PKCS7_RECIP_INFO *ri, X509_ALGOR **penc);
+-int PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri);
+-int PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509);
+-int PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher);
+-int PKCS7_stream(unsigned char ***boundary, PKCS7 *p7);
+-
+-PKCS7_ISSUER_AND_SERIAL *PKCS7_get_issuer_and_serial(PKCS7 *p7, int idx);
+-ASN1_OCTET_STRING *PKCS7_digest_from_attributes(STACK_OF(X509_ATTRIBUTE) *sk);
+-int PKCS7_add_signed_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int type,
++void __cdecl PKCS7_RECIP_INFO_get0_alg(PKCS7_RECIP_INFO *ri, X509_ALGOR **penc);
++int __cdecl PKCS7_add_recipient_info(PKCS7 *p7, PKCS7_RECIP_INFO *ri);
++int __cdecl PKCS7_RECIP_INFO_set(PKCS7_RECIP_INFO *p7i, X509 *x509);
++int __cdecl PKCS7_set_cipher(PKCS7 *p7, const EVP_CIPHER *cipher);
++int __cdecl PKCS7_stream(unsigned char ***boundary, PKCS7 *p7);
++
++PKCS7_ISSUER_AND_SERIAL * __cdecl PKCS7_get_issuer_and_serial(PKCS7 *p7, int idx);
++ASN1_OCTET_STRING * __cdecl PKCS7_digest_from_attributes(STACK_OF(X509_ATTRIBUTE) *sk);
++int __cdecl PKCS7_add_signed_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int type,
+                                void *data);
+-int PKCS7_add_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
++int __cdecl PKCS7_add_attribute(PKCS7_SIGNER_INFO *p7si, int nid, int atrtype,
+                         void *value);
+-ASN1_TYPE *PKCS7_get_attribute(PKCS7_SIGNER_INFO *si, int nid);
+-ASN1_TYPE *PKCS7_get_signed_attribute(PKCS7_SIGNER_INFO *si, int nid);
+-int PKCS7_set_signed_attributes(PKCS7_SIGNER_INFO *p7si,
++ASN1_TYPE * __cdecl PKCS7_get_attribute(PKCS7_SIGNER_INFO *si, int nid);
++ASN1_TYPE * __cdecl PKCS7_get_signed_attribute(PKCS7_SIGNER_INFO *si, int nid);
++int __cdecl PKCS7_set_signed_attributes(PKCS7_SIGNER_INFO *p7si,
+                                 STACK_OF(X509_ATTRIBUTE) *sk);
+-int PKCS7_set_attributes(PKCS7_SIGNER_INFO *p7si,
++int __cdecl PKCS7_set_attributes(PKCS7_SIGNER_INFO *p7si,
+                          STACK_OF(X509_ATTRIBUTE) *sk);
+ 
+-PKCS7 *PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
++PKCS7 * __cdecl PKCS7_sign(X509 *signcert, EVP_PKEY *pkey, STACK_OF(X509) *certs,
+                   BIO *data, int flags);
+ 
+-PKCS7_SIGNER_INFO *PKCS7_sign_add_signer(PKCS7 *p7,
++PKCS7_SIGNER_INFO * __cdecl PKCS7_sign_add_signer(PKCS7 *p7,
+                                          X509 *signcert, EVP_PKEY *pkey,
+                                          const EVP_MD *md, int flags);
+ 
+-int PKCS7_final(PKCS7 *p7, BIO *data, int flags);
+-int PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
++int __cdecl PKCS7_final(PKCS7 *p7, BIO *data, int flags);
++int __cdecl PKCS7_verify(PKCS7 *p7, STACK_OF(X509) *certs, X509_STORE *store,
+                  BIO *indata, BIO *out, int flags);
+-STACK_OF(X509) *PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
++STACK_OF(X509) * __cdecl PKCS7_get0_signers(PKCS7 *p7, STACK_OF(X509) *certs,
+                                    int flags);
+-PKCS7 *PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
++PKCS7 * __cdecl PKCS7_encrypt(STACK_OF(X509) *certs, BIO *in, const EVP_CIPHER *cipher,
+                      int flags);
+-int PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data,
++int __cdecl PKCS7_decrypt(PKCS7 *p7, EVP_PKEY *pkey, X509 *cert, BIO *data,
+                   int flags);
+ 
+-int PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_add_attrib_smimecap(PKCS7_SIGNER_INFO *si,
+                               STACK_OF(X509_ALGOR) *cap);
+-STACK_OF(X509_ALGOR) *PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si);
+-int PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg);
++STACK_OF(X509_ALGOR) * __cdecl PKCS7_get_smimecap(PKCS7_SIGNER_INFO *si);
++int __cdecl PKCS7_simple_smimecap(STACK_OF(X509_ALGOR) *sk, int nid, int arg);
+ 
+-int PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid);
+-int PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t);
+-int PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
++int __cdecl PKCS7_add_attrib_content_type(PKCS7_SIGNER_INFO *si, ASN1_OBJECT *coid);
++int __cdecl PKCS7_add0_attrib_signing_time(PKCS7_SIGNER_INFO *si, ASN1_TIME *t);
++int __cdecl PKCS7_add1_attrib_digest(PKCS7_SIGNER_INFO *si,
+                              const unsigned char *md, int mdlen);
+ 
+-int SMIME_write_PKCS7(BIO *bio, PKCS7 *p7, BIO *data, int flags);
+-PKCS7 *SMIME_read_PKCS7(BIO *bio, BIO **bcont);
++int __cdecl SMIME_write_PKCS7(BIO *bio, PKCS7 *p7, BIO *data, int flags);
++PKCS7 * __cdecl SMIME_read_PKCS7(BIO *bio, BIO **bcont);
+ 
+-BIO *BIO_new_PKCS7(BIO *out, PKCS7 *p7);
++BIO * __cdecl BIO_new_PKCS7(BIO *out, PKCS7 *p7);
+ 
+ # ifdef  __cplusplus
+ }
+diff --git a/include/openssl/pkcs7err.h b/include/openssl/pkcs7err.h
+index 02e0299a3c..b1cb13ef72 100644
+--- a/include/openssl/pkcs7err.h
++++ b/include/openssl/pkcs7err.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_PKCS7_strings(void);
++int __cdecl ERR_load_PKCS7_strings(void);
+ 
+ /*
+  * PKCS7 function codes.
