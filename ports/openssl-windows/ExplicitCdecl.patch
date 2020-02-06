@@ -20685,6 +20685,347 @@ index 07490c1a58..ee81c47365 100644
  {
  #ifndef OPENSSL_NO_ERR
      if (ERR_func_error_string(PKCS7_str_functs[0].error) == NULL) {
+diff --git a/crypto/rand/drbg_lib.c b/crypto/rand/drbg_lib.c
+index 12bb627a04..e500d67107 100644
+--- a/crypto/rand/drbg_lib.c
++++ b/crypto/rand/drbg_lib.c
+@@ -100,7 +100,7 @@ static RAND_DRBG *rand_drbg_new(int secure,
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
++int __cdecl RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
+ {
+     int ret = 1;
+ 
+@@ -150,7 +150,7 @@ int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_set_defaults(int type, unsigned int flags)
++int __cdecl RAND_DRBG_set_defaults(int type, unsigned int flags)
+ {
+     int ret = 1;
+ 
+@@ -247,12 +247,12 @@ static RAND_DRBG *rand_drbg_new(int secure,
+     return NULL;
+ }
+ 
+-RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent)
++RAND_DRBG * __cdecl RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent)
+ {
+     return rand_drbg_new(0, type, flags, parent);
+ }
+ 
+-RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
++RAND_DRBG * __cdecl RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
+ {
+     return rand_drbg_new(1, type, flags, parent);
+ }
+@@ -260,7 +260,7 @@ RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
+ /*
+  * Uninstantiate |drbg| and free all memory.
+  */
+-void RAND_DRBG_free(RAND_DRBG *drbg)
++void __cdecl RAND_DRBG_free(RAND_DRBG *drbg)
+ {
+     if (drbg == NULL)
+         return;
+@@ -285,7 +285,7 @@ void RAND_DRBG_free(RAND_DRBG *drbg)
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_instantiate(RAND_DRBG *drbg,
++int __cdecl RAND_DRBG_instantiate(RAND_DRBG *drbg,
+                           const unsigned char *pers, size_t perslen)
+ {
+     unsigned char *nonce = NULL, *entropy = NULL;
+@@ -380,7 +380,7 @@ int RAND_DRBG_instantiate(RAND_DRBG *drbg,
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
++int __cdecl RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
+ {
+     if (drbg->meth == NULL) {
+         drbg->state = DRBG_ERROR;
+@@ -404,7 +404,7 @@ int RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_reseed(RAND_DRBG *drbg,
++int __cdecl RAND_DRBG_reseed(RAND_DRBG *drbg,
+                      const unsigned char *adin, size_t adinlen,
+                      int prediction_resistance)
+ {
+@@ -574,7 +574,7 @@ int rand_drbg_restart(RAND_DRBG *drbg,
+  * Returns 1 on success, 0 on failure.
+  *
+  */
+-int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
++int __cdecl RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
+                        int prediction_resistance,
+                        const unsigned char *adin, size_t adinlen)
+ {
+@@ -657,7 +657,7 @@ int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
+  *
+  * Returns 1 on success 0 on failure.
+  */
+-int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
++int __cdecl RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
+ {
+     unsigned char *additional = NULL;
+     size_t additional_len;
+@@ -700,7 +700,7 @@ int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
++int __cdecl RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
+                             RAND_DRBG_get_entropy_fn get_entropy,
+                             RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
+                             RAND_DRBG_get_nonce_fn get_nonce,
+@@ -725,7 +725,7 @@ int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
++int __cdecl RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
+ {
+     if (interval > MAX_RESEED_INTERVAL)
+         return 0;
+@@ -743,7 +743,7 @@ int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
+  *
+  * Returns 1 on success, 0 on failure.
+  */
+-int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
++int __cdecl RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
+ {
+     if (interval > MAX_RESEED_TIME_INTERVAL)
+         return 0;
+@@ -760,7 +760,7 @@ int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
+  * Returns 1 on success, 0 on failure.
+  */
+ 
+-int RAND_DRBG_set_reseed_defaults(
++int __cdecl RAND_DRBG_set_reseed_defaults(
+                                   unsigned int _master_reseed_interval,
+                                   unsigned int _slave_reseed_interval,
+                                   time_t _master_reseed_time_interval,
+@@ -849,12 +849,12 @@ int rand_drbg_enable_locking(RAND_DRBG *drbg)
+ /*
+  * Get and set the EXDATA
+  */
+-int RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg)
++int __cdecl RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&drbg->ex_data, idx, arg);
+ }
+ 
+-void *RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx)
++void * __cdecl RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx)
+ {
+     return CRYPTO_get_ex_data(&drbg->ex_data, idx);
+ }
+@@ -1097,7 +1097,7 @@ static int drbg_status(void)
+  * Returns pointer to the DRBG on success, NULL on failure.
+  *
+  */
+-RAND_DRBG *RAND_DRBG_get0_master(void)
++RAND_DRBG * __cdecl RAND_DRBG_get0_master(void)
+ {
+     if (!RUN_ONCE(&rand_drbg_init, do_rand_drbg_init))
+         return NULL;
+@@ -1109,7 +1109,7 @@ RAND_DRBG *RAND_DRBG_get0_master(void)
+  * Get the public DRBG.
+  * Returns pointer to the DRBG on success, NULL on failure.
+  */
+-RAND_DRBG *RAND_DRBG_get0_public(void)
++RAND_DRBG * __cdecl RAND_DRBG_get0_public(void)
+ {
+     RAND_DRBG *drbg;
+ 
+@@ -1130,7 +1130,7 @@ RAND_DRBG *RAND_DRBG_get0_public(void)
+  * Get the private DRBG.
+  * Returns pointer to the DRBG on success, NULL on failure.
+  */
+-RAND_DRBG *RAND_DRBG_get0_private(void)
++RAND_DRBG * __cdecl RAND_DRBG_get0_private(void)
+ {
+     RAND_DRBG *drbg;
+ 
+@@ -1156,7 +1156,7 @@ RAND_METHOD rand_meth = {
+     drbg_status
+ };
+ 
+-RAND_METHOD *RAND_OpenSSL(void)
++RAND_METHOD * __cdecl RAND_OpenSSL(void)
+ {
+     return &rand_meth;
+ }
+diff --git a/crypto/rand/rand_egd.c b/crypto/rand/rand_egd.c
+index da3017df31..7448defedc 100644
+--- a/crypto/rand/rand_egd.c
++++ b/crypto/rand/rand_egd.c
+@@ -21,17 +21,17 @@ NON_EMPTY_TRANSLATION_UNIT
+  */
+ 
+ # if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_UEFI)
+-int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
++int __cdecl RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
+ {
+     return -1;
+ }
+ 
+-int RAND_egd(const char *path)
++int __cdecl RAND_egd(const char *path)
+ {
+     return -1;
+ }
+ 
+-int RAND_egd_bytes(const char *path, int bytes)
++int __cdecl RAND_egd_bytes(const char *path, int bytes)
+ {
+     return -1;
+ }
+diff --git a/crypto/rand/rand_err.c b/crypto/rand/rand_err.c
+index ae4d8559fb..2a49c878d1 100644
+--- a/crypto/rand/rand_err.c
++++ b/crypto/rand/rand_err.c
+@@ -124,7 +124,7 @@ static const ERR_STRING_DATA RAND_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_RAND_strings(void)
++int __cdecl ERR_load_RAND_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(RAND_str_functs[0].error) == NULL) {
+diff --git a/crypto/rand/rand_lib.c b/crypto/rand/rand_lib.c
+index 91b2652311..1c0ad1450d 100644
+--- a/crypto/rand/rand_lib.c
++++ b/crypto/rand/rand_lib.c
+@@ -365,7 +365,7 @@ void rand_cleanup_int(void)
+  * RAND_close_seed_files() ensures that any seed file descriptors are
+  * closed after use.
+  */
+-void RAND_keep_random_devices_open(int keep)
++void __cdecl RAND_keep_random_devices_open(int keep)
+ {
+     if (RUN_ONCE(&rand_init, do_rand_init))
+         rand_pool_keep_random_devices_open(keep);
+@@ -378,7 +378,7 @@ void RAND_keep_random_devices_open(int keep)
+  * sources which depend on the operating system and are
+  * configurable via the --with-rand-seed configure option.
+  */
+-int RAND_poll(void)
++int __cdecl RAND_poll(void)
+ {
+     int ret = 0;
+ 
+@@ -821,7 +821,7 @@ int rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy)
+     return 1;
+ }
+ 
+-int RAND_set_rand_method(const RAND_METHOD *meth)
++int __cdecl RAND_set_rand_method(const RAND_METHOD *meth)
+ {
+     if (!RUN_ONCE(&rand_init, do_rand_init))
+         return 0;
+@@ -836,7 +836,7 @@ int RAND_set_rand_method(const RAND_METHOD *meth)
+     return 1;
+ }
+ 
+-const RAND_METHOD *RAND_get_rand_method(void)
++const RAND_METHOD * __cdecl RAND_get_rand_method(void)
+ {
+     const RAND_METHOD *tmp_meth = NULL;
+ 
+@@ -867,7 +867,7 @@ const RAND_METHOD *RAND_get_rand_method(void)
+ }
+ 
+ #ifndef OPENSSL_NO_ENGINE
+-int RAND_set_rand_engine(ENGINE *engine)
++int __cdecl RAND_set_rand_engine(ENGINE *engine)
+ {
+     const RAND_METHOD *tmp_meth = NULL;
+ 
+@@ -892,7 +892,7 @@ int RAND_set_rand_engine(ENGINE *engine)
+ }
+ #endif
+ 
+-void RAND_seed(const void *buf, int num)
++void __cdecl RAND_seed(const void *buf, int num)
+ {
+     const RAND_METHOD *meth = RAND_get_rand_method();
+ 
+@@ -900,7 +900,7 @@ void RAND_seed(const void *buf, int num)
+         meth->seed(buf, num);
+ }
+ 
+-void RAND_add(const void *buf, int num, double randomness)
++void __cdecl RAND_add(const void *buf, int num, double randomness)
+ {
+     const RAND_METHOD *meth = RAND_get_rand_method();
+ 
+@@ -913,7 +913,7 @@ void RAND_add(const void *buf, int num, double randomness)
+  * the default method, then just call RAND_bytes().  Otherwise make
+  * sure we're instantiated and use the private DRBG.
+  */
+-int RAND_priv_bytes(unsigned char *buf, int num)
++int __cdecl RAND_priv_bytes(unsigned char *buf, int num)
+ {
+     const RAND_METHOD *meth = RAND_get_rand_method();
+     RAND_DRBG *drbg;
+@@ -930,7 +930,7 @@ int RAND_priv_bytes(unsigned char *buf, int num)
+     return ret;
+ }
+ 
+-int RAND_bytes(unsigned char *buf, int num)
++int __cdecl RAND_bytes(unsigned char *buf, int num)
+ {
+     const RAND_METHOD *meth = RAND_get_rand_method();
+ 
+@@ -951,7 +951,7 @@ int RAND_pseudo_bytes(unsigned char *buf, int num)
+ }
+ #endif
+ 
+-int RAND_status(void)
++int __cdecl RAND_status(void)
+ {
+     const RAND_METHOD *meth = RAND_get_rand_method();
+ 
+diff --git a/crypto/rand/randfile.c b/crypto/rand/randfile.c
+index ba121eefbf..76c459f1ff 100644
+--- a/crypto/rand/randfile.c
++++ b/crypto/rand/randfile.c
+@@ -73,7 +73,7 @@ static __FILE_ptr32 (*const vms_fopen)(const char *, const char *, ...) =
+  * devices and EGD sockets are handled in rand_unix.c  If |bytes| is
+  * -1 read the complete file; otherwise read the specified amount.
+  */
+-int RAND_load_file(const char *file, long bytes)
++int __cdecl RAND_load_file(const char *file, long bytes)
+ {
+     /*
+      * The load buffer size exceeds the chunk size by the comfortable amount
+@@ -171,7 +171,7 @@ int RAND_load_file(const char *file, long bytes)
+     return ret;
+ }
+ 
+-int RAND_write_file(const char *file)
++int __cdecl RAND_write_file(const char *file)
+ {
+     unsigned char buf[RAND_BUF_SIZE];
+     int ret = -1;
+@@ -248,7 +248,7 @@ int RAND_write_file(const char *file)
+     return ret;
+ }
+ 
+-const char *RAND_file_name(char *buf, size_t size)
++const char * __cdecl RAND_file_name(char *buf, size_t size)
+ {
+     char *s = NULL;
+     size_t len;
 diff --git a/crypto/ripemd/rmd_dgst.c b/crypto/ripemd/rmd_dgst.c
 index a1670c7fbd..f8b6a834f5 100644
 --- a/crypto/ripemd/rmd_dgst.c
@@ -32955,6 +33296,160 @@ index 02e0299a3c..b1cb13ef72 100644
  
  /*
   * PKCS7 function codes.
+diff --git a/include/openssl/rand.h b/include/openssl/rand.h
+index 38a2a2718f..4bd308bf40 100644
+--- a/include/openssl/rand.h
++++ b/include/openssl/rand.h
+@@ -28,40 +28,40 @@ struct rand_meth_st {
+     int (*status) (void);
+ };
+ 
+-int RAND_set_rand_method(const RAND_METHOD *meth);
+-const RAND_METHOD *RAND_get_rand_method(void);
++int __cdecl RAND_set_rand_method(const RAND_METHOD *meth);
++const RAND_METHOD * __cdecl RAND_get_rand_method(void);
+ # ifndef OPENSSL_NO_ENGINE
+-int RAND_set_rand_engine(ENGINE *engine);
++int __cdecl RAND_set_rand_engine(ENGINE *engine);
+ # endif
+ 
+-RAND_METHOD *RAND_OpenSSL(void);
++RAND_METHOD * __cdecl RAND_OpenSSL(void);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #   define RAND_cleanup() while(0) continue
+ # endif
+-int RAND_bytes(unsigned char *buf, int num);
+-int RAND_priv_bytes(unsigned char *buf, int num);
++int __cdecl RAND_bytes(unsigned char *buf, int num);
++int __cdecl RAND_priv_bytes(unsigned char *buf, int num);
+ DEPRECATEDIN_1_1_0(int RAND_pseudo_bytes(unsigned char *buf, int num))
+ 
+-void RAND_seed(const void *buf, int num);
+-void RAND_keep_random_devices_open(int keep);
++void __cdecl RAND_seed(const void *buf, int num);
++void __cdecl RAND_keep_random_devices_open(int keep);
+ 
+ # if defined(__ANDROID__) && defined(__NDK_FPABI__)
+ __NDK_FPABI__	/* __attribute__((pcs("aapcs"))) on ARM */
+ # endif
+-void RAND_add(const void *buf, int num, double randomness);
+-int RAND_load_file(const char *file, long max_bytes);
+-int RAND_write_file(const char *file);
+-const char *RAND_file_name(char *file, size_t num);
+-int RAND_status(void);
++void __cdecl RAND_add(const void *buf, int num, double randomness);
++int __cdecl RAND_load_file(const char *file, long max_bytes);
++int __cdecl RAND_write_file(const char *file);
++const char * __cdecl RAND_file_name(char *file, size_t num);
++int __cdecl RAND_status(void);
+ 
+ # ifndef OPENSSL_NO_EGD
+-int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
+-int RAND_egd(const char *path);
+-int RAND_egd_bytes(const char *path, int bytes);
++int __cdecl RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
++int __cdecl RAND_egd(const char *path);
++int __cdecl RAND_egd_bytes(const char *path, int bytes);
+ # endif
+ 
+-int RAND_poll(void);
++int __cdecl RAND_poll(void);
+ 
+ # if defined(_WIN32) && (defined(BASETYPES) || defined(_WINDEF_H))
+ /* application has to include <windows.h> in order to use these */
+diff --git a/include/openssl/rand_drbg.h b/include/openssl/rand_drbg.h
+index 45b731b73c..a5fd7e2a0f 100644
+--- a/include/openssl/rand_drbg.h
++++ b/include/openssl/rand_drbg.h
+@@ -58,47 +58,47 @@ extern "C" {
+ /*
+  * Object lifetime functions.
+  */
+-RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
+-RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
+-int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
+-int RAND_DRBG_set_defaults(int type, unsigned int flags);
+-int RAND_DRBG_instantiate(RAND_DRBG *drbg,
++RAND_DRBG * __cdecl RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
++RAND_DRBG * __cdecl RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
++int __cdecl RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
++int __cdecl RAND_DRBG_set_defaults(int type, unsigned int flags);
++int __cdecl RAND_DRBG_instantiate(RAND_DRBG *drbg,
+                           const unsigned char *pers, size_t perslen);
+-int RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
+-void RAND_DRBG_free(RAND_DRBG *drbg);
++int __cdecl RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
++void __cdecl RAND_DRBG_free(RAND_DRBG *drbg);
+ 
+ /*
+  * Object "use" functions.
+  */
+-int RAND_DRBG_reseed(RAND_DRBG *drbg,
++int __cdecl RAND_DRBG_reseed(RAND_DRBG *drbg,
+                      const unsigned char *adin, size_t adinlen,
+                      int prediction_resistance);
+-int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
++int __cdecl RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
+                        int prediction_resistance,
+                        const unsigned char *adin, size_t adinlen);
+-int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
++int __cdecl RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
+ 
+-int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
+-int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
++int __cdecl RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
++int __cdecl RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
+ 
+-int RAND_DRBG_set_reseed_defaults(
++int __cdecl RAND_DRBG_set_reseed_defaults(
+                                   unsigned int master_reseed_interval,
+                                   unsigned int slave_reseed_interval,
+                                   time_t master_reseed_time_interval,
+                                   time_t slave_reseed_time_interval
+                                   );
+ 
+-RAND_DRBG *RAND_DRBG_get0_master(void);
+-RAND_DRBG *RAND_DRBG_get0_public(void);
+-RAND_DRBG *RAND_DRBG_get0_private(void);
++RAND_DRBG * __cdecl RAND_DRBG_get0_master(void);
++RAND_DRBG * __cdecl RAND_DRBG_get0_public(void);
++RAND_DRBG * __cdecl RAND_DRBG_get0_private(void);
+ 
+ /*
+  * EXDATA
+  */
+ # define RAND_DRBG_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DRBG, l, p, newf, dupf, freef)
+-int RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
+-void *RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
++int __cdecl RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
++void * __cdecl RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
+ 
+ /*
+  * Callback function typedefs
+@@ -116,7 +116,7 @@ typedef size_t (*RAND_DRBG_get_nonce_fn)(RAND_DRBG *drbg, unsigned char **pout,
+ typedef void (*RAND_DRBG_cleanup_nonce_fn)(RAND_DRBG *drbg,
+                                            unsigned char *out, size_t outlen);
+ 
+-int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
++int __cdecl RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
+                             RAND_DRBG_get_entropy_fn get_entropy,
+                             RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
+                             RAND_DRBG_get_nonce_fn get_nonce,
+diff --git a/include/openssl/randerr.h b/include/openssl/randerr.h
+index 70d1a17a4c..54e4d0b530 100644
+--- a/include/openssl/randerr.h
++++ b/include/openssl/randerr.h
+@@ -16,7 +16,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_RAND_strings(void);
++int __cdecl ERR_load_RAND_strings(void);
+ 
+ /*
+  * RAND function codes.
 diff --git a/include/openssl/ripemd.h b/include/openssl/ripemd.h
 index c42026aa42..0c0845a545 100644
 --- a/include/openssl/ripemd.h
@@ -34665,498 +35160,307 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/rand/drbg_lib.c b/crypto/rand/drbg_lib.c
-index 12bb627a04..e500d67107 100644
---- a/crypto/rand/drbg_lib.c
-+++ b/crypto/rand/drbg_lib.c
-@@ -100,7 +100,7 @@ static RAND_DRBG *rand_drbg_new(int secure,
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
-+int __cdecl RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
- {
-     int ret = 1;
+diff --git a/crypto/rc2/rc2_cbc.c b/crypto/rc2/rc2_cbc.c
+index 2b59353b11..d89785771d 100644
+--- a/crypto/rc2/rc2_cbc.c
++++ b/crypto/rc2/rc2_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/rc2.h>
+ #include "rc2_locl.h"
  
-@@ -150,7 +150,7 @@ int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags)
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_set_defaults(int type, unsigned int flags)
-+int __cdecl RAND_DRBG_set_defaults(int type, unsigned int flags)
+-void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
++void __cdecl RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+                      RC2_KEY *ks, unsigned char *iv, int encrypt)
  {
-     int ret = 1;
- 
-@@ -247,12 +247,12 @@ static RAND_DRBG *rand_drbg_new(int secure,
-     return NULL;
+     register unsigned long tin0, tin1;
+@@ -85,7 +85,7 @@ void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+     tin[0] = tin[1] = 0;
  }
  
--RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent)
-+RAND_DRBG * __cdecl RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent)
+-void RC2_encrypt(unsigned long *d, RC2_KEY *key)
++void __cdecl RC2_encrypt(unsigned long *d, RC2_KEY *key)
  {
-     return rand_drbg_new(0, type, flags, parent);
+     int i, n;
+     register RC2_INT *p0, *p1;
+@@ -131,7 +131,7 @@ void RC2_encrypt(unsigned long *d, RC2_KEY *key)
+         (unsigned long)(x2 & 0xffff) | ((unsigned long)(x3 & 0xffff) << 16L);
  }
  
--RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
-+RAND_DRBG * __cdecl RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
+-void RC2_decrypt(unsigned long *d, RC2_KEY *key)
++void __cdecl RC2_decrypt(unsigned long *d, RC2_KEY *key)
  {
-     return rand_drbg_new(1, type, flags, parent);
- }
-@@ -260,7 +260,7 @@ RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent)
- /*
-  * Uninstantiate |drbg| and free all memory.
-  */
--void RAND_DRBG_free(RAND_DRBG *drbg)
-+void __cdecl RAND_DRBG_free(RAND_DRBG *drbg)
- {
-     if (drbg == NULL)
-         return;
-@@ -285,7 +285,7 @@ void RAND_DRBG_free(RAND_DRBG *drbg)
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_instantiate(RAND_DRBG *drbg,
-+int __cdecl RAND_DRBG_instantiate(RAND_DRBG *drbg,
-                           const unsigned char *pers, size_t perslen)
- {
-     unsigned char *nonce = NULL, *entropy = NULL;
-@@ -380,7 +380,7 @@ int RAND_DRBG_instantiate(RAND_DRBG *drbg,
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
-+int __cdecl RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
- {
-     if (drbg->meth == NULL) {
-         drbg->state = DRBG_ERROR;
-@@ -404,7 +404,7 @@ int RAND_DRBG_uninstantiate(RAND_DRBG *drbg)
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_reseed(RAND_DRBG *drbg,
-+int __cdecl RAND_DRBG_reseed(RAND_DRBG *drbg,
-                      const unsigned char *adin, size_t adinlen,
-                      int prediction_resistance)
- {
-@@ -574,7 +574,7 @@ int rand_drbg_restart(RAND_DRBG *drbg,
-  * Returns 1 on success, 0 on failure.
-  *
-  */
--int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
-+int __cdecl RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
-                        int prediction_resistance,
-                        const unsigned char *adin, size_t adinlen)
- {
-@@ -657,7 +657,7 @@ int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
-  *
-  * Returns 1 on success 0 on failure.
-  */
--int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
-+int __cdecl RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
- {
-     unsigned char *additional = NULL;
-     size_t additional_len;
-@@ -700,7 +700,7 @@ int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen)
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-+int __cdecl RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-                             RAND_DRBG_get_entropy_fn get_entropy,
-                             RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
-                             RAND_DRBG_get_nonce_fn get_nonce,
-@@ -725,7 +725,7 @@ int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
-+int __cdecl RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
- {
-     if (interval > MAX_RESEED_INTERVAL)
-         return 0;
-@@ -743,7 +743,7 @@ int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval)
-  *
-  * Returns 1 on success, 0 on failure.
-  */
--int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
-+int __cdecl RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
- {
-     if (interval > MAX_RESEED_TIME_INTERVAL)
-         return 0;
-@@ -760,7 +760,7 @@ int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval)
-  * Returns 1 on success, 0 on failure.
+     int i, n;
+     register RC2_INT *p0, *p1;
+diff --git a/crypto/rc2/rc2_ecb.c b/crypto/rc2/rc2_ecb.c
+index fb2f78273d..d42b31d9c9 100644
+--- a/crypto/rc2/rc2_ecb.c
++++ b/crypto/rc2/rc2_ecb.c
+@@ -19,7 +19,7 @@
+  * Date: 11 Feb 1996 06:45:03 GMT
   */
  
--int RAND_DRBG_set_reseed_defaults(
-+int __cdecl RAND_DRBG_set_reseed_defaults(
-                                   unsigned int _master_reseed_interval,
-                                   unsigned int _slave_reseed_interval,
-                                   time_t _master_reseed_time_interval,
-@@ -849,12 +849,12 @@ int rand_drbg_enable_locking(RAND_DRBG *drbg)
- /*
-  * Get and set the EXDATA
+-void RC2_ecb_encrypt(const unsigned char *in, unsigned char *out, RC2_KEY *ks,
++void __cdecl RC2_ecb_encrypt(const unsigned char *in, unsigned char *out, RC2_KEY *ks,
+                      int encrypt)
+ {
+     unsigned long l, d[2];
+diff --git a/crypto/rc2/rc2_skey.c b/crypto/rc2/rc2_skey.c
+index 55d8ba3715..17ac484f61 100644
+--- a/crypto/rc2/rc2_skey.c
++++ b/crypto/rc2/rc2_skey.c
+@@ -46,7 +46,7 @@ static const unsigned char key_table[256] = {
+  * shipped is the same as specifying 1024 for the 'bits' parameter.  Bsafe
+  * uses a version where the bits parameter is the same as len*8
   */
--int RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg)
-+int __cdecl RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg)
+-void RC2_set_key(RC2_KEY *key, int len, const unsigned char *data, int bits)
++void __cdecl RC2_set_key(RC2_KEY *key, int len, const unsigned char *data, int bits)
  {
-     return CRYPTO_set_ex_data(&drbg->ex_data, idx, arg);
- }
- 
--void *RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx)
-+void * __cdecl RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx)
- {
-     return CRYPTO_get_ex_data(&drbg->ex_data, idx);
- }
-@@ -1097,7 +1097,7 @@ static int drbg_status(void)
-  * Returns pointer to the DRBG on success, NULL on failure.
-  *
-  */
--RAND_DRBG *RAND_DRBG_get0_master(void)
-+RAND_DRBG * __cdecl RAND_DRBG_get0_master(void)
- {
-     if (!RUN_ONCE(&rand_drbg_init, do_rand_drbg_init))
-         return NULL;
-@@ -1109,7 +1109,7 @@ RAND_DRBG *RAND_DRBG_get0_master(void)
-  * Get the public DRBG.
-  * Returns pointer to the DRBG on success, NULL on failure.
-  */
--RAND_DRBG *RAND_DRBG_get0_public(void)
-+RAND_DRBG * __cdecl RAND_DRBG_get0_public(void)
- {
-     RAND_DRBG *drbg;
- 
-@@ -1130,7 +1130,7 @@ RAND_DRBG *RAND_DRBG_get0_public(void)
-  * Get the private DRBG.
-  * Returns pointer to the DRBG on success, NULL on failure.
-  */
--RAND_DRBG *RAND_DRBG_get0_private(void)
-+RAND_DRBG * __cdecl RAND_DRBG_get0_private(void)
- {
-     RAND_DRBG *drbg;
- 
-@@ -1156,7 +1156,7 @@ RAND_METHOD rand_meth = {
-     drbg_status
- };
- 
--RAND_METHOD *RAND_OpenSSL(void)
-+RAND_METHOD * __cdecl RAND_OpenSSL(void)
- {
-     return &rand_meth;
- }
-diff --git a/crypto/rand/rand_egd.c b/crypto/rand/rand_egd.c
-index da3017df31..7448defedc 100644
---- a/crypto/rand/rand_egd.c
-+++ b/crypto/rand/rand_egd.c
-@@ -21,17 +21,17 @@ NON_EMPTY_TRANSLATION_UNIT
-  */
- 
- # if defined(OPENSSL_SYS_WIN32) || defined(OPENSSL_SYS_VMS) || defined(OPENSSL_SYS_MSDOS) || defined(OPENSSL_SYS_VXWORKS) || defined(OPENSSL_SYS_VOS) || defined(OPENSSL_SYS_UEFI)
--int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
-+int __cdecl RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes)
- {
-     return -1;
- }
- 
--int RAND_egd(const char *path)
-+int __cdecl RAND_egd(const char *path)
- {
-     return -1;
- }
- 
--int RAND_egd_bytes(const char *path, int bytes)
-+int __cdecl RAND_egd_bytes(const char *path, int bytes)
- {
-     return -1;
- }
-diff --git a/crypto/rand/rand_err.c b/crypto/rand/rand_err.c
-index ae4d8559fb..2a49c878d1 100644
---- a/crypto/rand/rand_err.c
-+++ b/crypto/rand/rand_err.c
-@@ -124,7 +124,7 @@ static const ERR_STRING_DATA RAND_str_reasons[] = {
- 
- #endif
- 
--int ERR_load_RAND_strings(void)
-+int __cdecl ERR_load_RAND_strings(void)
- {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(RAND_str_functs[0].error) == NULL) {
-diff --git a/crypto/rand/rand_lib.c b/crypto/rand/rand_lib.c
-index 91b2652311..1c0ad1450d 100644
---- a/crypto/rand/rand_lib.c
-+++ b/crypto/rand/rand_lib.c
-@@ -365,7 +365,7 @@ void rand_cleanup_int(void)
-  * RAND_close_seed_files() ensures that any seed file descriptors are
-  * closed after use.
-  */
--void RAND_keep_random_devices_open(int keep)
-+void __cdecl RAND_keep_random_devices_open(int keep)
- {
-     if (RUN_ONCE(&rand_init, do_rand_init))
-         rand_pool_keep_random_devices_open(keep);
-@@ -378,7 +378,7 @@ void RAND_keep_random_devices_open(int keep)
-  * sources which depend on the operating system and are
-  * configurable via the --with-rand-seed configure option.
-  */
--int RAND_poll(void)
-+int __cdecl RAND_poll(void)
- {
-     int ret = 0;
- 
-@@ -821,7 +821,7 @@ int rand_pool_add_end(RAND_POOL *pool, size_t len, size_t entropy)
-     return 1;
- }
- 
--int RAND_set_rand_method(const RAND_METHOD *meth)
-+int __cdecl RAND_set_rand_method(const RAND_METHOD *meth)
- {
-     if (!RUN_ONCE(&rand_init, do_rand_init))
-         return 0;
-@@ -836,7 +836,7 @@ int RAND_set_rand_method(const RAND_METHOD *meth)
-     return 1;
- }
- 
--const RAND_METHOD *RAND_get_rand_method(void)
-+const RAND_METHOD * __cdecl RAND_get_rand_method(void)
- {
-     const RAND_METHOD *tmp_meth = NULL;
- 
-@@ -867,7 +867,7 @@ const RAND_METHOD *RAND_get_rand_method(void)
- }
- 
- #ifndef OPENSSL_NO_ENGINE
--int RAND_set_rand_engine(ENGINE *engine)
-+int __cdecl RAND_set_rand_engine(ENGINE *engine)
- {
-     const RAND_METHOD *tmp_meth = NULL;
- 
-@@ -892,7 +892,7 @@ int RAND_set_rand_engine(ENGINE *engine)
- }
- #endif
- 
--void RAND_seed(const void *buf, int num)
-+void __cdecl RAND_seed(const void *buf, int num)
- {
-     const RAND_METHOD *meth = RAND_get_rand_method();
- 
-@@ -900,7 +900,7 @@ void RAND_seed(const void *buf, int num)
-         meth->seed(buf, num);
- }
- 
--void RAND_add(const void *buf, int num, double randomness)
-+void __cdecl RAND_add(const void *buf, int num, double randomness)
- {
-     const RAND_METHOD *meth = RAND_get_rand_method();
- 
-@@ -913,7 +913,7 @@ void RAND_add(const void *buf, int num, double randomness)
-  * the default method, then just call RAND_bytes().  Otherwise make
-  * sure we're instantiated and use the private DRBG.
-  */
--int RAND_priv_bytes(unsigned char *buf, int num)
-+int __cdecl RAND_priv_bytes(unsigned char *buf, int num)
- {
-     const RAND_METHOD *meth = RAND_get_rand_method();
-     RAND_DRBG *drbg;
-@@ -930,7 +930,7 @@ int RAND_priv_bytes(unsigned char *buf, int num)
-     return ret;
- }
- 
--int RAND_bytes(unsigned char *buf, int num)
-+int __cdecl RAND_bytes(unsigned char *buf, int num)
- {
-     const RAND_METHOD *meth = RAND_get_rand_method();
- 
-@@ -951,7 +951,7 @@ int RAND_pseudo_bytes(unsigned char *buf, int num)
- }
- #endif
- 
--int RAND_status(void)
-+int __cdecl RAND_status(void)
- {
-     const RAND_METHOD *meth = RAND_get_rand_method();
- 
-diff --git a/crypto/rand/randfile.c b/crypto/rand/randfile.c
-index ba121eefbf..76c459f1ff 100644
---- a/crypto/rand/randfile.c
-+++ b/crypto/rand/randfile.c
-@@ -73,7 +73,7 @@ static __FILE_ptr32 (*const vms_fopen)(const char *, const char *, ...) =
-  * devices and EGD sockets are handled in rand_unix.c  If |bytes| is
-  * -1 read the complete file; otherwise read the specified amount.
-  */
--int RAND_load_file(const char *file, long bytes)
-+int __cdecl RAND_load_file(const char *file, long bytes)
- {
-     /*
-      * The load buffer size exceeds the chunk size by the comfortable amount
-@@ -171,7 +171,7 @@ int RAND_load_file(const char *file, long bytes)
-     return ret;
- }
- 
--int RAND_write_file(const char *file)
-+int __cdecl RAND_write_file(const char *file)
- {
-     unsigned char buf[RAND_BUF_SIZE];
-     int ret = -1;
-@@ -248,7 +248,7 @@ int RAND_write_file(const char *file)
-     return ret;
- }
- 
--const char *RAND_file_name(char *buf, size_t size)
-+const char * __cdecl RAND_file_name(char *buf, size_t size)
- {
-     char *s = NULL;
-     size_t len;
-diff --git a/include/openssl/rand.h b/include/openssl/rand.h
-index 38a2a2718f..4bd308bf40 100644
---- a/include/openssl/rand.h
-+++ b/include/openssl/rand.h
-@@ -28,40 +28,40 @@ struct rand_meth_st {
-     int (*status) (void);
- };
- 
--int RAND_set_rand_method(const RAND_METHOD *meth);
--const RAND_METHOD *RAND_get_rand_method(void);
-+int __cdecl RAND_set_rand_method(const RAND_METHOD *meth);
-+const RAND_METHOD * __cdecl RAND_get_rand_method(void);
- # ifndef OPENSSL_NO_ENGINE
--int RAND_set_rand_engine(ENGINE *engine);
-+int __cdecl RAND_set_rand_engine(ENGINE *engine);
- # endif
- 
--RAND_METHOD *RAND_OpenSSL(void);
-+RAND_METHOD * __cdecl RAND_OpenSSL(void);
- 
- # if OPENSSL_API_COMPAT < 0x10100000L
- #   define RAND_cleanup() while(0) continue
- # endif
--int RAND_bytes(unsigned char *buf, int num);
--int RAND_priv_bytes(unsigned char *buf, int num);
-+int __cdecl RAND_bytes(unsigned char *buf, int num);
-+int __cdecl RAND_priv_bytes(unsigned char *buf, int num);
- DEPRECATEDIN_1_1_0(int RAND_pseudo_bytes(unsigned char *buf, int num))
- 
--void RAND_seed(const void *buf, int num);
--void RAND_keep_random_devices_open(int keep);
-+void __cdecl RAND_seed(const void *buf, int num);
-+void __cdecl RAND_keep_random_devices_open(int keep);
- 
- # if defined(__ANDROID__) && defined(__NDK_FPABI__)
- __NDK_FPABI__	/* __attribute__((pcs("aapcs"))) on ARM */
- # endif
--void RAND_add(const void *buf, int num, double randomness);
--int RAND_load_file(const char *file, long max_bytes);
--int RAND_write_file(const char *file);
--const char *RAND_file_name(char *file, size_t num);
--int RAND_status(void);
-+void __cdecl RAND_add(const void *buf, int num, double randomness);
-+int __cdecl RAND_load_file(const char *file, long max_bytes);
-+int __cdecl RAND_write_file(const char *file);
-+const char * __cdecl RAND_file_name(char *file, size_t num);
-+int __cdecl RAND_status(void);
- 
- # ifndef OPENSSL_NO_EGD
--int RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
--int RAND_egd(const char *path);
--int RAND_egd_bytes(const char *path, int bytes);
-+int __cdecl RAND_query_egd_bytes(const char *path, unsigned char *buf, int bytes);
-+int __cdecl RAND_egd(const char *path);
-+int __cdecl RAND_egd_bytes(const char *path, int bytes);
- # endif
- 
--int RAND_poll(void);
-+int __cdecl RAND_poll(void);
- 
- # if defined(_WIN32) && (defined(BASETYPES) || defined(_WINDEF_H))
- /* application has to include <windows.h> in order to use these */
-diff --git a/include/openssl/rand_drbg.h b/include/openssl/rand_drbg.h
-index 45b731b73c..a5fd7e2a0f 100644
---- a/include/openssl/rand_drbg.h
-+++ b/include/openssl/rand_drbg.h
-@@ -58,47 +58,47 @@ extern "C" {
- /*
-  * Object lifetime functions.
-  */
--RAND_DRBG *RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
--RAND_DRBG *RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
--int RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
--int RAND_DRBG_set_defaults(int type, unsigned int flags);
--int RAND_DRBG_instantiate(RAND_DRBG *drbg,
-+RAND_DRBG * __cdecl RAND_DRBG_new(int type, unsigned int flags, RAND_DRBG *parent);
-+RAND_DRBG * __cdecl RAND_DRBG_secure_new(int type, unsigned int flags, RAND_DRBG *parent);
-+int __cdecl RAND_DRBG_set(RAND_DRBG *drbg, int type, unsigned int flags);
-+int __cdecl RAND_DRBG_set_defaults(int type, unsigned int flags);
-+int __cdecl RAND_DRBG_instantiate(RAND_DRBG *drbg,
-                           const unsigned char *pers, size_t perslen);
--int RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
--void RAND_DRBG_free(RAND_DRBG *drbg);
-+int __cdecl RAND_DRBG_uninstantiate(RAND_DRBG *drbg);
-+void __cdecl RAND_DRBG_free(RAND_DRBG *drbg);
- 
- /*
-  * Object "use" functions.
-  */
--int RAND_DRBG_reseed(RAND_DRBG *drbg,
-+int __cdecl RAND_DRBG_reseed(RAND_DRBG *drbg,
-                      const unsigned char *adin, size_t adinlen,
-                      int prediction_resistance);
--int RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
-+int __cdecl RAND_DRBG_generate(RAND_DRBG *drbg, unsigned char *out, size_t outlen,
-                        int prediction_resistance,
-                        const unsigned char *adin, size_t adinlen);
--int RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
-+int __cdecl RAND_DRBG_bytes(RAND_DRBG *drbg, unsigned char *out, size_t outlen);
- 
--int RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
--int RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
-+int __cdecl RAND_DRBG_set_reseed_interval(RAND_DRBG *drbg, unsigned int interval);
-+int __cdecl RAND_DRBG_set_reseed_time_interval(RAND_DRBG *drbg, time_t interval);
- 
--int RAND_DRBG_set_reseed_defaults(
-+int __cdecl RAND_DRBG_set_reseed_defaults(
-                                   unsigned int master_reseed_interval,
-                                   unsigned int slave_reseed_interval,
-                                   time_t master_reseed_time_interval,
-                                   time_t slave_reseed_time_interval
-                                   );
- 
--RAND_DRBG *RAND_DRBG_get0_master(void);
--RAND_DRBG *RAND_DRBG_get0_public(void);
--RAND_DRBG *RAND_DRBG_get0_private(void);
-+RAND_DRBG * __cdecl RAND_DRBG_get0_master(void);
-+RAND_DRBG * __cdecl RAND_DRBG_get0_public(void);
-+RAND_DRBG * __cdecl RAND_DRBG_get0_private(void);
- 
- /*
-  * EXDATA
-  */
- # define RAND_DRBG_get_ex_new_index(l, p, newf, dupf, freef) \
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_DRBG, l, p, newf, dupf, freef)
--int RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
--void *RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
-+int __cdecl RAND_DRBG_set_ex_data(RAND_DRBG *drbg, int idx, void *arg);
-+void * __cdecl RAND_DRBG_get_ex_data(const RAND_DRBG *drbg, int idx);
- 
- /*
-  * Callback function typedefs
-@@ -116,7 +116,7 @@ typedef size_t (*RAND_DRBG_get_nonce_fn)(RAND_DRBG *drbg, unsigned char **pout,
- typedef void (*RAND_DRBG_cleanup_nonce_fn)(RAND_DRBG *drbg,
-                                            unsigned char *out, size_t outlen);
- 
--int RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-+int __cdecl RAND_DRBG_set_callbacks(RAND_DRBG *drbg,
-                             RAND_DRBG_get_entropy_fn get_entropy,
-                             RAND_DRBG_cleanup_entropy_fn cleanup_entropy,
-                             RAND_DRBG_get_nonce_fn get_nonce,
-diff --git a/include/openssl/randerr.h b/include/openssl/randerr.h
-index 70d1a17a4c..54e4d0b530 100644
---- a/include/openssl/randerr.h
-+++ b/include/openssl/randerr.h
+     int i, j;
+     unsigned char *k;
+diff --git a/crypto/rc2/rc2cfb64.c b/crypto/rc2/rc2cfb64.c
+index e11093db9e..9d62c21a5a 100644
+--- a/crypto/rc2/rc2cfb64.c
++++ b/crypto/rc2/rc2cfb64.c
 @@ -16,7 +16,7 @@
- # ifdef  __cplusplus
- extern "C"
- # endif
--int ERR_load_RAND_strings(void);
-+int __cdecl ERR_load_RAND_strings(void);
+  * used is contained in *num;
+  */
  
- /*
-  * RAND function codes.
+-void RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                        long length, RC2_KEY *schedule, unsigned char *ivec,
+                        int *num, int encrypt)
+ {
+diff --git a/crypto/rc2/rc2ofb64.c b/crypto/rc2/rc2ofb64.c
+index d610278a9b..0ebfa5c7be 100644
+--- a/crypto/rc2/rc2ofb64.c
++++ b/crypto/rc2/rc2ofb64.c
+@@ -15,7 +15,7 @@
+  * The extra state information to record how much of the 64bit block we have
+  * used is contained in *num;
+  */
+-void RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                        long length, RC2_KEY *schedule, unsigned char *ivec,
+                        int *num)
+ {
+diff --git a/crypto/rc4/rc4_enc.c b/crypto/rc4/rc4_enc.c
+index 638a75bb06..b96019d306 100644
+--- a/crypto/rc4/rc4_enc.c
++++ b/crypto/rc4/rc4_enc.c
+@@ -18,7 +18,7 @@
+  * Date: Wed, 14 Sep 1994 06:35:31 GMT
+  */
+ 
+-void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
++void __cdecl RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
+          unsigned char *outdata)
+ {
+     register RC4_INT *d;
+diff --git a/crypto/rc4/rc4_skey.c b/crypto/rc4/rc4_skey.c
+index e9007331eb..b29857d666 100644
+--- a/crypto/rc4/rc4_skey.c
++++ b/crypto/rc4/rc4_skey.c
+@@ -11,7 +11,7 @@
+ #include "rc4_locl.h"
+ #include <openssl/opensslv.h>
+ 
+-const char *RC4_options(void)
++const char * __cdecl RC4_options(void)
+ {
+     if (sizeof(RC4_INT) == 1)
+         return "rc4(char)";
+@@ -27,7 +27,7 @@ const char *RC4_options(void)
+  * Date: Wed, 14 Sep 1994 06:35:31 GMT
+  */
+ 
+-void RC4_set_key(RC4_KEY *key, int len, const unsigned char *data)
++void __cdecl RC4_set_key(RC4_KEY *key, int len, const unsigned char *data)
+ {
+     register RC4_INT tmp;
+     register int id1, id2;
+diff --git a/crypto/rc5/rc5_ecb.c b/crypto/rc5/rc5_ecb.c
+index c32f38e473..c6d89dd43f 100644
+--- a/crypto/rc5/rc5_ecb.c
++++ b/crypto/rc5/rc5_ecb.c
+@@ -11,7 +11,7 @@
+ #include "rc5_locl.h"
+ #include <openssl/opensslv.h>
+ 
+-void RC5_32_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                         RC5_32_KEY *ks, int encrypt)
+ {
+     unsigned long l, d[2];
+diff --git a/crypto/rc5/rc5_enc.c b/crypto/rc5/rc5_enc.c
+index 58631dee20..ac97ed6654 100644
+--- a/crypto/rc5/rc5_enc.c
++++ b/crypto/rc5/rc5_enc.c
+@@ -11,7 +11,7 @@
+ #include <openssl/rc5.h>
+ #include "rc5_locl.h"
+ 
+-void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, RC5_32_KEY *ks, unsigned char *iv,
+                         int encrypt)
+ {
+@@ -87,7 +87,7 @@ void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
+     tin[0] = tin[1] = 0;
+ }
+ 
+-void RC5_32_encrypt(unsigned long *d, RC5_32_KEY *key)
++void __cdecl RC5_32_encrypt(unsigned long *d, RC5_32_KEY *key)
+ {
+     RC5_32_INT a, b, *s;
+ 
+@@ -123,7 +123,7 @@ void RC5_32_encrypt(unsigned long *d, RC5_32_KEY *key)
+     d[1] = b;
+ }
+ 
+-void RC5_32_decrypt(unsigned long *d, RC5_32_KEY *key)
++void __cdecl RC5_32_decrypt(unsigned long *d, RC5_32_KEY *key)
+ {
+     RC5_32_INT a, b, *s;
+ 
+diff --git a/crypto/rc5/rc5_skey.c b/crypto/rc5/rc5_skey.c
+index 943a7849bb..2ae7334db4 100644
+--- a/crypto/rc5/rc5_skey.c
++++ b/crypto/rc5/rc5_skey.c
+@@ -10,7 +10,7 @@
+ #include <openssl/rc5.h>
+ #include "rc5_locl.h"
+ 
+-void RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
++void __cdecl RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
+                     int rounds)
+ {
+     RC5_32_INT L[64], l, ll, A, B, *S, k;
+diff --git a/crypto/rc5/rc5cfb64.c b/crypto/rc5/rc5cfb64.c
+index 9a8aa6b244..8dd843d9b7 100644
+--- a/crypto/rc5/rc5cfb64.c
++++ b/crypto/rc5/rc5cfb64.c
+@@ -16,7 +16,7 @@
+  * used is contained in *num;
+  */
+ 
+-void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                           long length, RC5_32_KEY *schedule,
+                           unsigned char *ivec, int *num, int encrypt)
+ {
+diff --git a/crypto/rc5/rc5ofb64.c b/crypto/rc5/rc5ofb64.c
+index 3a41d773cb..3d938502f6 100644
+--- a/crypto/rc5/rc5ofb64.c
++++ b/crypto/rc5/rc5ofb64.c
+@@ -15,7 +15,7 @@
+  * The extra state information to record how much of the 64bit block we have
+  * used is contained in *num;
+  */
+-void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                           long length, RC5_32_KEY *schedule,
+                           unsigned char *ivec, int *num)
+ {
+diff --git a/crypto/ripemd/rmd_one.c b/crypto/ripemd/rmd_one.c
+index cc01f15c7f..66b00d79d1 100644
+--- a/crypto/ripemd/rmd_one.c
++++ b/crypto/ripemd/rmd_one.c
+@@ -12,7 +12,7 @@
+ #include <openssl/ripemd.h>
+ #include <openssl/crypto.h>
+ 
+-unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl RIPEMD160(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     RIPEMD160_CTX c;
+     static unsigned char m[RIPEMD160_DIGEST_LENGTH];
+diff --git a/include/openssl/rc2.h b/include/openssl/rc2.h
+index 585f9e4c38..ae67f5a892 100644
+--- a/include/openssl/rc2.h
++++ b/include/openssl/rc2.h
+@@ -29,17 +29,17 @@ typedef struct rc2_key_st {
+     RC2_INT data[64];
+ } RC2_KEY;
+ 
+-void RC2_set_key(RC2_KEY *key, int len, const unsigned char *data, int bits);
+-void RC2_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC2_set_key(RC2_KEY *key, int len, const unsigned char *data, int bits);
++void __cdecl RC2_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                      RC2_KEY *key, int enc);
+-void RC2_encrypt(unsigned long *data, RC2_KEY *key);
+-void RC2_decrypt(unsigned long *data, RC2_KEY *key);
+-void RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
++void __cdecl RC2_encrypt(unsigned long *data, RC2_KEY *key);
++void __cdecl RC2_decrypt(unsigned long *data, RC2_KEY *key);
++void __cdecl RC2_cbc_encrypt(const unsigned char *in, unsigned char *out, long length,
+                      RC2_KEY *ks, unsigned char *iv, int enc);
+-void RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC2_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                        long length, RC2_KEY *schedule, unsigned char *ivec,
+                        int *num, int enc);
+-void RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC2_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                        long length, RC2_KEY *schedule, unsigned char *ivec,
+                        int *num);
+ 
+diff --git a/include/openssl/rc4.h b/include/openssl/rc4.h
+index 86803b37fb..498c984e1d 100644
+--- a/include/openssl/rc4.h
++++ b/include/openssl/rc4.h
+@@ -23,9 +23,9 @@ typedef struct rc4_key_st {
+     RC4_INT data[256];
+ } RC4_KEY;
+ 
+-const char *RC4_options(void);
+-void RC4_set_key(RC4_KEY *key, int len, const unsigned char *data);
+-void RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
++const char * __cdecl RC4_options(void);
++void __cdecl RC4_set_key(RC4_KEY *key, int len, const unsigned char *data);
++void __cdecl RC4(RC4_KEY *key, size_t len, const unsigned char *indata,
+          unsigned char *outdata);
+ 
+ # ifdef  __cplusplus
+diff --git a/include/openssl/rc5.h b/include/openssl/rc5.h
+index 793f88e4e8..24de45e6f6 100644
+--- a/include/openssl/rc5.h
++++ b/include/openssl/rc5.h
+@@ -39,19 +39,19 @@ typedef struct rc5_key_st {
+     RC5_32_INT data[2 * (RC5_16_ROUNDS + 1)];
+ } RC5_32_KEY;
+ 
+-void RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
++void __cdecl RC5_32_set_key(RC5_32_KEY *key, int len, const unsigned char *data,
+                     int rounds);
+-void RC5_32_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                         RC5_32_KEY *key, int enc);
+-void RC5_32_encrypt(unsigned long *data, RC5_32_KEY *key);
+-void RC5_32_decrypt(unsigned long *data, RC5_32_KEY *key);
+-void RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_encrypt(unsigned long *data, RC5_32_KEY *key);
++void __cdecl RC5_32_decrypt(unsigned long *data, RC5_32_KEY *key);
++void __cdecl RC5_32_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                         long length, RC5_32_KEY *ks, unsigned char *iv,
+                         int enc);
+-void RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_cfb64_encrypt(const unsigned char *in, unsigned char *out,
+                           long length, RC5_32_KEY *schedule,
+                           unsigned char *ivec, int *num, int enc);
+-void RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl RC5_32_ofb64_encrypt(const unsigned char *in, unsigned char *out,
+                           long length, RC5_32_KEY *schedule,
+                           unsigned char *ivec, int *num);
+ 
+diff --git a/include/openssl/ripemd.h b/include/openssl/ripemd.h
+index 0c0845a545..77a701bd23 100644
+--- a/include/openssl/ripemd.h
++++ b/include/openssl/ripemd.h
+@@ -35,7 +35,7 @@ typedef struct RIPEMD160state_st {
+ int __cdecl RIPEMD160_Init(RIPEMD160_CTX *c);
+ int __cdecl RIPEMD160_Update(RIPEMD160_CTX *c, const void *data, size_t len);
+ int __cdecl RIPEMD160_Final(unsigned char *md, RIPEMD160_CTX *c);
+-unsigned char *RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
++unsigned char * __cdecl RIPEMD160(const unsigned char *d, size_t n, unsigned char *md);
+ void __cdecl RIPEMD160_Transform(RIPEMD160_CTX *c, const unsigned char *b);
+ 
+ # ifdef  __cplusplus
