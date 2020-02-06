@@ -21253,11 +21253,161 @@ index cc01f15c7f..66b00d79d1 100644
  {
      RIPEMD160_CTX c;
      static unsigned char m[RIPEMD160_DIGEST_LENGTH];
+diff --git a/crypto/rsa/rsa_asn1.c b/crypto/rsa/rsa_asn1.c
+index 9fe62c82eb..2a8b05bb95 100644
+--- a/crypto/rsa/rsa_asn1.c
++++ b/crypto/rsa/rsa_asn1.c
+@@ -110,12 +110,12 @@ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPrivateKey, RSAPrivateKey)
+ 
+ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPublicKey, RSAPublicKey)
+ 
+-RSA *RSAPublicKey_dup(RSA *rsa)
++RSA * __cdecl RSAPublicKey_dup(RSA *rsa)
+ {
+     return ASN1_item_dup(ASN1_ITEM_rptr(RSAPublicKey), rsa);
+ }
+ 
+-RSA *RSAPrivateKey_dup(RSA *rsa)
++RSA * __cdecl RSAPrivateKey_dup(RSA *rsa)
+ {
+     return ASN1_item_dup(ASN1_ITEM_rptr(RSAPrivateKey), rsa);
+ }
+diff --git a/crypto/rsa/rsa_chk.c b/crypto/rsa/rsa_chk.c
+index 1b69be30ca..19f26164d4 100644
+--- a/crypto/rsa/rsa_chk.c
++++ b/crypto/rsa/rsa_chk.c
+@@ -11,12 +11,12 @@
+ #include <openssl/err.h>
+ #include "rsa_locl.h"
+ 
+-int RSA_check_key(const RSA *key)
++int __cdecl RSA_check_key(const RSA *key)
+ {
+     return RSA_check_key_ex(key, NULL);
+ }
+ 
+-int RSA_check_key_ex(const RSA *key, BN_GENCB *cb)
++int __cdecl RSA_check_key_ex(const RSA *key, BN_GENCB *cb)
+ {
+     BIGNUM *i, *j, *k, *l, *m;
+     BN_CTX *ctx;
+diff --git a/crypto/rsa/rsa_crpt.c b/crypto/rsa/rsa_crpt.c
+index f4ef8b4381..0627f24a62 100644
+--- a/crypto/rsa/rsa_crpt.c
++++ b/crypto/rsa/rsa_crpt.c
+@@ -14,46 +14,46 @@
+ #include <openssl/rand.h>
+ #include "rsa_locl.h"
+ 
+-int RSA_bits(const RSA *r)
++int __cdecl RSA_bits(const RSA *r)
+ {
+     return BN_num_bits(r->n);
+ }
+ 
+-int RSA_size(const RSA *r)
++int __cdecl RSA_size(const RSA *r)
+ {
+     return BN_num_bytes(r->n);
+ }
+ 
+-int RSA_public_encrypt(int flen, const unsigned char *from, unsigned char *to,
++int __cdecl RSA_public_encrypt(int flen, const unsigned char *from, unsigned char *to,
+                        RSA *rsa, int padding)
+ {
+     return rsa->meth->rsa_pub_enc(flen, from, to, rsa, padding);
+ }
+ 
+-int RSA_private_encrypt(int flen, const unsigned char *from,
++int __cdecl RSA_private_encrypt(int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding)
+ {
+     return rsa->meth->rsa_priv_enc(flen, from, to, rsa, padding);
+ }
+ 
+-int RSA_private_decrypt(int flen, const unsigned char *from,
++int __cdecl RSA_private_decrypt(int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding)
+ {
+     return rsa->meth->rsa_priv_dec(flen, from, to, rsa, padding);
+ }
+ 
+-int RSA_public_decrypt(int flen, const unsigned char *from, unsigned char *to,
++int __cdecl RSA_public_decrypt(int flen, const unsigned char *from, unsigned char *to,
+                        RSA *rsa, int padding)
+ {
+     return rsa->meth->rsa_pub_dec(flen, from, to, rsa, padding);
+ }
+ 
+-int RSA_flags(const RSA *r)
++int __cdecl RSA_flags(const RSA *r)
+ {
+     return r == NULL ? 0 : r->meth->flags;
+ }
+ 
+-void RSA_blinding_off(RSA *rsa)
++void __cdecl RSA_blinding_off(RSA *rsa)
+ {
+     BN_BLINDING_free(rsa->blinding);
+     rsa->blinding = NULL;
+@@ -61,7 +61,7 @@ void RSA_blinding_off(RSA *rsa)
+     rsa->flags |= RSA_FLAG_NO_BLINDING;
+ }
+ 
+-int RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
++int __cdecl RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
+ {
+     int ret = 0;
+ 
+@@ -107,7 +107,7 @@ static BIGNUM *rsa_get_public_exp(const BIGNUM *d, const BIGNUM *p,
+     return ret;
+ }
+ 
+-BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
++BN_BLINDING * __cdecl RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
+ {
+     BIGNUM *e;
+     BN_CTX *ctx;
+diff --git a/crypto/rsa/rsa_err.c b/crypto/rsa/rsa_err.c
+index 0687c1e626..56ba2df054 100644
+--- a/crypto/rsa/rsa_err.c
++++ b/crypto/rsa/rsa_err.c
+@@ -236,7 +236,7 @@ static const ERR_STRING_DATA RSA_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_RSA_strings(void)
++int __cdecl ERR_load_RSA_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(RSA_str_functs[0].error) == NULL) {
+diff --git a/crypto/rsa/rsa_gen.c b/crypto/rsa/rsa_gen.c
+index 2b81808860..72c7fadf61 100644
+--- a/crypto/rsa/rsa_gen.c
++++ b/crypto/rsa/rsa_gen.c
+@@ -29,7 +29,7 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
+  * that wasn't previously linking object code related to key-generation won't
+  * have to now just because key-generation is part of RSA_METHOD.
+  */
+-int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
++int __cdecl RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
+ {
+     if (rsa->meth->rsa_keygen != NULL)
+         return rsa->meth->rsa_keygen(rsa, bits, e_value, cb);
+@@ -38,7 +38,7 @@ int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
+                                         e_value, cb);
+ }
+ 
+-int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
++int __cdecl RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
+                                  BIGNUM *e_value, BN_GENCB *cb)
+ {
+     /* multi-prime is only supported with the builtin key generation */
 diff --git a/crypto/rsa/rsa_lib.c b/crypto/rsa/rsa_lib.c
-index e737a28898..1ba92cd08b 100644
+index e737a28898..ac6da91279 100644
 --- a/crypto/rsa/rsa_lib.c
 +++ b/crypto/rsa/rsa_lib.c
-@@ -17,7 +17,7 @@
+@@ -17,17 +17,17 @@
  #include "internal/evp_int.h"
  #include "rsa_locl.h"
  
@@ -21266,6 +21416,244 @@ index e737a28898..1ba92cd08b 100644
  {
      return RSA_new_method(NULL);
  }
+ 
+-const RSA_METHOD *RSA_get_method(const RSA *rsa)
++const RSA_METHOD * __cdecl RSA_get_method(const RSA *rsa)
+ {
+     return rsa->meth;
+ }
+ 
+-int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
++int __cdecl RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
+ {
+     /*
+      * NB: The caller is specifically setting a method, so it's not up to us
+@@ -47,7 +47,7 @@ int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
+     return 1;
+ }
+ 
+-RSA *RSA_new_method(ENGINE *engine)
++RSA * __cdecl RSA_new_method(ENGINE *engine)
+ {
+     RSA *ret = OPENSSL_zalloc(sizeof(*ret));
+ 
+@@ -102,7 +102,7 @@ RSA *RSA_new_method(ENGINE *engine)
+     return NULL;
+ }
+ 
+-void RSA_free(RSA *r)
++void __cdecl RSA_free(RSA *r)
+ {
+     int i;
+ 
+@@ -141,7 +141,7 @@ void RSA_free(RSA *r)
+     OPENSSL_free(r);
+ }
+ 
+-int RSA_up_ref(RSA *r)
++int __cdecl RSA_up_ref(RSA *r)
+ {
+     int i;
+ 
+@@ -153,17 +153,17 @@ int RSA_up_ref(RSA *r)
+     return i > 1 ? 1 : 0;
+ }
+ 
+-int RSA_set_ex_data(RSA *r, int idx, void *arg)
++int __cdecl RSA_set_ex_data(RSA *r, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
+ }
+ 
+-void *RSA_get_ex_data(const RSA *r, int idx)
++void * __cdecl RSA_get_ex_data(const RSA *r, int idx)
+ {
+     return CRYPTO_get_ex_data(&r->ex_data, idx);
+ }
+ 
+-int RSA_security_bits(const RSA *rsa)
++int __cdecl RSA_security_bits(const RSA *rsa)
+ {
+     int bits = BN_num_bits(rsa->n);
+ 
+@@ -177,7 +177,7 @@ int RSA_security_bits(const RSA *rsa)
+     return BN_security_bits(bits, -1);
+ }
+ 
+-int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
++int __cdecl RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+ {
+     /* If the fields n and e in r are NULL, the corresponding input
+      * parameters MUST be non-NULL for n and e.  d may be
+@@ -204,7 +204,7 @@ int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
+     return 1;
+ }
+ 
+-int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
++int __cdecl RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
+ {
+     /* If the fields p and q in r are NULL, the corresponding input
+      * parameters MUST be non-NULL.
+@@ -227,7 +227,7 @@ int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
+     return 1;
+ }
+ 
+-int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
++int __cdecl RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
+ {
+     /* If the fields dmp1, dmq1 and iqmp in r are NULL, the corresponding input
+      * parameters MUST be non-NULL.
+@@ -260,7 +260,7 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
+  * Is it better to export RSA_PRIME_INFO structure
+  * and related functions to let user pass a triplet?
+  */
+-int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
++int __cdecl RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
+                                 BIGNUM *coeffs[], int pnum)
+ {
+     STACK_OF(RSA_PRIME_INFO) *prime_infos, *old = NULL;
+@@ -324,7 +324,7 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
+     return 0;
+ }
+ 
+-void RSA_get0_key(const RSA *r,
++void __cdecl RSA_get0_key(const RSA *r,
+                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
+ {
+     if (n != NULL)
+@@ -335,7 +335,7 @@ void RSA_get0_key(const RSA *r,
+         *d = r->d;
+ }
+ 
+-void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
++void __cdecl RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
+ {
+     if (p != NULL)
+         *p = r->p;
+@@ -343,7 +343,7 @@ void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
+         *q = r->q;
+ }
+ 
+-int RSA_get_multi_prime_extra_count(const RSA *r)
++int __cdecl RSA_get_multi_prime_extra_count(const RSA *r)
+ {
+     int pnum;
+ 
+@@ -353,7 +353,7 @@ int RSA_get_multi_prime_extra_count(const RSA *r)
+     return pnum;
+ }
+ 
+-int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
++int __cdecl RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
+ {
+     int pnum, i;
+     RSA_PRIME_INFO *pinfo;
+@@ -373,7 +373,7 @@ int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
+     return 1;
+ }
+ 
+-void RSA_get0_crt_params(const RSA *r,
++void __cdecl RSA_get0_crt_params(const RSA *r,
+                          const BIGNUM **dmp1, const BIGNUM **dmq1,
+                          const BIGNUM **iqmp)
+ {
+@@ -385,7 +385,7 @@ void RSA_get0_crt_params(const RSA *r,
+         *iqmp = r->iqmp;
+ }
+ 
+-int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
++int __cdecl RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
+                                     const BIGNUM *coeffs[])
+ {
+     int pnum;
+@@ -411,73 +411,73 @@ int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
+     return 1;
+ }
+ 
+-const BIGNUM *RSA_get0_n(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_n(const RSA *r)
+ {
+     return r->n;
+ }
+ 
+-const BIGNUM *RSA_get0_e(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_e(const RSA *r)
+ {
+     return r->e;
+ }
+ 
+-const BIGNUM *RSA_get0_d(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_d(const RSA *r)
+ {
+     return r->d;
+ }
+ 
+-const BIGNUM *RSA_get0_p(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_p(const RSA *r)
+ {
+     return r->p;
+ }
+ 
+-const BIGNUM *RSA_get0_q(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_q(const RSA *r)
+ {
+     return r->q;
+ }
+ 
+-const BIGNUM *RSA_get0_dmp1(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_dmp1(const RSA *r)
+ {
+     return r->dmp1;
+ }
+ 
+-const BIGNUM *RSA_get0_dmq1(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_dmq1(const RSA *r)
+ {
+     return r->dmq1;
+ }
+ 
+-const BIGNUM *RSA_get0_iqmp(const RSA *r)
++const BIGNUM * __cdecl RSA_get0_iqmp(const RSA *r)
+ {
+     return r->iqmp;
+ }
+ 
+-void RSA_clear_flags(RSA *r, int flags)
++void __cdecl RSA_clear_flags(RSA *r, int flags)
+ {
+     r->flags &= ~flags;
+ }
+ 
+-int RSA_test_flags(const RSA *r, int flags)
++int __cdecl RSA_test_flags(const RSA *r, int flags)
+ {
+     return r->flags & flags;
+ }
+ 
+-void RSA_set_flags(RSA *r, int flags)
++void __cdecl RSA_set_flags(RSA *r, int flags)
+ {
+     r->flags |= flags;
+ }
+ 
+-int RSA_get_version(RSA *r)
++int __cdecl RSA_get_version(RSA *r)
+ {
+     /* { two-prime(0), multi(1) } */
+     return r->version;
+ }
+ 
+-ENGINE *RSA_get0_engine(const RSA *r)
++ENGINE * __cdecl RSA_get0_engine(const RSA *r)
+ {
+     return r->engine;
+ }
+ 
+-int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
++int __cdecl RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
+ {
+     /* If key type not RSA or RSA-PSS return error */
+     if (ctx != NULL && ctx->pmeth != NULL
 diff --git a/crypto/rsa/rsa_locl.h b/crypto/rsa/rsa_locl.h
 index 2b94462a94..6cedbac835 100644
 --- a/crypto/rsa/rsa_locl.h
@@ -21339,10 +21727,78 @@ index 2b94462a94..6cedbac835 100644
  int rsa_multip_calc_product(RSA *rsa);
  int rsa_multip_cap(int bits);
 diff --git a/crypto/rsa/rsa_meth.c b/crypto/rsa/rsa_meth.c
-index def19f375f..d8687a289e 100644
+index def19f375f..2f4d322293 100644
 --- a/crypto/rsa/rsa_meth.c
 +++ b/crypto/rsa/rsa_meth.c
-@@ -97,15 +97,15 @@ int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
+@@ -11,7 +11,7 @@
+ #include "rsa_locl.h"
+ #include <openssl/err.h>
+ 
+-RSA_METHOD *RSA_meth_new(const char *name, int flags)
++RSA_METHOD * __cdecl RSA_meth_new(const char *name, int flags)
+ {
+     RSA_METHOD *meth = OPENSSL_zalloc(sizeof(*meth));
+ 
+@@ -29,7 +29,7 @@ RSA_METHOD *RSA_meth_new(const char *name, int flags)
+     return NULL;
+ }
+ 
+-void RSA_meth_free(RSA_METHOD *meth)
++void __cdecl RSA_meth_free(RSA_METHOD *meth)
+ {
+     if (meth != NULL) {
+         OPENSSL_free(meth->name);
+@@ -37,7 +37,7 @@ void RSA_meth_free(RSA_METHOD *meth)
+     }
+ }
+ 
+-RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth)
++RSA_METHOD * __cdecl RSA_meth_dup(const RSA_METHOD *meth)
+ {
+     RSA_METHOD *ret = OPENSSL_malloc(sizeof(*ret));
+ 
+@@ -55,12 +55,12 @@ RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth)
+     return NULL;
+ }
+ 
+-const char *RSA_meth_get0_name(const RSA_METHOD *meth)
++const char * __cdecl RSA_meth_get0_name(const RSA_METHOD *meth)
+ {
+     return meth->name;
+ }
+ 
+-int RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
++int __cdecl RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
+ {
+     char *tmpname = OPENSSL_strdup(name);
+ 
+@@ -75,37 +75,37 @@ int RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
+     return 1;
+ }
+ 
+-int RSA_meth_get_flags(const RSA_METHOD *meth)
++int __cdecl RSA_meth_get_flags(const RSA_METHOD *meth)
+ {
+     return meth->flags;
+ }
+ 
+-int RSA_meth_set_flags(RSA_METHOD *meth, int flags)
++int __cdecl RSA_meth_set_flags(RSA_METHOD *meth, int flags)
+ {
+     meth->flags = flags;
+     return 1;
+ }
+ 
+-void *RSA_meth_get0_app_data(const RSA_METHOD *meth)
++void * __cdecl RSA_meth_get0_app_data(const RSA_METHOD *meth)
+ {
+     return meth->app_data;
+ }
+ 
+-int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
++int __cdecl RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
+ {
+     meth->app_data = app_data;
      return 1;
  }
  
@@ -21578,8 +22034,79 @@ index e7e810823b..b8c7a7396c 100644
  {
      /* free a RSA_PRIME_INFO structure */
      BN_clear_free(pinfo->r);
+diff --git a/crypto/rsa/rsa_none.c b/crypto/rsa/rsa_none.c
+index f16cc67066..48f234447c 100644
+--- a/crypto/rsa/rsa_none.c
++++ b/crypto/rsa/rsa_none.c
+@@ -11,7 +11,7 @@
+ #include <openssl/bn.h>
+ #include <openssl/rsa.h>
+ 
+-int RSA_padding_add_none(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_none(unsigned char *to, int tlen,
+                          const unsigned char *from, int flen)
+ {
+     if (flen > tlen) {
+@@ -28,7 +28,7 @@ int RSA_padding_add_none(unsigned char *to, int tlen,
+     return 1;
+ }
+ 
+-int RSA_padding_check_none(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_none(unsigned char *to, int tlen,
+                            const unsigned char *from, int flen, int num)
+ {
+ 
+diff --git a/crypto/rsa/rsa_oaep.c b/crypto/rsa/rsa_oaep.c
+index 48b888bf27..d820603251 100644
+--- a/crypto/rsa/rsa_oaep.c
++++ b/crypto/rsa/rsa_oaep.c
+@@ -30,7 +30,7 @@
+ #include <openssl/sha.h>
+ #include "rsa_locl.h"
+ 
+-int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
+                                const unsigned char *from, int flen,
+                                const unsigned char *param, int plen)
+ {
+@@ -38,7 +38,7 @@ int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
+                                            param, plen, NULL, NULL);
+ }
+ 
+-int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+                                     const unsigned char *from, int flen,
+                                     const unsigned char *param, int plen,
+                                     const EVP_MD *md, const EVP_MD *mgf1md)
+@@ -105,7 +105,7 @@ int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+     return rv;
+ }
+ 
+-int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
+                                  const unsigned char *from, int flen, int num,
+                                  const unsigned char *param, int plen)
+ {
+@@ -113,7 +113,7 @@ int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
+                                              param, plen, NULL, NULL);
+ }
+ 
+-int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+                                       const unsigned char *from, int flen,
+                                       int num, const unsigned char *param,
+                                       int plen, const EVP_MD *md,
+@@ -270,7 +270,7 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+     return constant_time_select_int(good, mlen, -1);
+ }
+ 
+-int PKCS1_MGF1(unsigned char *mask, long len,
++int __cdecl PKCS1_MGF1(unsigned char *mask, long len,
+                const unsigned char *seed, long seedlen, const EVP_MD *dgst)
+ {
+     long i, outlen = 0;
 diff --git a/crypto/rsa/rsa_ossl.c b/crypto/rsa/rsa_ossl.c
-index c8c3b7886a..9e022c1381 100644
+index c8c3b7886a..cfdf6fc078 100644
 --- a/crypto/rsa/rsa_ossl.c
 +++ b/crypto/rsa/rsa_ossl.c
 @@ -12,18 +12,18 @@
@@ -21608,7 +22135,31 @@ index c8c3b7886a..9e022c1381 100644
  static RSA_METHOD rsa_pkcs1_ossl_meth = {
      "OpenSSL PKCS#1 RSA",
      rsa_ossl_public_encrypt,
-@@ -65,7 +65,7 @@ const RSA_METHOD *RSA_null_method(void)
+@@ -45,27 +45,27 @@ static RSA_METHOD rsa_pkcs1_ossl_meth = {
+ 
+ static const RSA_METHOD *default_RSA_meth = &rsa_pkcs1_ossl_meth;
+ 
+-void RSA_set_default_method(const RSA_METHOD *meth)
++void __cdecl RSA_set_default_method(const RSA_METHOD *meth)
+ {
+     default_RSA_meth = meth;
+ }
+ 
+-const RSA_METHOD *RSA_get_default_method(void)
++const RSA_METHOD * __cdecl RSA_get_default_method(void)
+ {
+     return default_RSA_meth;
+ }
+ 
+-const RSA_METHOD *RSA_PKCS1_OpenSSL(void)
++const RSA_METHOD * __cdecl RSA_PKCS1_OpenSSL(void)
+ {
+     return &rsa_pkcs1_ossl_meth;
+ }
+ 
+-const RSA_METHOD *RSA_null_method(void)
++const RSA_METHOD * __cdecl RSA_null_method(void)
+ {
      return NULL;
  }
  
@@ -21669,6 +22220,225 @@ index c8c3b7886a..9e022c1381 100644
  {
      int i;
      RSA_PRIME_INFO *pinfo;
+diff --git a/crypto/rsa/rsa_pk1.c b/crypto/rsa/rsa_pk1.c
+index 5260d12f4c..16ebe629e7 100644
+--- a/crypto/rsa/rsa_pk1.c
++++ b/crypto/rsa/rsa_pk1.c
+@@ -15,7 +15,7 @@
+ #include <openssl/rsa.h>
+ #include <openssl/rand.h>
+ 
+-int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
+                                  const unsigned char *from, int flen)
+ {
+     int j;
+@@ -41,7 +41,7 @@ int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
+     return 1;
+ }
+ 
+-int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
+                                    const unsigned char *from, int flen,
+                                    int num)
+ {
+@@ -114,7 +114,7 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
+     return j;
+ }
+ 
+-int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
+                                  const unsigned char *from, int flen)
+ {
+     int i, j;
+@@ -151,7 +151,7 @@ int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
+     return 1;
+ }
+ 
+-int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
+                                    const unsigned char *from, int flen,
+                                    int num)
+ {
+diff --git a/crypto/rsa/rsa_prn.c b/crypto/rsa/rsa_prn.c
+index b5f4bce2a3..0768f15a6f 100644
+--- a/crypto/rsa/rsa_prn.c
++++ b/crypto/rsa/rsa_prn.c
+@@ -13,7 +13,7 @@
+ #include <openssl/evp.h>
+ 
+ #ifndef OPENSSL_NO_STDIO
+-int RSA_print_fp(FILE *fp, const RSA *x, int off)
++int __cdecl RSA_print_fp(FILE *fp, const RSA *x, int off)
+ {
+     BIO *b;
+     int ret;
+@@ -29,7 +29,7 @@ int RSA_print_fp(FILE *fp, const RSA *x, int off)
+ }
+ #endif
+ 
+-int RSA_print(BIO *bp, const RSA *x, int off)
++int __cdecl RSA_print(BIO *bp, const RSA *x, int off)
+ {
+     EVP_PKEY *pk;
+     int ret;
+diff --git a/crypto/rsa/rsa_pss.c b/crypto/rsa/rsa_pss.c
+index f7c575d00a..3705014c3c 100644
+--- a/crypto/rsa/rsa_pss.c
++++ b/crypto/rsa/rsa_pss.c
+@@ -22,14 +22,14 @@ static const unsigned char zeroes[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+ # pragma optimize("g", off)
+ #endif
+ 
+-int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
++int __cdecl RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
+                          const EVP_MD *Hash, const unsigned char *EM,
+                          int sLen)
+ {
+     return RSA_verify_PKCS1_PSS_mgf1(rsa, mHash, Hash, NULL, EM, sLen);
+ }
+ 
+-int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
++int __cdecl RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
+                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
+                               const unsigned char *EM, int sLen)
+ {
+@@ -135,14 +135,14 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
+ 
+ }
+ 
+-int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
++int __cdecl RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
+                               const unsigned char *mHash,
+                               const EVP_MD *Hash, int sLen)
+ {
+     return RSA_padding_add_PKCS1_PSS_mgf1(rsa, EM, mHash, Hash, NULL, sLen);
+ }
+ 
+-int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
++int __cdecl RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
+                                    const unsigned char *mHash,
+                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
+                                    int sLen)
+diff --git a/crypto/rsa/rsa_saos.c b/crypto/rsa/rsa_saos.c
+index 8336f32f16..2faeb5c0fc 100644
+--- a/crypto/rsa/rsa_saos.c
++++ b/crypto/rsa/rsa_saos.c
+@@ -14,7 +14,7 @@
+ #include <openssl/objects.h>
+ #include <openssl/x509.h>
+ 
+-int RSA_sign_ASN1_OCTET_STRING(int type,
++int __cdecl RSA_sign_ASN1_OCTET_STRING(int type,
+                                const unsigned char *m, unsigned int m_len,
+                                unsigned char *sigret, unsigned int *siglen,
+                                RSA *rsa)
+@@ -51,7 +51,7 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
+     return ret;
+ }
+ 
+-int RSA_verify_ASN1_OCTET_STRING(int dtype,
++int __cdecl RSA_verify_ASN1_OCTET_STRING(int dtype,
+                                  const unsigned char *m,
+                                  unsigned int m_len, unsigned char *sigbuf,
+                                  unsigned int siglen, RSA *rsa)
+diff --git a/crypto/rsa/rsa_sign.c b/crypto/rsa/rsa_sign.c
+index 952d24fb8a..8cfe0dc07e 100644
+--- a/crypto/rsa/rsa_sign.c
++++ b/crypto/rsa/rsa_sign.c
+@@ -66,7 +66,7 @@ static int encode_pkcs1(unsigned char **out, int *out_len, int type,
+     return 1;
+ }
+ 
+-int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
++int __cdecl RSA_sign(int type, const unsigned char *m, unsigned int m_len,
+              unsigned char *sigret, unsigned int *siglen, RSA *rsa)
+ {
+     int encrypt_len, encoded_len = 0, ret = 0;
+@@ -236,7 +236,7 @@ err:
+     return ret;
+ }
+ 
+-int RSA_verify(int type, const unsigned char *m, unsigned int m_len,
++int __cdecl RSA_verify(int type, const unsigned char *m, unsigned int m_len,
+                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa)
+ {
+ 
+diff --git a/crypto/rsa/rsa_ssl.c b/crypto/rsa/rsa_ssl.c
+index 3859128a6d..593c08f469 100644
+--- a/crypto/rsa/rsa_ssl.c
++++ b/crypto/rsa/rsa_ssl.c
+@@ -14,7 +14,7 @@
+ #include <openssl/rand.h>
+ #include "internal/constant_time_locl.h"
+ 
+-int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_SSLv23(unsigned char *to, int tlen,
+                            const unsigned char *from, int flen)
+ {
+     int i, j;
+@@ -58,7 +58,7 @@ int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
+  * if nul delimiter is not preceded by 8 consecutive 0x03 bytes. It also
+  * preserves error code reporting for backward compatibility.
+  */
+-int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_SSLv23(unsigned char *to, int tlen,
+                              const unsigned char *from, int flen, int num)
+ {
+     int i;
+diff --git a/crypto/rsa/rsa_x931.c b/crypto/rsa/rsa_x931.c
+index 7b0486c0f2..033c9d2cd4 100644
+--- a/crypto/rsa/rsa_x931.c
++++ b/crypto/rsa/rsa_x931.c
+@@ -13,7 +13,7 @@
+ #include <openssl/rsa.h>
+ #include <openssl/objects.h>
+ 
+-int RSA_padding_add_X931(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_X931(unsigned char *to, int tlen,
+                          const unsigned char *from, int flen)
+ {
+     int j;
+@@ -50,7 +50,7 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
+     return 1;
+ }
+ 
+-int RSA_padding_check_X931(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_X931(unsigned char *to, int tlen,
+                            const unsigned char *from, int flen, int num)
+ {
+     int i = 0, j;
+@@ -97,7 +97,7 @@ int RSA_padding_check_X931(unsigned char *to, int tlen,
+ 
+ /* Translate between X931 hash ids and NIDs */
+ 
+-int RSA_X931_hash_id(int nid)
++int __cdecl RSA_X931_hash_id(int nid)
+ {
+     switch (nid) {
+     case NID_sha1:
+diff --git a/crypto/rsa/rsa_x931g.c b/crypto/rsa/rsa_x931g.c
+index e7ac476bb4..339ff0bccd 100644
+--- a/crypto/rsa/rsa_x931g.c
++++ b/crypto/rsa/rsa_x931g.c
+@@ -16,7 +16,7 @@
+ 
+ /* X9.31 RSA key derivation and generation */
+ 
+-int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
++int __cdecl RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
+                        BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
+                        const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
+                        const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb)
+@@ -141,7 +141,7 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
+ 
+ }
+ 
+-int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
++int __cdecl RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
+                              BN_GENCB *cb)
+ {
+     int ok = 0;
 diff --git a/crypto/sha/keccak1600.c b/crypto/sha/keccak1600.c
 index 55a44023d5..9e3e805b1b 100644
 --- a/crypto/sha/keccak1600.c
@@ -33763,23 +34533,302 @@ index c42026aa42..77a701bd23 100644
  # ifdef  __cplusplus
  }
 diff --git a/include/openssl/rsa.h b/include/openssl/rsa.h
-index cdce1264eb..037bf42a88 100644
+index cdce1264eb..8315db7210 100644
 --- a/include/openssl/rsa.h
 +++ b/include/openssl/rsa.h
-@@ -195,7 +195,7 @@ extern "C" {
+@@ -195,40 +195,40 @@ extern "C" {
  # define RSA_set_app_data(s,arg)         RSA_set_ex_data(s,0,arg)
  # define RSA_get_app_data(s)             RSA_get_ex_data(s,0)
  
 -RSA *RSA_new(void);
+-RSA *RSA_new_method(ENGINE *engine);
+-int RSA_bits(const RSA *rsa);
+-int RSA_size(const RSA *rsa);
+-int RSA_security_bits(const RSA *rsa);
+-
+-int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
+-int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
+-int RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
+-int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
 +RSA * __cdecl RSA_new(void);
- RSA *RSA_new_method(ENGINE *engine);
- int RSA_bits(const RSA *rsa);
- int RSA_size(const RSA *rsa);
-@@ -427,81 +427,81 @@ int RSA_meth_get_flags(const RSA_METHOD *meth);
- int RSA_meth_set_flags(RSA_METHOD *meth, int flags);
- void *RSA_meth_get0_app_data(const RSA_METHOD *meth);
- int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
++RSA * __cdecl RSA_new_method(ENGINE *engine);
++int __cdecl RSA_bits(const RSA *rsa);
++int __cdecl RSA_size(const RSA *rsa);
++int __cdecl RSA_security_bits(const RSA *rsa);
++
++int __cdecl RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
++int __cdecl RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
++int __cdecl RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
++int __cdecl RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
+                                 BIGNUM *coeffs[], int pnum);
+-void RSA_get0_key(const RSA *r,
++void __cdecl RSA_get0_key(const RSA *r,
+                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d);
+-void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
+-int RSA_get_multi_prime_extra_count(const RSA *r);
+-int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
+-void RSA_get0_crt_params(const RSA *r,
++void __cdecl RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
++int __cdecl RSA_get_multi_prime_extra_count(const RSA *r);
++int __cdecl RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
++void __cdecl RSA_get0_crt_params(const RSA *r,
+                          const BIGNUM **dmp1, const BIGNUM **dmq1,
+                          const BIGNUM **iqmp);
+-int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
++int __cdecl RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
+                                     const BIGNUM *coeffs[]);
+-const BIGNUM *RSA_get0_n(const RSA *d);
+-const BIGNUM *RSA_get0_e(const RSA *d);
+-const BIGNUM *RSA_get0_d(const RSA *d);
+-const BIGNUM *RSA_get0_p(const RSA *d);
+-const BIGNUM *RSA_get0_q(const RSA *d);
+-const BIGNUM *RSA_get0_dmp1(const RSA *r);
+-const BIGNUM *RSA_get0_dmq1(const RSA *r);
+-const BIGNUM *RSA_get0_iqmp(const RSA *r);
+-void RSA_clear_flags(RSA *r, int flags);
+-int RSA_test_flags(const RSA *r, int flags);
+-void RSA_set_flags(RSA *r, int flags);
+-int RSA_get_version(RSA *r);
+-ENGINE *RSA_get0_engine(const RSA *r);
++const BIGNUM * __cdecl RSA_get0_n(const RSA *d);
++const BIGNUM * __cdecl RSA_get0_e(const RSA *d);
++const BIGNUM * __cdecl RSA_get0_d(const RSA *d);
++const BIGNUM * __cdecl RSA_get0_p(const RSA *d);
++const BIGNUM * __cdecl RSA_get0_q(const RSA *d);
++const BIGNUM * __cdecl RSA_get0_dmp1(const RSA *r);
++const BIGNUM * __cdecl RSA_get0_dmq1(const RSA *r);
++const BIGNUM * __cdecl RSA_get0_iqmp(const RSA *r);
++void __cdecl RSA_clear_flags(RSA *r, int flags);
++int __cdecl RSA_test_flags(const RSA *r, int flags);
++void __cdecl RSA_set_flags(RSA *r, int flags);
++int __cdecl RSA_get_version(RSA *r);
++ENGINE * __cdecl RSA_get0_engine(const RSA *r);
+ 
+ /* Deprecated version */
+ DEPRECATEDIN_0_9_8(RSA *RSA_generate_key(int bits, unsigned long e, void
+@@ -236,45 +236,45 @@ DEPRECATEDIN_0_9_8(RSA *RSA_generate_key(int bits, unsigned long e, void
+                                          void *cb_arg))
+ 
+ /* New version */
+-int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
++int __cdecl RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
+ /* Multi-prime version */
+-int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
++int __cdecl RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
+                                  BIGNUM *e, BN_GENCB *cb);
+ 
+-int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
++int __cdecl RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
+                        BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
+                        const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
+                        const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb);
+-int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
++int __cdecl RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
+                              BN_GENCB *cb);
+ 
+-int RSA_check_key(const RSA *);
+-int RSA_check_key_ex(const RSA *, BN_GENCB *cb);
++int __cdecl RSA_check_key(const RSA *);
++int __cdecl RSA_check_key_ex(const RSA *, BN_GENCB *cb);
+         /* next 4 return -1 on error */
+-int RSA_public_encrypt(int flen, const unsigned char *from,
++int __cdecl RSA_public_encrypt(int flen, const unsigned char *from,
+                        unsigned char *to, RSA *rsa, int padding);
+-int RSA_private_encrypt(int flen, const unsigned char *from,
++int __cdecl RSA_private_encrypt(int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding);
+-int RSA_public_decrypt(int flen, const unsigned char *from,
++int __cdecl RSA_public_decrypt(int flen, const unsigned char *from,
+                        unsigned char *to, RSA *rsa, int padding);
+-int RSA_private_decrypt(int flen, const unsigned char *from,
++int __cdecl RSA_private_decrypt(int flen, const unsigned char *from,
+                         unsigned char *to, RSA *rsa, int padding);
+-void RSA_free(RSA *r);
++void __cdecl RSA_free(RSA *r);
+ /* "up" the RSA object's reference count */
+-int RSA_up_ref(RSA *r);
++int __cdecl RSA_up_ref(RSA *r);
+ 
+-int RSA_flags(const RSA *r);
++int __cdecl RSA_flags(const RSA *r);
+ 
+-void RSA_set_default_method(const RSA_METHOD *meth);
+-const RSA_METHOD *RSA_get_default_method(void);
+-const RSA_METHOD *RSA_null_method(void);
+-const RSA_METHOD *RSA_get_method(const RSA *rsa);
+-int RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
++void __cdecl RSA_set_default_method(const RSA_METHOD *meth);
++const RSA_METHOD * __cdecl RSA_get_default_method(void);
++const RSA_METHOD * __cdecl RSA_null_method(void);
++const RSA_METHOD * __cdecl RSA_get_method(const RSA *rsa);
++int __cdecl RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
+ 
+ /* these are the actual RSA functions */
+-const RSA_METHOD *RSA_PKCS1_OpenSSL(void);
++const RSA_METHOD * __cdecl RSA_PKCS1_OpenSSL(void);
+ 
+-int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
++int __cdecl RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
+ 
+ DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPublicKey)
+ DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPrivateKey)
+@@ -301,100 +301,100 @@ typedef struct rsa_oaep_params_st {
+ DECLARE_ASN1_FUNCTIONS(RSA_OAEP_PARAMS)
+ 
+ # ifndef OPENSSL_NO_STDIO
+-int RSA_print_fp(FILE *fp, const RSA *r, int offset);
++int __cdecl RSA_print_fp(FILE *fp, const RSA *r, int offset);
+ # endif
+ 
+-int RSA_print(BIO *bp, const RSA *r, int offset);
++int __cdecl RSA_print(BIO *bp, const RSA *r, int offset);
+ 
+ /*
+  * The following 2 functions sign and verify a X509_SIG ASN1 object inside
+  * PKCS#1 padded RSA encryption
+  */
+-int RSA_sign(int type, const unsigned char *m, unsigned int m_length,
++int __cdecl RSA_sign(int type, const unsigned char *m, unsigned int m_length,
+              unsigned char *sigret, unsigned int *siglen, RSA *rsa);
+-int RSA_verify(int type, const unsigned char *m, unsigned int m_length,
++int __cdecl RSA_verify(int type, const unsigned char *m, unsigned int m_length,
+                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa);
+ 
+ /*
+  * The following 2 function sign and verify a ASN1_OCTET_STRING object inside
+  * PKCS#1 padded RSA encryption
+  */
+-int RSA_sign_ASN1_OCTET_STRING(int type,
++int __cdecl RSA_sign_ASN1_OCTET_STRING(int type,
+                                const unsigned char *m, unsigned int m_length,
+                                unsigned char *sigret, unsigned int *siglen,
+                                RSA *rsa);
+-int RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
++int __cdecl RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
+                                  unsigned int m_length, unsigned char *sigbuf,
+                                  unsigned int siglen, RSA *rsa);
+ 
+-int RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
+-void RSA_blinding_off(RSA *rsa);
+-BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
++int __cdecl RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
++void __cdecl RSA_blinding_off(RSA *rsa);
++BN_BLINDING * __cdecl RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
+ 
+-int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
+                                  const unsigned char *f, int fl);
+-int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
+                                    const unsigned char *f, int fl,
+                                    int rsa_len);
+-int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
+                                  const unsigned char *f, int fl);
+-int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
+                                    const unsigned char *f, int fl,
+                                    int rsa_len);
+-int PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
++int __cdecl PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
+                long seedlen, const EVP_MD *dgst);
+-int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
+                                const unsigned char *f, int fl,
+                                const unsigned char *p, int pl);
+-int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
+                                  const unsigned char *f, int fl, int rsa_len,
+                                  const unsigned char *p, int pl);
+-int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+                                     const unsigned char *from, int flen,
+                                     const unsigned char *param, int plen,
+                                     const EVP_MD *md, const EVP_MD *mgf1md);
+-int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
+                                       const unsigned char *from, int flen,
+                                       int num, const unsigned char *param,
+                                       int plen, const EVP_MD *md,
+                                       const EVP_MD *mgf1md);
+-int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
++int __cdecl RSA_padding_add_SSLv23(unsigned char *to, int tlen,
+                            const unsigned char *f, int fl);
+-int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_SSLv23(unsigned char *to, int tlen,
+                              const unsigned char *f, int fl, int rsa_len);
+-int RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
++int __cdecl RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
+                          int fl);
+-int RSA_padding_check_none(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_none(unsigned char *to, int tlen,
+                            const unsigned char *f, int fl, int rsa_len);
+-int RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
++int __cdecl RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
+                          int fl);
+-int RSA_padding_check_X931(unsigned char *to, int tlen,
++int __cdecl RSA_padding_check_X931(unsigned char *to, int tlen,
+                            const unsigned char *f, int fl, int rsa_len);
+-int RSA_X931_hash_id(int nid);
++int __cdecl RSA_X931_hash_id(int nid);
+ 
+-int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
++int __cdecl RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
+                          const EVP_MD *Hash, const unsigned char *EM,
+                          int sLen);
+-int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
++int __cdecl RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
+                               const unsigned char *mHash, const EVP_MD *Hash,
+                               int sLen);
+ 
+-int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
++int __cdecl RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
+                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
+                               const unsigned char *EM, int sLen);
+ 
+-int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
++int __cdecl RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
+                                    const unsigned char *mHash,
+                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
+                                    int sLen);
+ 
+ #define RSA_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_RSA, l, p, newf, dupf, freef)
+-int RSA_set_ex_data(RSA *r, int idx, void *arg);
+-void *RSA_get_ex_data(const RSA *r, int idx);
++int __cdecl RSA_set_ex_data(RSA *r, int idx, void *arg);
++void * __cdecl RSA_get_ex_data(const RSA *r, int idx);
+ 
+-RSA *RSAPublicKey_dup(RSA *rsa);
+-RSA *RSAPrivateKey_dup(RSA *rsa);
++RSA * __cdecl RSAPublicKey_dup(RSA *rsa);
++RSA * __cdecl RSAPrivateKey_dup(RSA *rsa);
+ 
+ /*
+  * If this flag is set the RSA method is FIPS compliant and can be used in
+@@ -418,90 +418,90 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
+  */
+ # define RSA_FLAG_CHECKED                        0x0800
+ 
+-RSA_METHOD *RSA_meth_new(const char *name, int flags);
+-void RSA_meth_free(RSA_METHOD *meth);
+-RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth);
+-const char *RSA_meth_get0_name(const RSA_METHOD *meth);
+-int RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
+-int RSA_meth_get_flags(const RSA_METHOD *meth);
+-int RSA_meth_set_flags(RSA_METHOD *meth, int flags);
+-void *RSA_meth_get0_app_data(const RSA_METHOD *meth);
+-int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
 -int (*RSA_meth_get_pub_enc(const RSA_METHOD *meth))
++RSA_METHOD * __cdecl RSA_meth_new(const char *name, int flags);
++void  __cdecl RSA_meth_free(RSA_METHOD *meth);
++RSA_METHOD * __cdecl RSA_meth_dup(const RSA_METHOD *meth);
++const char * __cdecl RSA_meth_get0_name(const RSA_METHOD *meth);
++int __cdecl RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
++int __cdecl RSA_meth_get_flags(const RSA_METHOD *meth);
++int __cdecl RSA_meth_set_flags(RSA_METHOD *meth, int flags);
++void * __cdecl RSA_meth_get0_app_data(const RSA_METHOD *meth);
++int __cdecl RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
 +int (__cdecl *RSA_meth_get_pub_enc(const RSA_METHOD *meth))
      (int flen, const unsigned char *from,
       unsigned char *to, RSA *rsa, int padding);
@@ -33891,6 +34940,19 @@ index cdce1264eb..037bf42a88 100644
                                                     int primes, BIGNUM *e,
                                                     BN_GENCB *cb));
  
+diff --git a/include/openssl/rsaerr.h b/include/openssl/rsaerr.h
+index 59b15e13e9..8ada94637e 100644
+--- a/include/openssl/rsaerr.h
++++ b/include/openssl/rsaerr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_RSA_strings(void);
++int __cdecl ERR_load_RSA_strings(void);
+ 
+ /*
+  * RSA function codes.
 diff --git a/include/openssl/safestack.h b/include/openssl/safestack.h
 index 38b5578978..0d317b8a56 100644
 --- a/include/openssl/safestack.h
@@ -35452,1103 +36514,284 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/rsa/rsa_asn1.c b/crypto/rsa/rsa_asn1.c
-index 9fe62c82eb..2a8b05bb95 100644
---- a/crypto/rsa/rsa_asn1.c
-+++ b/crypto/rsa/rsa_asn1.c
-@@ -110,12 +110,12 @@ IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPrivateKey, RSAPrivateKey)
- 
- IMPLEMENT_ASN1_ENCODE_FUNCTIONS_const_fname(RSA, RSAPublicKey, RSAPublicKey)
- 
--RSA *RSAPublicKey_dup(RSA *rsa)
-+RSA * __cdecl RSAPublicKey_dup(RSA *rsa)
- {
-     return ASN1_item_dup(ASN1_ITEM_rptr(RSAPublicKey), rsa);
- }
- 
--RSA *RSAPrivateKey_dup(RSA *rsa)
-+RSA * __cdecl RSAPrivateKey_dup(RSA *rsa)
- {
-     return ASN1_item_dup(ASN1_ITEM_rptr(RSAPrivateKey), rsa);
- }
-diff --git a/crypto/rsa/rsa_chk.c b/crypto/rsa/rsa_chk.c
-index 1b69be30ca..19f26164d4 100644
---- a/crypto/rsa/rsa_chk.c
-+++ b/crypto/rsa/rsa_chk.c
-@@ -11,12 +11,12 @@
- #include <openssl/err.h>
- #include "rsa_locl.h"
- 
--int RSA_check_key(const RSA *key)
-+int __cdecl RSA_check_key(const RSA *key)
- {
-     return RSA_check_key_ex(key, NULL);
- }
- 
--int RSA_check_key_ex(const RSA *key, BN_GENCB *cb)
-+int __cdecl RSA_check_key_ex(const RSA *key, BN_GENCB *cb)
- {
-     BIGNUM *i, *j, *k, *l, *m;
-     BN_CTX *ctx;
-diff --git a/crypto/rsa/rsa_crpt.c b/crypto/rsa/rsa_crpt.c
-index f4ef8b4381..0627f24a62 100644
---- a/crypto/rsa/rsa_crpt.c
-+++ b/crypto/rsa/rsa_crpt.c
-@@ -14,46 +14,46 @@
- #include <openssl/rand.h>
- #include "rsa_locl.h"
- 
--int RSA_bits(const RSA *r)
-+int __cdecl RSA_bits(const RSA *r)
- {
-     return BN_num_bits(r->n);
- }
- 
--int RSA_size(const RSA *r)
-+int __cdecl RSA_size(const RSA *r)
- {
-     return BN_num_bytes(r->n);
- }
- 
--int RSA_public_encrypt(int flen, const unsigned char *from, unsigned char *to,
-+int __cdecl RSA_public_encrypt(int flen, const unsigned char *from, unsigned char *to,
-                        RSA *rsa, int padding)
- {
-     return rsa->meth->rsa_pub_enc(flen, from, to, rsa, padding);
- }
- 
--int RSA_private_encrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_private_encrypt(int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding)
- {
-     return rsa->meth->rsa_priv_enc(flen, from, to, rsa, padding);
- }
- 
--int RSA_private_decrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_private_decrypt(int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding)
- {
-     return rsa->meth->rsa_priv_dec(flen, from, to, rsa, padding);
- }
- 
--int RSA_public_decrypt(int flen, const unsigned char *from, unsigned char *to,
-+int __cdecl RSA_public_decrypt(int flen, const unsigned char *from, unsigned char *to,
-                        RSA *rsa, int padding)
- {
-     return rsa->meth->rsa_pub_dec(flen, from, to, rsa, padding);
- }
- 
--int RSA_flags(const RSA *r)
-+int __cdecl RSA_flags(const RSA *r)
- {
-     return r == NULL ? 0 : r->meth->flags;
- }
- 
--void RSA_blinding_off(RSA *rsa)
-+void __cdecl RSA_blinding_off(RSA *rsa)
- {
-     BN_BLINDING_free(rsa->blinding);
-     rsa->blinding = NULL;
-@@ -61,7 +61,7 @@ void RSA_blinding_off(RSA *rsa)
-     rsa->flags |= RSA_FLAG_NO_BLINDING;
- }
- 
--int RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
-+int __cdecl RSA_blinding_on(RSA *rsa, BN_CTX *ctx)
- {
-     int ret = 0;
- 
-@@ -107,7 +107,7 @@ static BIGNUM *rsa_get_public_exp(const BIGNUM *d, const BIGNUM *p,
-     return ret;
- }
- 
--BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
-+BN_BLINDING * __cdecl RSA_setup_blinding(RSA *rsa, BN_CTX *in_ctx)
- {
-     BIGNUM *e;
-     BN_CTX *ctx;
-diff --git a/crypto/rsa/rsa_err.c b/crypto/rsa/rsa_err.c
-index 0687c1e626..56ba2df054 100644
---- a/crypto/rsa/rsa_err.c
-+++ b/crypto/rsa/rsa_err.c
-@@ -236,7 +236,7 @@ static const ERR_STRING_DATA RSA_str_reasons[] = {
- 
- #endif
- 
--int ERR_load_RSA_strings(void)
-+int __cdecl ERR_load_RSA_strings(void)
- {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(RSA_str_functs[0].error) == NULL) {
-diff --git a/crypto/rsa/rsa_gen.c b/crypto/rsa/rsa_gen.c
-index 2b81808860..72c7fadf61 100644
---- a/crypto/rsa/rsa_gen.c
-+++ b/crypto/rsa/rsa_gen.c
-@@ -29,7 +29,7 @@ static int rsa_builtin_keygen(RSA *rsa, int bits, int primes, BIGNUM *e_value,
-  * that wasn't previously linking object code related to key-generation won't
-  * have to now just because key-generation is part of RSA_METHOD.
-  */
--int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
-+int __cdecl RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
- {
-     if (rsa->meth->rsa_keygen != NULL)
-         return rsa->meth->rsa_keygen(rsa, bits, e_value, cb);
-@@ -38,7 +38,7 @@ int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e_value, BN_GENCB *cb)
-                                         e_value, cb);
- }
- 
--int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
-+int __cdecl RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
-                                  BIGNUM *e_value, BN_GENCB *cb)
- {
-     /* multi-prime is only supported with the builtin key generation */
-diff --git a/crypto/rsa/rsa_lib.c b/crypto/rsa/rsa_lib.c
-index 1ba92cd08b..ac6da91279 100644
---- a/crypto/rsa/rsa_lib.c
-+++ b/crypto/rsa/rsa_lib.c
-@@ -22,12 +22,12 @@ RSA * __cdecl RSA_new(void)
-     return RSA_new_method(NULL);
- }
- 
--const RSA_METHOD *RSA_get_method(const RSA *rsa)
-+const RSA_METHOD * __cdecl RSA_get_method(const RSA *rsa)
- {
-     return rsa->meth;
- }
- 
--int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
-+int __cdecl RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
- {
-     /*
-      * NB: The caller is specifically setting a method, so it's not up to us
-@@ -47,7 +47,7 @@ int RSA_set_method(RSA *rsa, const RSA_METHOD *meth)
-     return 1;
- }
- 
--RSA *RSA_new_method(ENGINE *engine)
-+RSA * __cdecl RSA_new_method(ENGINE *engine)
- {
-     RSA *ret = OPENSSL_zalloc(sizeof(*ret));
- 
-@@ -102,7 +102,7 @@ RSA *RSA_new_method(ENGINE *engine)
-     return NULL;
- }
- 
--void RSA_free(RSA *r)
-+void __cdecl RSA_free(RSA *r)
- {
-     int i;
- 
-@@ -141,7 +141,7 @@ void RSA_free(RSA *r)
-     OPENSSL_free(r);
- }
- 
--int RSA_up_ref(RSA *r)
-+int __cdecl RSA_up_ref(RSA *r)
- {
-     int i;
- 
-@@ -153,17 +153,17 @@ int RSA_up_ref(RSA *r)
-     return i > 1 ? 1 : 0;
- }
- 
--int RSA_set_ex_data(RSA *r, int idx, void *arg)
-+int __cdecl RSA_set_ex_data(RSA *r, int idx, void *arg)
- {
-     return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
- }
- 
--void *RSA_get_ex_data(const RSA *r, int idx)
-+void * __cdecl RSA_get_ex_data(const RSA *r, int idx)
- {
-     return CRYPTO_get_ex_data(&r->ex_data, idx);
- }
- 
--int RSA_security_bits(const RSA *rsa)
-+int __cdecl RSA_security_bits(const RSA *rsa)
- {
-     int bits = BN_num_bits(rsa->n);
- 
-@@ -177,7 +177,7 @@ int RSA_security_bits(const RSA *rsa)
-     return BN_security_bits(bits, -1);
- }
- 
--int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
-+int __cdecl RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
- {
-     /* If the fields n and e in r are NULL, the corresponding input
-      * parameters MUST be non-NULL for n and e.  d may be
-@@ -204,7 +204,7 @@ int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d)
-     return 1;
- }
- 
--int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
-+int __cdecl RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
- {
-     /* If the fields p and q in r are NULL, the corresponding input
-      * parameters MUST be non-NULL.
-@@ -227,7 +227,7 @@ int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q)
-     return 1;
- }
- 
--int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
-+int __cdecl RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
- {
-     /* If the fields dmp1, dmq1 and iqmp in r are NULL, the corresponding input
-      * parameters MUST be non-NULL.
-@@ -260,7 +260,7 @@ int RSA_set0_crt_params(RSA *r, BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp)
-  * Is it better to export RSA_PRIME_INFO structure
-  * and related functions to let user pass a triplet?
-  */
--int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-+int __cdecl RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-                                 BIGNUM *coeffs[], int pnum)
- {
-     STACK_OF(RSA_PRIME_INFO) *prime_infos, *old = NULL;
-@@ -324,7 +324,7 @@ int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-     return 0;
- }
- 
--void RSA_get0_key(const RSA *r,
-+void __cdecl RSA_get0_key(const RSA *r,
-                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d)
- {
-     if (n != NULL)
-@@ -335,7 +335,7 @@ void RSA_get0_key(const RSA *r,
-         *d = r->d;
- }
- 
--void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
-+void __cdecl RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
- {
-     if (p != NULL)
-         *p = r->p;
-@@ -343,7 +343,7 @@ void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q)
-         *q = r->q;
- }
- 
--int RSA_get_multi_prime_extra_count(const RSA *r)
-+int __cdecl RSA_get_multi_prime_extra_count(const RSA *r)
- {
-     int pnum;
- 
-@@ -353,7 +353,7 @@ int RSA_get_multi_prime_extra_count(const RSA *r)
-     return pnum;
- }
- 
--int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
-+int __cdecl RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
- {
-     int pnum, i;
-     RSA_PRIME_INFO *pinfo;
-@@ -373,7 +373,7 @@ int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[])
-     return 1;
- }
- 
--void RSA_get0_crt_params(const RSA *r,
-+void __cdecl RSA_get0_crt_params(const RSA *r,
-                          const BIGNUM **dmp1, const BIGNUM **dmq1,
-                          const BIGNUM **iqmp)
- {
-@@ -385,7 +385,7 @@ void RSA_get0_crt_params(const RSA *r,
-         *iqmp = r->iqmp;
- }
- 
--int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-+int __cdecl RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-                                     const BIGNUM *coeffs[])
- {
-     int pnum;
-@@ -411,73 +411,73 @@ int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-     return 1;
- }
- 
--const BIGNUM *RSA_get0_n(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_n(const RSA *r)
- {
-     return r->n;
- }
- 
--const BIGNUM *RSA_get0_e(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_e(const RSA *r)
- {
-     return r->e;
- }
- 
--const BIGNUM *RSA_get0_d(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_d(const RSA *r)
- {
-     return r->d;
- }
- 
--const BIGNUM *RSA_get0_p(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_p(const RSA *r)
- {
-     return r->p;
- }
- 
--const BIGNUM *RSA_get0_q(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_q(const RSA *r)
- {
-     return r->q;
- }
- 
--const BIGNUM *RSA_get0_dmp1(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_dmp1(const RSA *r)
- {
-     return r->dmp1;
- }
- 
--const BIGNUM *RSA_get0_dmq1(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_dmq1(const RSA *r)
- {
-     return r->dmq1;
- }
- 
--const BIGNUM *RSA_get0_iqmp(const RSA *r)
-+const BIGNUM * __cdecl RSA_get0_iqmp(const RSA *r)
- {
-     return r->iqmp;
- }
- 
--void RSA_clear_flags(RSA *r, int flags)
-+void __cdecl RSA_clear_flags(RSA *r, int flags)
- {
-     r->flags &= ~flags;
- }
- 
--int RSA_test_flags(const RSA *r, int flags)
-+int __cdecl RSA_test_flags(const RSA *r, int flags)
- {
-     return r->flags & flags;
- }
- 
--void RSA_set_flags(RSA *r, int flags)
-+void __cdecl RSA_set_flags(RSA *r, int flags)
- {
-     r->flags |= flags;
- }
- 
--int RSA_get_version(RSA *r)
-+int __cdecl RSA_get_version(RSA *r)
- {
-     /* { two-prime(0), multi(1) } */
-     return r->version;
- }
- 
--ENGINE *RSA_get0_engine(const RSA *r)
-+ENGINE * __cdecl RSA_get0_engine(const RSA *r)
- {
-     return r->engine;
- }
- 
--int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
-+int __cdecl RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2)
- {
-     /* If key type not RSA or RSA-PSS return error */
-     if (ctx != NULL && ctx->pmeth != NULL
-diff --git a/crypto/rsa/rsa_meth.c b/crypto/rsa/rsa_meth.c
-index d8687a289e..2f4d322293 100644
---- a/crypto/rsa/rsa_meth.c
-+++ b/crypto/rsa/rsa_meth.c
-@@ -11,7 +11,7 @@
- #include "rsa_locl.h"
- #include <openssl/err.h>
- 
--RSA_METHOD *RSA_meth_new(const char *name, int flags)
-+RSA_METHOD * __cdecl RSA_meth_new(const char *name, int flags)
- {
-     RSA_METHOD *meth = OPENSSL_zalloc(sizeof(*meth));
- 
-@@ -29,7 +29,7 @@ RSA_METHOD *RSA_meth_new(const char *name, int flags)
-     return NULL;
- }
- 
--void RSA_meth_free(RSA_METHOD *meth)
-+void __cdecl RSA_meth_free(RSA_METHOD *meth)
- {
-     if (meth != NULL) {
-         OPENSSL_free(meth->name);
-@@ -37,7 +37,7 @@ void RSA_meth_free(RSA_METHOD *meth)
-     }
- }
- 
--RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth)
-+RSA_METHOD * __cdecl RSA_meth_dup(const RSA_METHOD *meth)
- {
-     RSA_METHOD *ret = OPENSSL_malloc(sizeof(*ret));
- 
-@@ -55,12 +55,12 @@ RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth)
-     return NULL;
- }
- 
--const char *RSA_meth_get0_name(const RSA_METHOD *meth)
-+const char * __cdecl RSA_meth_get0_name(const RSA_METHOD *meth)
- {
-     return meth->name;
- }
- 
--int RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
-+int __cdecl RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
- {
-     char *tmpname = OPENSSL_strdup(name);
- 
-@@ -75,23 +75,23 @@ int RSA_meth_set1_name(RSA_METHOD *meth, const char *name)
-     return 1;
- }
- 
--int RSA_meth_get_flags(const RSA_METHOD *meth)
-+int __cdecl RSA_meth_get_flags(const RSA_METHOD *meth)
- {
-     return meth->flags;
- }
- 
--int RSA_meth_set_flags(RSA_METHOD *meth, int flags)
-+int __cdecl RSA_meth_set_flags(RSA_METHOD *meth, int flags)
- {
-     meth->flags = flags;
-     return 1;
- }
- 
--void *RSA_meth_get0_app_data(const RSA_METHOD *meth)
-+void * __cdecl RSA_meth_get0_app_data(const RSA_METHOD *meth)
- {
-     return meth->app_data;
- }
- 
--int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
-+int __cdecl RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data)
- {
-     meth->app_data = app_data;
-     return 1;
-diff --git a/crypto/rsa/rsa_none.c b/crypto/rsa/rsa_none.c
-index f16cc67066..48f234447c 100644
---- a/crypto/rsa/rsa_none.c
-+++ b/crypto/rsa/rsa_none.c
-@@ -11,7 +11,7 @@
- #include <openssl/bn.h>
- #include <openssl/rsa.h>
- 
--int RSA_padding_add_none(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_none(unsigned char *to, int tlen,
-                          const unsigned char *from, int flen)
- {
-     if (flen > tlen) {
-@@ -28,7 +28,7 @@ int RSA_padding_add_none(unsigned char *to, int tlen,
-     return 1;
- }
- 
--int RSA_padding_check_none(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_none(unsigned char *to, int tlen,
-                            const unsigned char *from, int flen, int num)
- {
- 
-diff --git a/crypto/rsa/rsa_oaep.c b/crypto/rsa/rsa_oaep.c
-index 48b888bf27..d820603251 100644
---- a/crypto/rsa/rsa_oaep.c
-+++ b/crypto/rsa/rsa_oaep.c
-@@ -30,7 +30,7 @@
- #include <openssl/sha.h>
- #include "rsa_locl.h"
- 
--int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-                                const unsigned char *from, int flen,
-                                const unsigned char *param, int plen)
- {
-@@ -38,7 +38,7 @@ int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-                                            param, plen, NULL, NULL);
- }
- 
--int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                     const unsigned char *from, int flen,
-                                     const unsigned char *param, int plen,
-                                     const EVP_MD *md, const EVP_MD *mgf1md)
-@@ -105,7 +105,7 @@ int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-     return rv;
- }
- 
--int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-                                  const unsigned char *from, int flen, int num,
-                                  const unsigned char *param, int plen)
- {
-@@ -113,7 +113,7 @@ int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-                                              param, plen, NULL, NULL);
- }
- 
--int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                       const unsigned char *from, int flen,
-                                       int num, const unsigned char *param,
-                                       int plen, const EVP_MD *md,
-@@ -270,7 +270,7 @@ int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-     return constant_time_select_int(good, mlen, -1);
- }
- 
--int PKCS1_MGF1(unsigned char *mask, long len,
-+int __cdecl PKCS1_MGF1(unsigned char *mask, long len,
-                const unsigned char *seed, long seedlen, const EVP_MD *dgst)
- {
-     long i, outlen = 0;
-diff --git a/crypto/rsa/rsa_ossl.c b/crypto/rsa/rsa_ossl.c
-index 9e022c1381..cfdf6fc078 100644
---- a/crypto/rsa/rsa_ossl.c
-+++ b/crypto/rsa/rsa_ossl.c
-@@ -45,22 +45,22 @@ static RSA_METHOD rsa_pkcs1_ossl_meth = {
- 
- static const RSA_METHOD *default_RSA_meth = &rsa_pkcs1_ossl_meth;
- 
--void RSA_set_default_method(const RSA_METHOD *meth)
-+void __cdecl RSA_set_default_method(const RSA_METHOD *meth)
- {
-     default_RSA_meth = meth;
- }
- 
--const RSA_METHOD *RSA_get_default_method(void)
-+const RSA_METHOD * __cdecl RSA_get_default_method(void)
- {
-     return default_RSA_meth;
- }
- 
--const RSA_METHOD *RSA_PKCS1_OpenSSL(void)
-+const RSA_METHOD * __cdecl RSA_PKCS1_OpenSSL(void)
- {
-     return &rsa_pkcs1_ossl_meth;
- }
- 
--const RSA_METHOD *RSA_null_method(void)
-+const RSA_METHOD * __cdecl RSA_null_method(void)
- {
-     return NULL;
- }
-diff --git a/crypto/rsa/rsa_pk1.c b/crypto/rsa/rsa_pk1.c
-index 5260d12f4c..16ebe629e7 100644
---- a/crypto/rsa/rsa_pk1.c
-+++ b/crypto/rsa/rsa_pk1.c
-@@ -15,7 +15,7 @@
- #include <openssl/rsa.h>
- #include <openssl/rand.h>
- 
--int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-                                  const unsigned char *from, int flen)
- {
-     int j;
-@@ -41,7 +41,7 @@ int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-     return 1;
- }
- 
--int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-                                    const unsigned char *from, int flen,
-                                    int num)
- {
-@@ -114,7 +114,7 @@ int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-     return j;
- }
- 
--int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-                                  const unsigned char *from, int flen)
- {
-     int i, j;
-@@ -151,7 +151,7 @@ int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-     return 1;
- }
- 
--int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
-                                    const unsigned char *from, int flen,
-                                    int num)
- {
-diff --git a/crypto/rsa/rsa_prn.c b/crypto/rsa/rsa_prn.c
-index b5f4bce2a3..0768f15a6f 100644
---- a/crypto/rsa/rsa_prn.c
-+++ b/crypto/rsa/rsa_prn.c
-@@ -13,7 +13,7 @@
- #include <openssl/evp.h>
- 
- #ifndef OPENSSL_NO_STDIO
--int RSA_print_fp(FILE *fp, const RSA *x, int off)
-+int __cdecl RSA_print_fp(FILE *fp, const RSA *x, int off)
- {
-     BIO *b;
-     int ret;
-@@ -29,7 +29,7 @@ int RSA_print_fp(FILE *fp, const RSA *x, int off)
- }
- #endif
- 
--int RSA_print(BIO *bp, const RSA *x, int off)
-+int __cdecl RSA_print(BIO *bp, const RSA *x, int off)
- {
-     EVP_PKEY *pk;
-     int ret;
-diff --git a/crypto/rsa/rsa_pss.c b/crypto/rsa/rsa_pss.c
-index f7c575d00a..3705014c3c 100644
---- a/crypto/rsa/rsa_pss.c
-+++ b/crypto/rsa/rsa_pss.c
-@@ -22,14 +22,14 @@ static const unsigned char zeroes[] = { 0, 0, 0, 0, 0, 0, 0, 0 };
- # pragma optimize("g", off)
- #endif
- 
--int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
-+int __cdecl RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
-                          const EVP_MD *Hash, const unsigned char *EM,
-                          int sLen)
- {
-     return RSA_verify_PKCS1_PSS_mgf1(rsa, mHash, Hash, NULL, EM, sLen);
- }
- 
--int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
-+int __cdecl RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
-                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
-                               const unsigned char *EM, int sLen)
- {
-@@ -135,14 +135,14 @@ int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
- 
- }
- 
--int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
-+int __cdecl RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
-                               const unsigned char *mHash,
-                               const EVP_MD *Hash, int sLen)
- {
-     return RSA_padding_add_PKCS1_PSS_mgf1(rsa, EM, mHash, Hash, NULL, sLen);
- }
- 
--int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
-+int __cdecl RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
-                                    const unsigned char *mHash,
-                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
-                                    int sLen)
-diff --git a/crypto/rsa/rsa_saos.c b/crypto/rsa/rsa_saos.c
-index 8336f32f16..2faeb5c0fc 100644
---- a/crypto/rsa/rsa_saos.c
-+++ b/crypto/rsa/rsa_saos.c
-@@ -14,7 +14,7 @@
- #include <openssl/objects.h>
- #include <openssl/x509.h>
- 
--int RSA_sign_ASN1_OCTET_STRING(int type,
-+int __cdecl RSA_sign_ASN1_OCTET_STRING(int type,
-                                const unsigned char *m, unsigned int m_len,
-                                unsigned char *sigret, unsigned int *siglen,
-                                RSA *rsa)
-@@ -51,7 +51,7 @@ int RSA_sign_ASN1_OCTET_STRING(int type,
-     return ret;
- }
- 
--int RSA_verify_ASN1_OCTET_STRING(int dtype,
-+int __cdecl RSA_verify_ASN1_OCTET_STRING(int dtype,
-                                  const unsigned char *m,
-                                  unsigned int m_len, unsigned char *sigbuf,
-                                  unsigned int siglen, RSA *rsa)
-diff --git a/crypto/rsa/rsa_sign.c b/crypto/rsa/rsa_sign.c
-index 952d24fb8a..8cfe0dc07e 100644
---- a/crypto/rsa/rsa_sign.c
-+++ b/crypto/rsa/rsa_sign.c
-@@ -66,7 +66,7 @@ static int encode_pkcs1(unsigned char **out, int *out_len, int type,
-     return 1;
- }
- 
--int RSA_sign(int type, const unsigned char *m, unsigned int m_len,
-+int __cdecl RSA_sign(int type, const unsigned char *m, unsigned int m_len,
-              unsigned char *sigret, unsigned int *siglen, RSA *rsa)
- {
-     int encrypt_len, encoded_len = 0, ret = 0;
-@@ -236,7 +236,7 @@ err:
-     return ret;
- }
- 
--int RSA_verify(int type, const unsigned char *m, unsigned int m_len,
-+int __cdecl RSA_verify(int type, const unsigned char *m, unsigned int m_len,
-                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa)
- {
- 
-diff --git a/crypto/rsa/rsa_ssl.c b/crypto/rsa/rsa_ssl.c
-index 3859128a6d..593c08f469 100644
---- a/crypto/rsa/rsa_ssl.c
-+++ b/crypto/rsa/rsa_ssl.c
-@@ -14,7 +14,7 @@
- #include <openssl/rand.h>
- #include "internal/constant_time_locl.h"
- 
--int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_SSLv23(unsigned char *to, int tlen,
-                            const unsigned char *from, int flen)
- {
-     int i, j;
-@@ -58,7 +58,7 @@ int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
-  * if nul delimiter is not preceded by 8 consecutive 0x03 bytes. It also
-  * preserves error code reporting for backward compatibility.
-  */
--int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_SSLv23(unsigned char *to, int tlen,
-                              const unsigned char *from, int flen, int num)
- {
-     int i;
-diff --git a/crypto/rsa/rsa_x931.c b/crypto/rsa/rsa_x931.c
-index 7b0486c0f2..033c9d2cd4 100644
---- a/crypto/rsa/rsa_x931.c
-+++ b/crypto/rsa/rsa_x931.c
-@@ -13,7 +13,7 @@
- #include <openssl/rsa.h>
- #include <openssl/objects.h>
- 
--int RSA_padding_add_X931(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_X931(unsigned char *to, int tlen,
-                          const unsigned char *from, int flen)
- {
-     int j;
-@@ -50,7 +50,7 @@ int RSA_padding_add_X931(unsigned char *to, int tlen,
-     return 1;
- }
- 
--int RSA_padding_check_X931(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_X931(unsigned char *to, int tlen,
-                            const unsigned char *from, int flen, int num)
- {
-     int i = 0, j;
-@@ -97,7 +97,7 @@ int RSA_padding_check_X931(unsigned char *to, int tlen,
- 
- /* Translate between X931 hash ids and NIDs */
- 
--int RSA_X931_hash_id(int nid)
-+int __cdecl RSA_X931_hash_id(int nid)
- {
-     switch (nid) {
-     case NID_sha1:
-diff --git a/crypto/rsa/rsa_x931g.c b/crypto/rsa/rsa_x931g.c
-index e7ac476bb4..339ff0bccd 100644
---- a/crypto/rsa/rsa_x931g.c
-+++ b/crypto/rsa/rsa_x931g.c
+diff --git a/crypto/seed/seed.c b/crypto/seed/seed.c
+index d62da91ede..26fb50f491 100644
+--- a/crypto/seed/seed.c
++++ b/crypto/seed/seed.c
+@@ -437,7 +437,7 @@ static const seed_word KC[] = {
+ };
+ # endif
+ 
+-void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
++void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+                   SEED_KEY_SCHEDULE *ks)
+ {
+     seed_word x1, x2, x3, x4;
+@@ -496,7 +496,7 @@ void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+ # endif
+ }
+ 
+-void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks)
+ {
+@@ -541,7 +541,7 @@ void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+     word2char(x2, d + 12);
+ }
+ 
+-void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks)
+ {
+diff --git a/crypto/seed/seed_cbc.c b/crypto/seed/seed_cbc.c
+index c9a4fe217b..08d3e13b2f 100644
+--- a/crypto/seed/seed_cbc.c
++++ b/crypto/seed/seed_cbc.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out,
+                       size_t len, const SEED_KEY_SCHEDULE *ks,
+                       unsigned char ivec[SEED_BLOCK_SIZE], int enc)
+ {
+diff --git a/crypto/seed/seed_cfb.c b/crypto/seed/seed_cfb.c
+index 2aee1ffe39..69b08634f5 100644
+--- a/crypto/seed/seed_cfb.c
++++ b/crypto/seed/seed_cfb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
+                          int enc)
+diff --git a/crypto/seed/seed_ecb.c b/crypto/seed/seed_ecb.c
+index b6e301ccda..97f43eade7 100644
+--- a/crypto/seed/seed_ecb.c
++++ b/crypto/seed/seed_ecb.c
+@@ -9,7 +9,7 @@
+ 
+ #include <openssl/seed.h>
+ 
+-void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       const SEED_KEY_SCHEDULE *ks, int enc)
+ {
+     if (enc)
+diff --git a/crypto/seed/seed_ofb.c b/crypto/seed/seed_ofb.c
+index b455540585..c492e24486 100644
+--- a/crypto/seed/seed_ofb.c
++++ b/crypto/seed/seed_ofb.c
+@@ -10,7 +10,7 @@
+ #include <openssl/seed.h>
+ #include <openssl/modes.h>
+ 
+-void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num)
+ {
+diff --git a/crypto/sha/sha256.c b/crypto/sha/sha256.c
+index cde44fb98d..840ae90b65 100644
+--- a/crypto/sha/sha256.c
++++ b/crypto/sha/sha256.c
 @@ -16,7 +16,7 @@
+ #include <openssl/sha.h>
+ #include <openssl/opensslv.h>
  
- /* X9.31 RSA key derivation and generation */
- 
--int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
-+int __cdecl RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
-                        BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
-                        const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
-                        const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb)
-@@ -141,7 +141,7 @@ int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
- 
+-int SHA224_Init(SHA256_CTX *c)
++int __cdecl SHA224_Init(SHA256_CTX *c)
+ {
+     memset(c, 0, sizeof(*c));
+     c->h[0] = 0xc1059ed8UL;
+@@ -46,7 +46,7 @@ int __cdecl SHA256_Init(SHA256_CTX *c)
+     return 1;
  }
  
--int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
-+int __cdecl RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
-                              BN_GENCB *cb)
+-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md)
  {
-     int ok = 0;
-diff --git a/include/openssl/rsa.h b/include/openssl/rsa.h
-index 037bf42a88..8315db7210 100644
---- a/include/openssl/rsa.h
-+++ b/include/openssl/rsa.h
-@@ -196,39 +196,39 @@ extern "C" {
- # define RSA_get_app_data(s)             RSA_get_ex_data(s,0)
+     SHA256_CTX c;
+     static unsigned char m[SHA224_DIGEST_LENGTH];
+@@ -74,12 +74,12 @@ unsigned char * __cdecl SHA256(const unsigned char *d, size_t n, unsigned char *
+     return md;
+ }
  
- RSA * __cdecl RSA_new(void);
--RSA *RSA_new_method(ENGINE *engine);
--int RSA_bits(const RSA *rsa);
--int RSA_size(const RSA *rsa);
--int RSA_security_bits(const RSA *rsa);
--
--int RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
--int RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
--int RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
--int RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-+RSA * __cdecl RSA_new_method(ENGINE *engine);
-+int __cdecl RSA_bits(const RSA *rsa);
-+int __cdecl RSA_size(const RSA *rsa);
-+int __cdecl RSA_security_bits(const RSA *rsa);
-+
-+int __cdecl RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d);
-+int __cdecl RSA_set0_factors(RSA *r, BIGNUM *p, BIGNUM *q);
-+int __cdecl RSA_set0_crt_params(RSA *r,BIGNUM *dmp1, BIGNUM *dmq1, BIGNUM *iqmp);
-+int __cdecl RSA_set0_multi_prime_params(RSA *r, BIGNUM *primes[], BIGNUM *exps[],
-                                 BIGNUM *coeffs[], int pnum);
--void RSA_get0_key(const RSA *r,
-+void __cdecl RSA_get0_key(const RSA *r,
-                   const BIGNUM **n, const BIGNUM **e, const BIGNUM **d);
--void RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
--int RSA_get_multi_prime_extra_count(const RSA *r);
--int RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
--void RSA_get0_crt_params(const RSA *r,
-+void __cdecl RSA_get0_factors(const RSA *r, const BIGNUM **p, const BIGNUM **q);
-+int __cdecl RSA_get_multi_prime_extra_count(const RSA *r);
-+int __cdecl RSA_get0_multi_prime_factors(const RSA *r, const BIGNUM *primes[]);
-+void __cdecl RSA_get0_crt_params(const RSA *r,
-                          const BIGNUM **dmp1, const BIGNUM **dmq1,
-                          const BIGNUM **iqmp);
--int RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-+int __cdecl RSA_get0_multi_prime_crt_params(const RSA *r, const BIGNUM *exps[],
-                                     const BIGNUM *coeffs[]);
--const BIGNUM *RSA_get0_n(const RSA *d);
--const BIGNUM *RSA_get0_e(const RSA *d);
--const BIGNUM *RSA_get0_d(const RSA *d);
--const BIGNUM *RSA_get0_p(const RSA *d);
--const BIGNUM *RSA_get0_q(const RSA *d);
--const BIGNUM *RSA_get0_dmp1(const RSA *r);
--const BIGNUM *RSA_get0_dmq1(const RSA *r);
--const BIGNUM *RSA_get0_iqmp(const RSA *r);
--void RSA_clear_flags(RSA *r, int flags);
--int RSA_test_flags(const RSA *r, int flags);
--void RSA_set_flags(RSA *r, int flags);
--int RSA_get_version(RSA *r);
--ENGINE *RSA_get0_engine(const RSA *r);
-+const BIGNUM * __cdecl RSA_get0_n(const RSA *d);
-+const BIGNUM * __cdecl RSA_get0_e(const RSA *d);
-+const BIGNUM * __cdecl RSA_get0_d(const RSA *d);
-+const BIGNUM * __cdecl RSA_get0_p(const RSA *d);
-+const BIGNUM * __cdecl RSA_get0_q(const RSA *d);
-+const BIGNUM * __cdecl RSA_get0_dmp1(const RSA *r);
-+const BIGNUM * __cdecl RSA_get0_dmq1(const RSA *r);
-+const BIGNUM * __cdecl RSA_get0_iqmp(const RSA *r);
-+void __cdecl RSA_clear_flags(RSA *r, int flags);
-+int __cdecl RSA_test_flags(const RSA *r, int flags);
-+void __cdecl RSA_set_flags(RSA *r, int flags);
-+int __cdecl RSA_get_version(RSA *r);
-+ENGINE * __cdecl RSA_get0_engine(const RSA *r);
+-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
++int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len)
+ {
+     return SHA256_Update(c, data, len);
+ }
  
- /* Deprecated version */
- DEPRECATEDIN_0_9_8(RSA *RSA_generate_key(int bits, unsigned long e, void
-@@ -236,45 +236,45 @@ DEPRECATEDIN_0_9_8(RSA *RSA_generate_key(int bits, unsigned long e, void
-                                          void *cb_arg))
+-int SHA224_Final(unsigned char *md, SHA256_CTX *c)
++int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c)
+ {
+     return SHA256_Final(md, c);
+ }
+diff --git a/crypto/sha/sha512.c b/crypto/sha/sha512.c
+index 50b65ee811..70fb22e657 100644
+--- a/crypto/sha/sha512.c
++++ b/crypto/sha/sha512.c
+@@ -96,7 +96,7 @@ int sha512_256_init(SHA512_CTX *c)
+     return 1;
+ }
  
- /* New version */
--int RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
-+int __cdecl RSA_generate_key_ex(RSA *rsa, int bits, BIGNUM *e, BN_GENCB *cb);
- /* Multi-prime version */
--int RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
-+int __cdecl RSA_generate_multi_prime_key(RSA *rsa, int bits, int primes,
-                                  BIGNUM *e, BN_GENCB *cb);
+-int SHA384_Init(SHA512_CTX *c)
++int __cdecl SHA384_Init(SHA512_CTX *c)
+ {
+     c->h[0] = U64(0xcbbb9d5dc1059ed8);
+     c->h[1] = U64(0x629a292a367cd507);
+@@ -114,7 +114,7 @@ int SHA384_Init(SHA512_CTX *c)
+     return 1;
+ }
  
--int RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
-+int __cdecl RSA_X931_derive_ex(RSA *rsa, BIGNUM *p1, BIGNUM *p2, BIGNUM *q1,
-                        BIGNUM *q2, const BIGNUM *Xp1, const BIGNUM *Xp2,
-                        const BIGNUM *Xp, const BIGNUM *Xq1, const BIGNUM *Xq2,
-                        const BIGNUM *Xq, const BIGNUM *e, BN_GENCB *cb);
--int RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
-+int __cdecl RSA_X931_generate_key_ex(RSA *rsa, int bits, const BIGNUM *e,
-                              BN_GENCB *cb);
+-int SHA512_Init(SHA512_CTX *c)
++int __cdecl SHA512_Init(SHA512_CTX *c)
+ {
+     c->h[0] = U64(0x6a09e667f3bcc908);
+     c->h[1] = U64(0xbb67ae8584caa73b);
+@@ -137,7 +137,7 @@ static
+ #endif
+ void sha512_block_data_order(SHA512_CTX *ctx, const void *in, size_t num);
  
--int RSA_check_key(const RSA *);
--int RSA_check_key_ex(const RSA *, BN_GENCB *cb);
-+int __cdecl RSA_check_key(const RSA *);
-+int __cdecl RSA_check_key_ex(const RSA *, BN_GENCB *cb);
-         /* next 4 return -1 on error */
--int RSA_public_encrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_public_encrypt(int flen, const unsigned char *from,
-                        unsigned char *to, RSA *rsa, int padding);
--int RSA_private_encrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_private_encrypt(int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding);
--int RSA_public_decrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_public_decrypt(int flen, const unsigned char *from,
-                        unsigned char *to, RSA *rsa, int padding);
--int RSA_private_decrypt(int flen, const unsigned char *from,
-+int __cdecl RSA_private_decrypt(int flen, const unsigned char *from,
-                         unsigned char *to, RSA *rsa, int padding);
--void RSA_free(RSA *r);
-+void __cdecl RSA_free(RSA *r);
- /* "up" the RSA object's reference count */
--int RSA_up_ref(RSA *r);
-+int __cdecl RSA_up_ref(RSA *r);
+-int SHA512_Final(unsigned char *md, SHA512_CTX *c)
++int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c)
+ {
+     unsigned char *p = (unsigned char *)c->u.p;
+     size_t n = c->num;
+@@ -256,12 +256,12 @@ int SHA512_Final(unsigned char *md, SHA512_CTX *c)
+     return 1;
+ }
  
--int RSA_flags(const RSA *r);
-+int __cdecl RSA_flags(const RSA *r);
+-int SHA384_Final(unsigned char *md, SHA512_CTX *c)
++int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c)
+ {
+     return SHA512_Final(md, c);
+ }
  
--void RSA_set_default_method(const RSA_METHOD *meth);
--const RSA_METHOD *RSA_get_default_method(void);
--const RSA_METHOD *RSA_null_method(void);
--const RSA_METHOD *RSA_get_method(const RSA *rsa);
--int RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
-+void __cdecl RSA_set_default_method(const RSA_METHOD *meth);
-+const RSA_METHOD * __cdecl RSA_get_default_method(void);
-+const RSA_METHOD * __cdecl RSA_null_method(void);
-+const RSA_METHOD * __cdecl RSA_get_method(const RSA *rsa);
-+int __cdecl RSA_set_method(RSA *rsa, const RSA_METHOD *meth);
+-int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
++int __cdecl SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
+ {
+     SHA_LONG64 l;
+     unsigned char *p = c->u.p;
+@@ -309,12 +309,12 @@ int SHA512_Update(SHA512_CTX *c, const void *_data, size_t len)
+     return 1;
+ }
  
- /* these are the actual RSA functions */
--const RSA_METHOD *RSA_PKCS1_OpenSSL(void);
-+const RSA_METHOD * __cdecl RSA_PKCS1_OpenSSL(void);
+-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
++int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len)
+ {
+     return SHA512_Update(c, data, len);
+ }
  
--int RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
-+int __cdecl RSA_pkey_ctx_ctrl(EVP_PKEY_CTX *ctx, int optype, int cmd, int p1, void *p2);
+-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
++void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
+ {
+ #ifndef SHA512_BLOCK_CAN_MANAGE_UNALIGNED_DATA
+     if ((size_t)data % sizeof(c->u.d[0]) != 0)
+@@ -323,7 +323,7 @@ void SHA512_Transform(SHA512_CTX *c, const unsigned char *data)
+     sha512_block_data_order(c, data, 1);
+ }
  
- DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPublicKey)
- DECLARE_ASN1_ENCODE_FUNCTIONS_const(RSA, RSAPrivateKey)
-@@ -301,100 +301,100 @@ typedef struct rsa_oaep_params_st {
- DECLARE_ASN1_FUNCTIONS(RSA_OAEP_PARAMS)
+-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA512_CTX c;
+     static unsigned char m[SHA384_DIGEST_LENGTH];
+@@ -337,7 +337,7 @@ unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md)
+     return md;
+ }
  
- # ifndef OPENSSL_NO_STDIO
--int RSA_print_fp(FILE *fp, const RSA *r, int offset);
-+int __cdecl RSA_print_fp(FILE *fp, const RSA *r, int offset);
+-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md)
++unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md)
+ {
+     SHA512_CTX c;
+     static unsigned char m[SHA512_DIGEST_LENGTH];
+diff --git a/include/openssl/seed.h b/include/openssl/seed.h
+index de10b08572..471f8f40ea 100644
+--- a/include/openssl/seed.h
++++ b/include/openssl/seed.h
+@@ -65,26 +65,26 @@ typedef struct seed_key_st {
  # endif
+ } SEED_KEY_SCHEDULE;
  
--int RSA_print(BIO *bp, const RSA *r, int offset);
-+int __cdecl RSA_print(BIO *bp, const RSA *r, int offset);
+-void SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
++void __cdecl SEED_set_key(const unsigned char rawkey[SEED_KEY_LENGTH],
+                   SEED_KEY_SCHEDULE *ks);
  
- /*
-  * The following 2 functions sign and verify a X509_SIG ASN1 object inside
-  * PKCS#1 padded RSA encryption
-  */
--int RSA_sign(int type, const unsigned char *m, unsigned int m_length,
-+int __cdecl RSA_sign(int type, const unsigned char *m, unsigned int m_length,
-              unsigned char *sigret, unsigned int *siglen, RSA *rsa);
--int RSA_verify(int type, const unsigned char *m, unsigned int m_length,
-+int __cdecl RSA_verify(int type, const unsigned char *m, unsigned int m_length,
-                const unsigned char *sigbuf, unsigned int siglen, RSA *rsa);
+-void SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_encrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks);
+-void SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
++void __cdecl SEED_decrypt(const unsigned char s[SEED_BLOCK_SIZE],
+                   unsigned char d[SEED_BLOCK_SIZE],
+                   const SEED_KEY_SCHEDULE *ks);
  
- /*
-  * The following 2 function sign and verify a ASN1_OCTET_STRING object inside
-  * PKCS#1 padded RSA encryption
-  */
--int RSA_sign_ASN1_OCTET_STRING(int type,
-+int __cdecl RSA_sign_ASN1_OCTET_STRING(int type,
-                                const unsigned char *m, unsigned int m_length,
-                                unsigned char *sigret, unsigned int *siglen,
-                                RSA *rsa);
--int RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
-+int __cdecl RSA_verify_ASN1_OCTET_STRING(int type, const unsigned char *m,
-                                  unsigned int m_length, unsigned char *sigbuf,
-                                  unsigned int siglen, RSA *rsa);
+-void SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ecb_encrypt(const unsigned char *in, unsigned char *out,
+                       const SEED_KEY_SCHEDULE *ks, int enc);
+-void SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
++void __cdecl SEED_cbc_encrypt(const unsigned char *in, unsigned char *out, size_t len,
+                       const SEED_KEY_SCHEDULE *ks,
+                       unsigned char ivec[SEED_BLOCK_SIZE], int enc);
+-void SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_cfb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num,
+                          int enc);
+-void SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
++void __cdecl SEED_ofb128_encrypt(const unsigned char *in, unsigned char *out,
+                          size_t len, const SEED_KEY_SCHEDULE *ks,
+                          unsigned char ivec[SEED_BLOCK_SIZE], int *num);
  
--int RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
--void RSA_blinding_off(RSA *rsa);
--BN_BLINDING *RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
-+int __cdecl RSA_blinding_on(RSA *rsa, BN_CTX *ctx);
-+void __cdecl RSA_blinding_off(RSA *rsa);
-+BN_BLINDING * __cdecl RSA_setup_blinding(RSA *rsa, BN_CTX *ctx);
+diff --git a/include/openssl/sha.h b/include/openssl/sha.h
+index e2ee74e392..0fc7a42b1e 100644
+--- a/include/openssl/sha.h
++++ b/include/openssl/sha.h
+@@ -55,10 +55,10 @@ typedef struct SHA256state_st {
+     unsigned int num, md_len;
+ } SHA256_CTX;
  
--int RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_type_1(unsigned char *to, int tlen,
-                                  const unsigned char *f, int fl);
--int RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_type_1(unsigned char *to, int tlen,
-                                    const unsigned char *f, int fl,
-                                    int rsa_len);
--int RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_type_2(unsigned char *to, int tlen,
-                                  const unsigned char *f, int fl);
--int RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_type_2(unsigned char *to, int tlen,
-                                    const unsigned char *f, int fl,
-                                    int rsa_len);
--int PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
-+int __cdecl PKCS1_MGF1(unsigned char *mask, long len, const unsigned char *seed,
-                long seedlen, const EVP_MD *dgst);
--int RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_OAEP(unsigned char *to, int tlen,
-                                const unsigned char *f, int fl,
-                                const unsigned char *p, int pl);
--int RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_OAEP(unsigned char *to, int tlen,
-                                  const unsigned char *f, int fl, int rsa_len,
-                                  const unsigned char *p, int pl);
--int RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                     const unsigned char *from, int flen,
-                                     const unsigned char *param, int plen,
-                                     const EVP_MD *md, const EVP_MD *mgf1md);
--int RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_PKCS1_OAEP_mgf1(unsigned char *to, int tlen,
-                                       const unsigned char *from, int flen,
-                                       int num, const unsigned char *param,
-                                       int plen, const EVP_MD *md,
-                                       const EVP_MD *mgf1md);
--int RSA_padding_add_SSLv23(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_add_SSLv23(unsigned char *to, int tlen,
-                            const unsigned char *f, int fl);
--int RSA_padding_check_SSLv23(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_SSLv23(unsigned char *to, int tlen,
-                              const unsigned char *f, int fl, int rsa_len);
--int RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
-+int __cdecl RSA_padding_add_none(unsigned char *to, int tlen, const unsigned char *f,
-                          int fl);
--int RSA_padding_check_none(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_none(unsigned char *to, int tlen,
-                            const unsigned char *f, int fl, int rsa_len);
--int RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
-+int __cdecl RSA_padding_add_X931(unsigned char *to, int tlen, const unsigned char *f,
-                          int fl);
--int RSA_padding_check_X931(unsigned char *to, int tlen,
-+int __cdecl RSA_padding_check_X931(unsigned char *to, int tlen,
-                            const unsigned char *f, int fl, int rsa_len);
--int RSA_X931_hash_id(int nid);
-+int __cdecl RSA_X931_hash_id(int nid);
+-int SHA224_Init(SHA256_CTX *c);
+-int SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
+-int SHA224_Final(unsigned char *md, SHA256_CTX *c);
+-unsigned char *SHA224(const unsigned char *d, size_t n, unsigned char *md);
++int __cdecl SHA224_Init(SHA256_CTX *c);
++int __cdecl SHA224_Update(SHA256_CTX *c, const void *data, size_t len);
++int __cdecl SHA224_Final(unsigned char *md, SHA256_CTX *c);
++unsigned char * __cdecl SHA224(const unsigned char *d, size_t n, unsigned char *md);
+ int __cdecl SHA256_Init(SHA256_CTX *c);
+ int __cdecl SHA256_Update(SHA256_CTX *c, const void *data, size_t len);
+ int __cdecl SHA256_Final(unsigned char *md, SHA256_CTX *c);
+@@ -102,15 +102,15 @@ typedef struct SHA512state_st {
+     unsigned int num, md_len;
+ } SHA512_CTX;
  
--int RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
-+int __cdecl RSA_verify_PKCS1_PSS(RSA *rsa, const unsigned char *mHash,
-                          const EVP_MD *Hash, const unsigned char *EM,
-                          int sLen);
--int RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
-+int __cdecl RSA_padding_add_PKCS1_PSS(RSA *rsa, unsigned char *EM,
-                               const unsigned char *mHash, const EVP_MD *Hash,
-                               int sLen);
+-int SHA384_Init(SHA512_CTX *c);
+-int SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
+-int SHA384_Final(unsigned char *md, SHA512_CTX *c);
+-unsigned char *SHA384(const unsigned char *d, size_t n, unsigned char *md);
+-int SHA512_Init(SHA512_CTX *c);
+-int SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
+-int SHA512_Final(unsigned char *md, SHA512_CTX *c);
+-unsigned char *SHA512(const unsigned char *d, size_t n, unsigned char *md);
+-void SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
++int __cdecl SHA384_Init(SHA512_CTX *c);
++int __cdecl SHA384_Update(SHA512_CTX *c, const void *data, size_t len);
++int __cdecl SHA384_Final(unsigned char *md, SHA512_CTX *c);
++unsigned char * __cdecl SHA384(const unsigned char *d, size_t n, unsigned char *md);
++int __cdecl SHA512_Init(SHA512_CTX *c);
++int __cdecl SHA512_Update(SHA512_CTX *c, const void *data, size_t len);
++int __cdecl SHA512_Final(unsigned char *md, SHA512_CTX *c);
++unsigned char * __cdecl SHA512(const unsigned char *d, size_t n, unsigned char *md);
++void __cdecl SHA512_Transform(SHA512_CTX *c, const unsigned char *data);
  
--int RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
-+int __cdecl RSA_verify_PKCS1_PSS_mgf1(RSA *rsa, const unsigned char *mHash,
-                               const EVP_MD *Hash, const EVP_MD *mgf1Hash,
-                               const unsigned char *EM, int sLen);
- 
--int RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
-+int __cdecl RSA_padding_add_PKCS1_PSS_mgf1(RSA *rsa, unsigned char *EM,
-                                    const unsigned char *mHash,
-                                    const EVP_MD *Hash, const EVP_MD *mgf1Hash,
-                                    int sLen);
- 
- #define RSA_get_ex_new_index(l, p, newf, dupf, freef) \
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_RSA, l, p, newf, dupf, freef)
--int RSA_set_ex_data(RSA *r, int idx, void *arg);
--void *RSA_get_ex_data(const RSA *r, int idx);
-+int __cdecl RSA_set_ex_data(RSA *r, int idx, void *arg);
-+void * __cdecl RSA_get_ex_data(const RSA *r, int idx);
- 
--RSA *RSAPublicKey_dup(RSA *rsa);
--RSA *RSAPrivateKey_dup(RSA *rsa);
-+RSA * __cdecl RSAPublicKey_dup(RSA *rsa);
-+RSA * __cdecl RSAPrivateKey_dup(RSA *rsa);
- 
- /*
-  * If this flag is set the RSA method is FIPS compliant and can be used in
-@@ -418,15 +418,15 @@ RSA *RSAPrivateKey_dup(RSA *rsa);
-  */
- # define RSA_FLAG_CHECKED                        0x0800
- 
--RSA_METHOD *RSA_meth_new(const char *name, int flags);
--void RSA_meth_free(RSA_METHOD *meth);
--RSA_METHOD *RSA_meth_dup(const RSA_METHOD *meth);
--const char *RSA_meth_get0_name(const RSA_METHOD *meth);
--int RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
--int RSA_meth_get_flags(const RSA_METHOD *meth);
--int RSA_meth_set_flags(RSA_METHOD *meth, int flags);
--void *RSA_meth_get0_app_data(const RSA_METHOD *meth);
--int RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
-+RSA_METHOD * __cdecl RSA_meth_new(const char *name, int flags);
-+void  __cdecl RSA_meth_free(RSA_METHOD *meth);
-+RSA_METHOD * __cdecl RSA_meth_dup(const RSA_METHOD *meth);
-+const char * __cdecl RSA_meth_get0_name(const RSA_METHOD *meth);
-+int __cdecl RSA_meth_set1_name(RSA_METHOD *meth, const char *name);
-+int __cdecl RSA_meth_get_flags(const RSA_METHOD *meth);
-+int __cdecl RSA_meth_set_flags(RSA_METHOD *meth, int flags);
-+void * __cdecl RSA_meth_get0_app_data(const RSA_METHOD *meth);
-+int __cdecl RSA_meth_set0_app_data(RSA_METHOD *meth, void *app_data);
- int (__cdecl *RSA_meth_get_pub_enc(const RSA_METHOD *meth))
-     (int flen, const unsigned char *from,
-      unsigned char *to, RSA *rsa, int padding);
-diff --git a/include/openssl/rsaerr.h b/include/openssl/rsaerr.h
-index 59b15e13e9..8ada94637e 100644
---- a/include/openssl/rsaerr.h
-+++ b/include/openssl/rsaerr.h
-@@ -18,7 +18,7 @@
- # ifdef  __cplusplus
- extern "C"
- # endif
--int ERR_load_RSA_strings(void);
-+int __cdecl ERR_load_RSA_strings(void);
- 
- /*
-  * RSA function codes.
+ #ifdef  __cplusplus
+ }
