@@ -12,6 +12,57 @@ index 8ef70b8699..ad33ae3021 100644
  
  uninstall: uninstall_docs uninstall_sw
  
+diff --git a/apps/apps.c b/apps/apps.c
+index 7177c5d982..b2affb8753 100644
+--- a/apps/apps.c
++++ b/apps/apps.c
+@@ -180,18 +180,18 @@ int dump_cert_text(BIO *out, X509 *x)
+     return 0;
+ }
+ 
+-static int ui_open(UI *ui)
++static int __cdecl ui_open(UI *ui)
+ {
+-    int (*opener)(UI *ui) = UI_method_get_opener(ui_fallback_method);
++    int (__cdecl *opener)(UI *ui) = UI_method_get_opener(ui_fallback_method);
+ 
+     if (opener)
+         return opener(ui);
+     return 1;
+ }
+ 
+-static int ui_read(UI *ui, UI_STRING *uis)
++static int __cdecl ui_read(UI *ui, UI_STRING *uis)
+ {
+-    int (*reader)(UI *ui, UI_STRING *uis) = NULL;
++    int (__cdecl *reader)(UI *ui, UI_STRING *uis) = NULL;
+ 
+     if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
+         && UI_get0_user_data(ui)) {
+@@ -221,9 +221,9 @@ static int ui_read(UI *ui, UI_STRING *uis)
+     return 1;
+ }
+ 
+-static int ui_write(UI *ui, UI_STRING *uis)
++static int __cdecl ui_write(UI *ui, UI_STRING *uis)
+ {
+-    int (*writer)(UI *ui, UI_STRING *uis) = NULL;
++    int (__cdecl *writer)(UI *ui, UI_STRING *uis) = NULL;
+ 
+     if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
+         && UI_get0_user_data(ui)) {
+@@ -251,9 +251,9 @@ static int ui_write(UI *ui, UI_STRING *uis)
+     return 1;
+ }
+ 
+-static int ui_close(UI *ui)
++static int __cdecl ui_close(UI *ui)
+ {
+-    int (*closer)(UI *ui) = UI_method_get_closer(ui_fallback_method);
++    int (__cdecl *closer)(UI *ui) = UI_method_get_closer(ui_fallback_method);
+ 
+     if (closer)
+         return closer(ui);
 diff --git a/apps/cms.c b/apps/cms.c
 index 15edd67dbe..fc22cedc30 100644
 --- a/apps/cms.c
@@ -25427,10 +25478,38 @@ index c4e1782514..a3e49aa60d 100644
  {
      int i, n;
      char **p, *max;
+diff --git a/crypto/ui/ui_err.c b/crypto/ui/ui_err.c
+index b806872c30..de4f1ca659 100644
+--- a/crypto/ui/ui_err.c
++++ b/crypto/ui/ui_err.c
+@@ -66,7 +66,7 @@ static const ERR_STRING_DATA UI_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_UI_strings(void)
++int __cdecl ERR_load_UI_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(UI_str_functs[0].error) == NULL) {
 diff --git a/crypto/ui/ui_lib.c b/crypto/ui/ui_lib.c
-index f550972d3e..a30b5d2ebe 100644
+index f550972d3e..df3ab8a04b 100644
 --- a/crypto/ui/ui_lib.c
 +++ b/crypto/ui/ui_lib.c
+@@ -15,12 +15,12 @@
+ #include <openssl/err.h>
+ #include "ui_locl.h"
+ 
+-UI *UI_new(void)
++UI * __cdecl UI_new(void)
+ {
+     return UI_new_method(NULL);
+ }
+ 
+-UI *UI_new_method(const UI_METHOD *method)
++UI * __cdecl UI_new_method(const UI_METHOD *method)
+ {
+     UI *ret = OPENSSL_zalloc(sizeof(*ret));
+ 
 @@ -49,7 +49,7 @@ UI *UI_new_method(const UI_METHOD *method)
      return ret;
  }
@@ -25440,8 +25519,510 @@ index f550972d3e..a30b5d2ebe 100644
  {
      if (uis->flags & OUT_STRING_FREEABLE) {
          OPENSSL_free((char *)uis->out_string);
+@@ -70,7 +70,7 @@ static void free_string(UI_STRING *uis)
+     OPENSSL_free(uis);
+ }
+ 
+-void UI_free(UI *ui)
++void __cdecl UI_free(UI *ui)
+ {
+     if (ui == NULL)
+         return;
+@@ -195,7 +195,7 @@ static int general_allocate_boolean(UI *ui,
+  * Returns the index to the place in the stack or -1 for error.  Uses a
+  * direct reference to the prompt.
+  */
+-int UI_add_input_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_add_input_string(UI *ui, const char *prompt, int flags,
+                         char *result_buf, int minsize, int maxsize)
+ {
+     return general_allocate_string(ui, prompt, 0,
+@@ -204,7 +204,7 @@ int UI_add_input_string(UI *ui, const char *prompt, int flags,
+ }
+ 
+ /* Same as UI_add_input_string(), excepts it takes a copy of the prompt */
+-int UI_dup_input_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_dup_input_string(UI *ui, const char *prompt, int flags,
+                         char *result_buf, int minsize, int maxsize)
+ {
+     char *prompt_copy = NULL;
+@@ -222,7 +222,7 @@ int UI_dup_input_string(UI *ui, const char *prompt, int flags,
+                                    maxsize, NULL);
+ }
+ 
+-int UI_add_verify_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_add_verify_string(UI *ui, const char *prompt, int flags,
+                          char *result_buf, int minsize, int maxsize,
+                          const char *test_buf)
+ {
+@@ -231,7 +231,7 @@ int UI_add_verify_string(UI *ui, const char *prompt, int flags,
+                                    maxsize, test_buf);
+ }
+ 
+-int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_dup_verify_string(UI *ui, const char *prompt, int flags,
+                          char *result_buf, int minsize, int maxsize,
+                          const char *test_buf)
+ {
+@@ -250,7 +250,7 @@ int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
+                                    maxsize, test_buf);
+ }
+ 
+-int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
++int __cdecl UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+                          const char *ok_chars, const char *cancel_chars,
+                          int flags, char *result_buf)
+ {
+@@ -259,7 +259,7 @@ int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+                                     flags, result_buf);
+ }
+ 
+-int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
++int __cdecl UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+                          const char *ok_chars, const char *cancel_chars,
+                          int flags, char *result_buf)
+ {
+@@ -311,13 +311,13 @@ int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+     return -1;
+ }
+ 
+-int UI_add_info_string(UI *ui, const char *text)
++int __cdecl UI_add_info_string(UI *ui, const char *text)
+ {
+     return general_allocate_string(ui, text, 0, UIT_INFO, 0, NULL, 0, 0,
+                                    NULL);
+ }
+ 
+-int UI_dup_info_string(UI *ui, const char *text)
++int __cdecl UI_dup_info_string(UI *ui, const char *text)
+ {
+     char *text_copy = NULL;
+ 
+@@ -333,13 +333,13 @@ int UI_dup_info_string(UI *ui, const char *text)
+                                    0, 0, NULL);
+ }
+ 
+-int UI_add_error_string(UI *ui, const char *text)
++int __cdecl UI_add_error_string(UI *ui, const char *text)
+ {
+     return general_allocate_string(ui, text, 0, UIT_ERROR, 0, NULL, 0, 0,
+                                    NULL);
+ }
+ 
+-int UI_dup_error_string(UI *ui, const char *text)
++int __cdecl UI_dup_error_string(UI *ui, const char *text)
+ {
+     char *text_copy = NULL;
+ 
+@@ -354,7 +354,7 @@ int UI_dup_error_string(UI *ui, const char *text)
+                                    0, 0, NULL);
+ }
+ 
+-char *UI_construct_prompt(UI *ui, const char *object_desc,
++char * __cdecl UI_construct_prompt(UI *ui, const char *object_desc,
+                           const char *object_name)
+ {
+     char *prompt = NULL;
+@@ -389,7 +389,7 @@ char *UI_construct_prompt(UI *ui, const char *object_desc,
+     return prompt;
+ }
+ 
+-void *UI_add_user_data(UI *ui, void *user_data)
++void * __cdecl UI_add_user_data(UI *ui, void *user_data)
+ {
+     void *old_data = ui->user_data;
+ 
+@@ -402,7 +402,7 @@ void *UI_add_user_data(UI *ui, void *user_data)
+     return old_data;
+ }
+ 
+-int UI_dup_user_data(UI *ui, void *user_data)
++int __cdecl UI_dup_user_data(UI *ui, void *user_data)
+ {
+     void *duplicate = NULL;
+ 
+@@ -424,12 +424,12 @@ int UI_dup_user_data(UI *ui, void *user_data)
+     return 0;
+ }
+ 
+-void *UI_get0_user_data(UI *ui)
++void * __cdecl UI_get0_user_data(UI *ui)
+ {
+     return ui->user_data;
+ }
+ 
+-const char *UI_get0_result(UI *ui, int i)
++const char * __cdecl UI_get0_result(UI *ui, int i)
+ {
+     if (i < 0) {
+         UIerr(UI_F_UI_GET0_RESULT, UI_R_INDEX_TOO_SMALL);
+@@ -442,7 +442,7 @@ const char *UI_get0_result(UI *ui, int i)
+     return UI_get0_result_string(sk_UI_STRING_value(ui->strings, i));
+ }
+ 
+-int UI_get_result_length(UI *ui, int i)
++int __cdecl UI_get_result_length(UI *ui, int i)
+ {
+     if (i < 0) {
+         UIerr(UI_F_UI_GET_RESULT_LENGTH, UI_R_INDEX_TOO_SMALL);
+@@ -469,7 +469,7 @@ static int print_error(const char *str, size_t len, UI *ui)
+     return 0;
+ }
+ 
+-int UI_process(UI *ui)
++int __cdecl UI_process(UI *ui)
+ {
+     int i, ok = 0;
+     const char *state = "processing";
+@@ -548,7 +548,7 @@ int UI_process(UI *ui)
+     return ok;
+ }
+ 
+-int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
++int __cdecl UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
+ {
+     if (ui == NULL) {
+         UIerr(UI_F_UI_CTRL, ERR_R_PASSED_NULL_PARAMETER);
+@@ -573,28 +573,28 @@ int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
+     return -1;
+ }
+ 
+-int UI_set_ex_data(UI *r, int idx, void *arg)
++int __cdecl UI_set_ex_data(UI *r, int idx, void *arg)
+ {
+     return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
+ }
+ 
+-void *UI_get_ex_data(UI *r, int idx)
++void * __cdecl UI_get_ex_data(UI *r, int idx)
+ {
+     return CRYPTO_get_ex_data(&r->ex_data, idx);
+ }
+ 
+-const UI_METHOD *UI_get_method(UI *ui)
++const UI_METHOD * __cdecl UI_get_method(UI *ui)
+ {
+     return ui->meth;
+ }
+ 
+-const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth)
++const UI_METHOD * __cdecl UI_set_method(UI *ui, const UI_METHOD *meth)
+ {
+     ui->meth = meth;
+     return ui->meth;
+ }
+ 
+-UI_METHOD *UI_create_method(const char *name)
++UI_METHOD * __cdecl UI_create_method(const char *name)
+ {
+     UI_METHOD *ui_method = NULL;
+ 
+@@ -616,7 +616,7 @@ UI_METHOD *UI_create_method(const char *name)
+  * (that is, it hasn't been allocated using UI_create_method(), you deserve
+  * anything Murphy can throw at you and more! You have been warned.
+  */
+-void UI_destroy_method(UI_METHOD *ui_method)
++void __cdecl UI_destroy_method(UI_METHOD *ui_method)
+ {
+     if (ui_method == NULL)
+         return;
+@@ -627,7 +627,7 @@ void UI_destroy_method(UI_METHOD *ui_method)
+     OPENSSL_free(ui_method);
+ }
+ 
+-int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
++int __cdecl UI_method_set_opener(UI_METHOD *method, int (__cdecl *opener) (UI *ui))
+ {
+     if (method != NULL) {
+         method->ui_open_session = opener;
+@@ -636,8 +636,8 @@ int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
+     return -1;
+ }
+ 
+-int UI_method_set_writer(UI_METHOD *method,
+-                         int (*writer) (UI *ui, UI_STRING *uis))
++int __cdecl UI_method_set_writer(UI_METHOD *method,
++                         int (__cdecl *writer) (UI *ui, UI_STRING *uis))
+ {
+     if (method != NULL) {
+         method->ui_write_string = writer;
+@@ -646,7 +646,7 @@ int UI_method_set_writer(UI_METHOD *method,
+     return -1;
+ }
+ 
+-int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
++int __cdecl UI_method_set_flusher(UI_METHOD *method, int (__cdecl *flusher) (UI *ui))
+ {
+     if (method != NULL) {
+         method->ui_flush = flusher;
+@@ -655,8 +655,8 @@ int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
+     return -1;
+ }
+ 
+-int UI_method_set_reader(UI_METHOD *method,
+-                         int (*reader) (UI *ui, UI_STRING *uis))
++int __cdecl UI_method_set_reader(UI_METHOD *method,
++                         int (__cdecl *reader) (UI *ui, UI_STRING *uis))
+ {
+     if (method != NULL) {
+         method->ui_read_string = reader;
+@@ -665,7 +665,7 @@ int UI_method_set_reader(UI_METHOD *method,
+     return -1;
+ }
+ 
+-int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
++int __cdecl UI_method_set_closer(UI_METHOD *method, int (__cdecl *closer) (UI *ui))
+ {
+     if (method != NULL) {
+         method->ui_close_session = closer;
+@@ -674,9 +674,9 @@ int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
+     return -1;
+ }
+ 
+-int UI_method_set_data_duplicator(UI_METHOD *method,
+-                                  void *(*duplicator) (UI *ui, void *ui_data),
+-                                  void (*destructor)(UI *ui, void *ui_data))
++int __cdecl UI_method_set_data_duplicator(UI_METHOD *method,
++                                  void *(__cdecl *duplicator) (UI *ui, void *ui_data),
++                                  void (__cdecl *destructor)(UI *ui, void *ui_data))
+ {
+     if (method != NULL) {
+         method->ui_duplicate_data = duplicator;
+@@ -686,8 +686,8 @@ int UI_method_set_data_duplicator(UI_METHOD *method,
+     return -1;
+ }
+ 
+-int UI_method_set_prompt_constructor(UI_METHOD *method,
+-                                     char *(*prompt_constructor) (UI *ui,
++int __cdecl UI_method_set_prompt_constructor(UI_METHOD *method,
++                                     char *(__cdecl *prompt_constructor) (UI *ui,
+                                                                   const char
+                                                                   *object_desc,
+                                                                   const char
+@@ -700,47 +700,47 @@ int UI_method_set_prompt_constructor(UI_METHOD *method,
+     return -1;
+ }
+ 
+-int UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
++int __cdecl UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
+ {
+     return CRYPTO_set_ex_data(&method->ex_data, idx, data);
+ }
+ 
+-int (*UI_method_get_opener(const UI_METHOD *method)) (UI *)
++int (__cdecl *UI_method_get_opener(const UI_METHOD *method)) (UI *)
+ {
+     if (method != NULL)
+         return method->ui_open_session;
+     return NULL;
+ }
+ 
+-int (*UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
++int (__cdecl *UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
+ {
+     if (method != NULL)
+         return method->ui_write_string;
+     return NULL;
+ }
+ 
+-int (*UI_method_get_flusher(const UI_METHOD *method)) (UI *)
++int (__cdecl *UI_method_get_flusher(const UI_METHOD *method)) (UI *)
+ {
+     if (method != NULL)
+         return method->ui_flush;
+     return NULL;
+ }
+ 
+-int (*UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
++int (__cdecl *UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
+ {
+     if (method != NULL)
+         return method->ui_read_string;
+     return NULL;
+ }
+ 
+-int (*UI_method_get_closer(const UI_METHOD *method)) (UI *)
++int (__cdecl *UI_method_get_closer(const UI_METHOD *method)) (UI *)
+ {
+     if (method != NULL)
+         return method->ui_close_session;
+     return NULL;
+ }
+ 
+-char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
++char *(__cdecl *UI_method_get_prompt_constructor(const UI_METHOD *method))
+     (UI *, const char *, const char *)
+ {
+     if (method != NULL)
+@@ -748,41 +748,41 @@ char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
+     return NULL;
+ }
+ 
+-void *(*UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
++void *(__cdecl *UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
+ {
+     if (method != NULL)
+         return method->ui_duplicate_data;
+     return NULL;
+ }
+ 
+-void (*UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
++void (__cdecl *UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
+ {
+     if (method != NULL)
+         return method->ui_destroy_data;
+     return NULL;
+ }
+ 
+-const void *UI_method_get_ex_data(const UI_METHOD *method, int idx)
++const void * __cdecl UI_method_get_ex_data(const UI_METHOD *method, int idx)
+ {
+     return CRYPTO_get_ex_data(&method->ex_data, idx);
+ }
+ 
+-enum UI_string_types UI_get_string_type(UI_STRING *uis)
++enum UI_string_types __cdecl UI_get_string_type(UI_STRING *uis)
+ {
+     return uis->type;
+ }
+ 
+-int UI_get_input_flags(UI_STRING *uis)
++int __cdecl UI_get_input_flags(UI_STRING *uis)
+ {
+     return uis->input_flags;
+ }
+ 
+-const char *UI_get0_output_string(UI_STRING *uis)
++const char * __cdecl UI_get0_output_string(UI_STRING *uis)
+ {
+     return uis->out_string;
+ }
+ 
+-const char *UI_get0_action_string(UI_STRING *uis)
++const char * __cdecl UI_get0_action_string(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_BOOLEAN:
+@@ -797,7 +797,7 @@ const char *UI_get0_action_string(UI_STRING *uis)
+     return NULL;
+ }
+ 
+-const char *UI_get0_result_string(UI_STRING *uis)
++const char * __cdecl UI_get0_result_string(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_PROMPT:
+@@ -812,7 +812,7 @@ const char *UI_get0_result_string(UI_STRING *uis)
+     return NULL;
+ }
+ 
+-int UI_get_result_string_length(UI_STRING *uis)
++int __cdecl UI_get_result_string_length(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_PROMPT:
+@@ -827,7 +827,7 @@ int UI_get_result_string_length(UI_STRING *uis)
+     return -1;
+ }
+ 
+-const char *UI_get0_test_string(UI_STRING *uis)
++const char * __cdecl UI_get0_test_string(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_VERIFY:
+@@ -842,7 +842,7 @@ const char *UI_get0_test_string(UI_STRING *uis)
+     return NULL;
+ }
+ 
+-int UI_get_result_minsize(UI_STRING *uis)
++int __cdecl UI_get_result_minsize(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_PROMPT:
+@@ -857,7 +857,7 @@ int UI_get_result_minsize(UI_STRING *uis)
+     return -1;
+ }
+ 
+-int UI_get_result_maxsize(UI_STRING *uis)
++int __cdecl UI_get_result_maxsize(UI_STRING *uis)
+ {
+     switch (uis->type) {
+     case UIT_PROMPT:
+@@ -872,7 +872,7 @@ int UI_get_result_maxsize(UI_STRING *uis)
+     return -1;
+ }
+ 
+-int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
++int __cdecl UI_set_result(UI *ui, UI_STRING *uis, const char *result)
+ {
+ #if 0
+     /*
+@@ -884,7 +884,7 @@ int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
+     return UI_set_result_ex(ui, uis, result, strlen(result));
+ }
+ 
+-int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
++int __cdecl UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
+ {
+     ui->flags &= ~UI_FLAG_REDOABLE;
+ 
+diff --git a/crypto/ui/ui_locl.h b/crypto/ui/ui_locl.h
+index 19b33b8fc6..c128fc3515 100644
+--- a/crypto/ui/ui_locl.h
++++ b/crypto/ui/ui_locl.h
+@@ -28,21 +28,21 @@ struct ui_method_st {
+      * whatever. This function should use the ex_data structure to save
+      * intermediate data.
+      */
+-    int (*ui_open_session) (UI *ui);
+-    int (*ui_write_string) (UI *ui, UI_STRING *uis);
++    int (__cdecl *ui_open_session) (UI *ui);
++    int (__cdecl *ui_write_string) (UI *ui, UI_STRING *uis);
+     /*
+      * Flush the output.  If a GUI dialog box is used, this function can be
+      * used to actually display it.
+      */
+-    int (*ui_flush) (UI *ui);
+-    int (*ui_read_string) (UI *ui, UI_STRING *uis);
+-    int (*ui_close_session) (UI *ui);
++    int (__cdecl *ui_flush) (UI *ui);
++    int (__cdecl *ui_read_string) (UI *ui, UI_STRING *uis);
++    int (__cdecl *ui_close_session) (UI *ui);
+     /*
+      * Duplicate the ui_data that often comes alongside a ui_method.  This
+      * allows some backends to save away UI information for later use.
+      */
+-    void *(*ui_duplicate_data) (UI *ui, void *ui_data);
+-    void (*ui_destroy_data) (UI *ui, void *ui_data);
++    void *(__cdecl *ui_duplicate_data) (UI *ui, void *ui_data);
++    void (__cdecl *ui_destroy_data) (UI *ui, void *ui_data);
+     /*
+      * Construct a prompt in a user-defined manner.  object_desc is a textual
+      * short description of the object, for example "pass phrase", and
+@@ -50,7 +50,7 @@ struct ui_method_st {
+      * name. The returned string shall always be allocated on the heap with
+      * OPENSSL_malloc(), and need to be free'd with OPENSSL_free().
+      */
+-    char *(*ui_construct_prompt) (UI *ui, const char *object_desc,
++    char *(__cdecl *ui_construct_prompt) (UI *ui, const char *object_desc,
+                                   const char *object_name);
+     /*
+      * UI_METHOD specific application data.
+diff --git a/crypto/ui/ui_null.c b/crypto/ui/ui_null.c
+index 9e5f6fca59..de87d40272 100644
+--- a/crypto/ui/ui_null.c
++++ b/crypto/ui/ui_null.c
+@@ -20,7 +20,7 @@ static const UI_METHOD ui_null = {
+ };
+ 
+ /* The method with all the built-in thingies */
+-const UI_METHOD *UI_null(void)
++const UI_METHOD * __cdecl UI_null(void)
+ {
+     return &ui_null;
+ }
 diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
-index 0ec9f0daf3..467e6a640f 100644
+index 0ec9f0daf3..7fe4e634a5 100644
 --- a/crypto/ui/ui_openssl.c
 +++ b/crypto/ui/ui_openssl.c
 @@ -159,7 +159,7 @@ struct IOSB {
@@ -25453,7 +26034,7 @@ index 0ec9f0daf3..467e6a640f 100644
  # endif
  
  # ifdef OPENSSL_SYS_VMS
-@@ -183,9 +183,9 @@ static int is_a_tty;
+@@ -183,28 +183,28 @@ static int is_a_tty;
  /* Declare static functions */
  # if !defined(OPENSSL_SYS_WINCE)
  static int read_till_nl(FILE *);
@@ -25466,6 +26047,77 @@ index 0ec9f0daf3..467e6a640f 100644
  # endif
  # if defined(OPENSSL_SYS_MSDOS) && !defined(_WIN32)
  static int noecho_fgets(char *buf, int size, FILE *tty);
+ # endif
+ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl);
+ 
+-static int read_string(UI *ui, UI_STRING *uis);
+-static int write_string(UI *ui, UI_STRING *uis);
++static int __cdecl read_string(UI *ui, UI_STRING *uis);
++static int __cdecl write_string(UI *ui, UI_STRING *uis);
+ 
+-static int open_console(UI *ui);
+-static int echo_console(UI *ui);
+-static int noecho_console(UI *ui);
+-static int close_console(UI *ui);
++static int __cdecl open_console(UI *ui);
++static int __cdecl echo_console(UI *ui);
++static int __cdecl noecho_console(UI *ui);
++static int __cdecl close_console(UI *ui);
+ 
+ /*
+  * The following function makes sure that info and error strings are printed
+  * before any prompt.
+  */
+-static int write_string(UI *ui, UI_STRING *uis)
++static int __cdecl write_string(UI *ui, UI_STRING *uis)
+ {
+     switch (UI_get_string_type(uis)) {
+     case UIT_ERROR:
+@@ -221,7 +221,7 @@ static int write_string(UI *ui, UI_STRING *uis)
+     return 1;
+ }
+ 
+-static int read_string(UI *ui, UI_STRING *uis)
++static int __cdecl read_string(UI *ui, UI_STRING *uis)
+ {
+     int ok = 0;
+ 
+@@ -374,7 +374,7 @@ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl)
+ }
+ 
+ /* Internal functions to open, handle and close a channel to the console.  */
+-static int open_console(UI *ui)
++static int __cdecl open_console(UI *ui)
+ {
+     CRYPTO_THREAD_write_lock(ui->lock);
+     is_a_tty = 1;
+@@ -481,7 +481,7 @@ static int open_console(UI *ui)
+     return 1;
+ }
+ 
+-static int noecho_console(UI *ui)
++static int __cdecl noecho_console(UI *ui)
+ {
+ # ifdef TTY_FLAGS
+     memcpy(&(tty_new), &(tty_orig), sizeof(tty_orig));
+@@ -523,7 +523,7 @@ static int noecho_console(UI *ui)
+     return 1;
+ }
+ 
+-static int echo_console(UI *ui)
++static int __cdecl echo_console(UI *ui)
+ {
+ # if defined(TTY_set) && !defined(OPENSSL_SYS_VMS)
+     memcpy(&(tty_new), &(tty_orig), sizeof(tty_orig));
+@@ -560,7 +560,7 @@ static int echo_console(UI *ui)
+     return 1;
+ }
+ 
+-static int close_console(UI *ui)
++static int __cdecl close_console(UI *ui)
+ {
+     if (tty_in != stdin)
+         fclose(tty_in);
 @@ -584,7 +584,7 @@ static int close_console(UI *ui)
  
  # if !defined(OPENSSL_SYS_WINCE)
@@ -25493,6 +26145,86 @@ index 0ec9f0daf3..467e6a640f 100644
  {
      intr_signal = i;
  }
+@@ -720,7 +720,7 @@ static UI_METHOD ui_openssl = {
+ };
+ 
+ /* The method with all the built-in console thingies */
+-UI_METHOD *UI_OpenSSL(void)
++UI_METHOD * __cdecl UI_OpenSSL(void)
+ {
+     return &ui_openssl;
+ }
+@@ -733,12 +733,12 @@ static const UI_METHOD *default_UI_meth = NULL;
+ 
+ #endif
+ 
+-void UI_set_default_method(const UI_METHOD *meth)
++void __cdecl UI_set_default_method(const UI_METHOD *meth)
+ {
+     default_UI_meth = meth;
+ }
+ 
+-const UI_METHOD *UI_get_default_method(void)
++const UI_METHOD * __cdecl UI_get_default_method(void)
+ {
+     return default_UI_meth;
+ }
+diff --git a/crypto/ui/ui_util.c b/crypto/ui/ui_util.c
+index b379324f9b..1cf462cc12 100644
+--- a/crypto/ui/ui_util.c
++++ b/crypto/ui/ui_util.c
+@@ -15,7 +15,7 @@
+ #define BUFSIZ 256
+ #endif
+ 
+-int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
++int __cdecl UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
+                            int verify)
+ {
+     char buff[BUFSIZ];
+@@ -28,7 +28,7 @@ int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
+     return ret;
+ }
+ 
+-int UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
++int __cdecl UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
+                     int verify)
+ {
+     int ok = 0;
+@@ -95,11 +95,11 @@ DEFINE_RUN_ONCE_STATIC(ui_method_data_index_init)
+     return 1;
+ }
+ 
+-static int ui_open(UI *ui)
++static int __cdecl ui_open(UI *ui)
+ {
+     return 1;
+ }
+-static int ui_read(UI *ui, UI_STRING *uis)
++static int __cdecl ui_read(UI *ui, UI_STRING *uis)
+ {
+     switch (UI_get_string_type(uis)) {
+     case UIT_PROMPT:
+@@ -129,16 +129,16 @@ static int ui_read(UI *ui, UI_STRING *uis)
+     }
+     return 1;
+ }
+-static int ui_write(UI *ui, UI_STRING *uis)
++static int __cdecl ui_write(UI *ui, UI_STRING *uis)
+ {
+     return 1;
+ }
+-static int ui_close(UI *ui)
++static int __cdecl ui_close(UI *ui)
+ {
+     return 1;
+ }
+ 
+-UI_METHOD *UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag)
++UI_METHOD * __cdecl UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag)
+ {
+     struct pem_password_cb_data *data = NULL;
+     UI_METHOD *ui_method = NULL;
 diff --git a/crypto/uid.c b/crypto/uid.c
 index 65b1171039..0bc9bc0d8c 100644
 --- a/crypto/uid.c
@@ -39104,6 +39836,267 @@ index ec981a439f..81f1ded6ad 100644
  
  #ifdef  __cplusplus
  }
+diff --git a/include/openssl/ui.h b/include/openssl/ui.h
+index 7c721ec818..7c50e5e8fb 100644
+--- a/include/openssl/ui.h
++++ b/include/openssl/ui.h
+@@ -39,9 +39,9 @@ extern "C" {
+  */
+ 
+ /* Creators and destructor.   */
+-UI *UI_new(void);
+-UI *UI_new_method(const UI_METHOD *method);
+-void UI_free(UI *ui);
++UI * __cdecl UI_new(void);
++UI * __cdecl UI_new_method(const UI_METHOD *method);
++void __cdecl UI_free(UI *ui);
+ 
+ /*-
+    The following functions are used to add strings to be printed and prompt
+@@ -86,26 +86,26 @@ void UI_free(UI *ui);
+ 
+    On success, the all return an index of the added information.  That index
+    is useful when retrieving results with UI_get0_result(). */
+-int UI_add_input_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_add_input_string(UI *ui, const char *prompt, int flags,
+                         char *result_buf, int minsize, int maxsize);
+-int UI_dup_input_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_dup_input_string(UI *ui, const char *prompt, int flags,
+                         char *result_buf, int minsize, int maxsize);
+-int UI_add_verify_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_add_verify_string(UI *ui, const char *prompt, int flags,
+                          char *result_buf, int minsize, int maxsize,
+                          const char *test_buf);
+-int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
++int __cdecl UI_dup_verify_string(UI *ui, const char *prompt, int flags,
+                          char *result_buf, int minsize, int maxsize,
+                          const char *test_buf);
+-int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
++int __cdecl UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+                          const char *ok_chars, const char *cancel_chars,
+                          int flags, char *result_buf);
+-int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
++int __cdecl UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
+                          const char *ok_chars, const char *cancel_chars,
+                          int flags, char *result_buf);
+-int UI_add_info_string(UI *ui, const char *text);
+-int UI_dup_info_string(UI *ui, const char *text);
+-int UI_add_error_string(UI *ui, const char *text);
+-int UI_dup_error_string(UI *ui, const char *text);
++int __cdecl UI_add_info_string(UI *ui, const char *text);
++int __cdecl UI_dup_info_string(UI *ui, const char *text);
++int __cdecl UI_add_error_string(UI *ui, const char *text);
++int __cdecl UI_dup_error_string(UI *ui, const char *text);
+ 
+ /* These are the possible flags.  They can be or'ed together. */
+ /* Use to have echoing of input */
+@@ -149,7 +149,7 @@ int UI_dup_error_string(UI *ui, const char *text);
+  *
+  *       "Enter pass phrase for foo.key:"
+ */
+-char *UI_construct_prompt(UI *ui_method,
++char * __cdecl UI_construct_prompt(UI *ui_method,
+                           const char *object_desc, const char *object_name);
+ 
+ /*
+@@ -163,29 +163,29 @@ char *UI_construct_prompt(UI *ui_method,
+  * Note that the UI_OpenSSL() method completely ignores the user data. Other
+  * methods may not, however.
+  */
+-void *UI_add_user_data(UI *ui, void *user_data);
++void * __cdecl UI_add_user_data(UI *ui, void *user_data);
+ /*
+  * Alternatively, this function is used to duplicate the user data.
+  * This uses the duplicator method function.  The destroy function will
+  * be used to free the user data in this case.
+  */
+-int UI_dup_user_data(UI *ui, void *user_data);
++int __cdecl UI_dup_user_data(UI *ui, void *user_data);
+ /* We need a user data retrieving function as well.  */
+-void *UI_get0_user_data(UI *ui);
++void * __cdecl UI_get0_user_data(UI *ui);
+ 
+ /* Return the result associated with a prompt given with the index i. */
+-const char *UI_get0_result(UI *ui, int i);
+-int UI_get_result_length(UI *ui, int i);
++const char * __cdecl UI_get0_result(UI *ui, int i);
++int __cdecl UI_get_result_length(UI *ui, int i);
+ 
+ /* When all strings have been added, process the whole thing. */
+-int UI_process(UI *ui);
++int __cdecl UI_process(UI *ui);
+ 
+ /*
+  * Give a user interface parameterised control commands.  This can be used to
+  * send down an integer, a data pointer or a function pointer, as well as be
+  * used to get information from a UI.
+  */
+-int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
++int __cdecl UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
+ 
+ /* The commands */
+ /*
+@@ -207,19 +207,19 @@ int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
+ 
+ # define UI_get_ex_new_index(l, p, newf, dupf, freef) \
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_UI, l, p, newf, dupf, freef)
+-int UI_set_ex_data(UI *r, int idx, void *arg);
+-void *UI_get_ex_data(UI *r, int idx);
++int __cdecl UI_set_ex_data(UI *r, int idx, void *arg);
++void * __cdecl UI_get_ex_data(UI *r, int idx);
+ 
+ /* Use specific methods instead of the built-in one */
+-void UI_set_default_method(const UI_METHOD *meth);
+-const UI_METHOD *UI_get_default_method(void);
+-const UI_METHOD *UI_get_method(UI *ui);
+-const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth);
++void __cdecl UI_set_default_method(const UI_METHOD *meth);
++const UI_METHOD * __cdecl UI_get_default_method(void);
++const UI_METHOD * __cdecl UI_get_method(UI *ui);
++const UI_METHOD * __cdecl UI_set_method(UI *ui, const UI_METHOD *meth);
+ 
+ # ifndef OPENSSL_NO_UI_CONSOLE
+ 
+ /* The method with all the built-in thingies */
+-UI_METHOD *UI_OpenSSL(void);
++UI_METHOD * __cdecl UI_OpenSSL(void);
+ 
+ # endif
+ 
+@@ -227,7 +227,7 @@ UI_METHOD *UI_OpenSSL(void);
+  * NULL method.  Literally does nothing, but may serve as a placeholder
+  * to avoid internal default.
+  */
+-const UI_METHOD *UI_null(void);
++const UI_METHOD * __cdecl UI_null(void);
+ 
+ /* ---------- For method writers ---------- */
+ /*-
+@@ -293,35 +293,35 @@ enum UI_string_types {
+ };
+ 
+ /* Create and manipulate methods */
+-UI_METHOD *UI_create_method(const char *name);
+-void UI_destroy_method(UI_METHOD *ui_method);
+-int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui));
+-int UI_method_set_writer(UI_METHOD *method,
+-                         int (*writer) (UI *ui, UI_STRING *uis));
+-int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui));
+-int UI_method_set_reader(UI_METHOD *method,
+-                         int (*reader) (UI *ui, UI_STRING *uis));
+-int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui));
+-int UI_method_set_data_duplicator(UI_METHOD *method,
+-                                  void *(*duplicator) (UI *ui, void *ui_data),
+-                                  void (*destructor)(UI *ui, void *ui_data));
+-int UI_method_set_prompt_constructor(UI_METHOD *method,
+-                                     char *(*prompt_constructor) (UI *ui,
++UI_METHOD * __cdecl UI_create_method(const char *name);
++void __cdecl UI_destroy_method(UI_METHOD *ui_method);
++int __cdecl UI_method_set_opener(UI_METHOD *method, int (__cdecl *opener) (UI *ui));
++int __cdecl UI_method_set_writer(UI_METHOD *method,
++                         int (__cdecl *writer) (UI *ui, UI_STRING *uis));
++int __cdecl UI_method_set_flusher(UI_METHOD *method, int (__cdecl *flusher) (UI *ui));
++int __cdecl UI_method_set_reader(UI_METHOD *method,
++                         int (__cdecl *reader) (UI *ui, UI_STRING *uis));
++int __cdecl UI_method_set_closer(UI_METHOD *method, int (__cdecl *closer) (UI *ui));
++int __cdecl UI_method_set_data_duplicator(UI_METHOD *method,
++                                  void *(__cdecl *duplicator) (UI *ui, void *ui_data),
++                                  void (__cdecl *destructor)(UI *ui, void *ui_data));
++int __cdecl UI_method_set_prompt_constructor(UI_METHOD *method,
++                                     char *(__cdecl *prompt_constructor) (UI *ui,
+                                                                   const char
+                                                                   *object_desc,
+                                                                   const char
+                                                                   *object_name));
+-int UI_method_set_ex_data(UI_METHOD *method, int idx, void *data);
+-int (*UI_method_get_opener(const UI_METHOD *method)) (UI *);
+-int (*UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *);
+-int (*UI_method_get_flusher(const UI_METHOD *method)) (UI *);
+-int (*UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *);
+-int (*UI_method_get_closer(const UI_METHOD *method)) (UI *);
+-char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
++int __cdecl UI_method_set_ex_data(UI_METHOD *method, int idx, void *data);
++int (__cdecl *UI_method_get_opener(const UI_METHOD *method)) (UI *);
++int (__cdecl *UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *);
++int (__cdecl *UI_method_get_flusher(const UI_METHOD *method)) (UI *);
++int (__cdecl *UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *);
++int (__cdecl *UI_method_get_closer(const UI_METHOD *method)) (UI *);
++char *(__cdecl *UI_method_get_prompt_constructor(const UI_METHOD *method))
+     (UI *, const char *, const char *);
+-void *(*UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *);
+-void (*UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *);
+-const void *UI_method_get_ex_data(const UI_METHOD *method, int idx);
++void *(__cdecl *UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *);
++void (__cdecl *UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *);
++const void * __cdecl UI_method_get_ex_data(const UI_METHOD *method, int idx);
+ 
+ /*
+  * The following functions are helpers for method writers to access relevant
+@@ -329,37 +329,37 @@ const void *UI_method_get_ex_data(const UI_METHOD *method, int idx);
+  */
+ 
+ /* Return type of the UI_STRING */
+-enum UI_string_types UI_get_string_type(UI_STRING *uis);
++enum UI_string_types __cdecl UI_get_string_type(UI_STRING *uis);
+ /* Return input flags of the UI_STRING */
+-int UI_get_input_flags(UI_STRING *uis);
++int __cdecl UI_get_input_flags(UI_STRING *uis);
+ /* Return the actual string to output (the prompt, info or error) */
+-const char *UI_get0_output_string(UI_STRING *uis);
++const char * __cdecl UI_get0_output_string(UI_STRING *uis);
+ /*
+  * Return the optional action string to output (the boolean prompt
+  * instruction)
+  */
+-const char *UI_get0_action_string(UI_STRING *uis);
++const char * __cdecl UI_get0_action_string(UI_STRING *uis);
+ /* Return the result of a prompt */
+-const char *UI_get0_result_string(UI_STRING *uis);
+-int UI_get_result_string_length(UI_STRING *uis);
++const char * __cdecl UI_get0_result_string(UI_STRING *uis);
++int __cdecl UI_get_result_string_length(UI_STRING *uis);
+ /*
+  * Return the string to test the result against.  Only useful with verifies.
+  */
+-const char *UI_get0_test_string(UI_STRING *uis);
++const char * __cdecl UI_get0_test_string(UI_STRING *uis);
+ /* Return the required minimum size of the result */
+-int UI_get_result_minsize(UI_STRING *uis);
++int __cdecl UI_get_result_minsize(UI_STRING *uis);
+ /* Return the required maximum size of the result */
+-int UI_get_result_maxsize(UI_STRING *uis);
++int __cdecl UI_get_result_maxsize(UI_STRING *uis);
+ /* Set the result of a UI_STRING. */
+-int UI_set_result(UI *ui, UI_STRING *uis, const char *result);
+-int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len);
++int __cdecl UI_set_result(UI *ui, UI_STRING *uis, const char *result);
++int __cdecl UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len);
+ 
+ /* A couple of popular utility functions */
+-int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
++int __cdecl UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
+                            int verify);
+-int UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
++int __cdecl UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
+                     int verify);
+-UI_METHOD *UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag);
++UI_METHOD * __cdecl UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag);
+ 
+ 
+ # ifdef  __cplusplus
+diff --git a/include/openssl/uierr.h b/include/openssl/uierr.h
+index bd68864d0d..e006b09742 100644
+--- a/include/openssl/uierr.h
++++ b/include/openssl/uierr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_UI_strings(void);
++int __cdecl ERR_load_UI_strings(void);
+ 
+ /*
+  * UI function codes.
 diff --git a/include/openssl/x509.h b/include/openssl/x509.h
 index 39ca0ba575..d2b7862f63 100644
 --- a/include/openssl/x509.h
@@ -47310,1005 +48303,71 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/apps/apps.c b/apps/apps.c
-index 7177c5d982..b2affb8753 100644
---- a/apps/apps.c
-+++ b/apps/apps.c
-@@ -180,18 +180,18 @@ int dump_cert_text(BIO *out, X509 *x)
-     return 0;
- }
+diff --git a/crypto/whrlpool/wp_dgst.c b/crypto/whrlpool/wp_dgst.c
+index 1ac29803a4..ea24b4af62 100644
+--- a/crypto/whrlpool/wp_dgst.c
++++ b/crypto/whrlpool/wp_dgst.c
+@@ -56,13 +56,13 @@
+ #include "wp_locl.h"
+ #include <string.h>
  
--static int ui_open(UI *ui)
-+static int __cdecl ui_open(UI *ui)
+-int WHIRLPOOL_Init(WHIRLPOOL_CTX *c)
++int __cdecl WHIRLPOOL_Init(WHIRLPOOL_CTX *c)
  {
--    int (*opener)(UI *ui) = UI_method_get_opener(ui_fallback_method);
-+    int (__cdecl *opener)(UI *ui) = UI_method_get_opener(ui_fallback_method);
- 
-     if (opener)
-         return opener(ui);
+     memset(c, 0, sizeof(*c));
      return 1;
  }
  
--static int ui_read(UI *ui, UI_STRING *uis)
-+static int __cdecl ui_read(UI *ui, UI_STRING *uis)
+-int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
++int __cdecl WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
  {
--    int (*reader)(UI *ui, UI_STRING *uis) = NULL;
-+    int (__cdecl *reader)(UI *ui, UI_STRING *uis) = NULL;
- 
-     if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-         && UI_get0_user_data(ui)) {
-@@ -221,9 +221,9 @@ static int ui_read(UI *ui, UI_STRING *uis)
-     return 1;
- }
- 
--static int ui_write(UI *ui, UI_STRING *uis)
-+static int __cdecl ui_write(UI *ui, UI_STRING *uis)
- {
--    int (*writer)(UI *ui, UI_STRING *uis) = NULL;
-+    int (__cdecl *writer)(UI *ui, UI_STRING *uis) = NULL;
- 
-     if (UI_get_input_flags(uis) & UI_INPUT_FLAG_DEFAULT_PWD
-         && UI_get0_user_data(ui)) {
-@@ -251,9 +251,9 @@ static int ui_write(UI *ui, UI_STRING *uis)
-     return 1;
- }
- 
--static int ui_close(UI *ui)
-+static int __cdecl ui_close(UI *ui)
- {
--    int (*closer)(UI *ui) = UI_method_get_closer(ui_fallback_method);
-+    int (__cdecl *closer)(UI *ui) = UI_method_get_closer(ui_fallback_method);
- 
-     if (closer)
-         return closer(ui);
-diff --git a/crypto/ui/ui_err.c b/crypto/ui/ui_err.c
-index b806872c30..de4f1ca659 100644
---- a/crypto/ui/ui_err.c
-+++ b/crypto/ui/ui_err.c
-@@ -66,7 +66,7 @@ static const ERR_STRING_DATA UI_str_reasons[] = {
- 
- #endif
- 
--int ERR_load_UI_strings(void)
-+int __cdecl ERR_load_UI_strings(void)
- {
- #ifndef OPENSSL_NO_ERR
-     if (ERR_func_error_string(UI_str_functs[0].error) == NULL) {
-diff --git a/crypto/ui/ui_lib.c b/crypto/ui/ui_lib.c
-index a30b5d2ebe..df3ab8a04b 100644
---- a/crypto/ui/ui_lib.c
-+++ b/crypto/ui/ui_lib.c
-@@ -15,12 +15,12 @@
- #include <openssl/err.h>
- #include "ui_locl.h"
- 
--UI *UI_new(void)
-+UI * __cdecl UI_new(void)
- {
-     return UI_new_method(NULL);
- }
- 
--UI *UI_new_method(const UI_METHOD *method)
-+UI * __cdecl UI_new_method(const UI_METHOD *method)
- {
-     UI *ret = OPENSSL_zalloc(sizeof(*ret));
- 
-@@ -70,7 +70,7 @@ static void __cdecl free_string(UI_STRING *uis)
-     OPENSSL_free(uis);
- }
- 
--void UI_free(UI *ui)
-+void __cdecl UI_free(UI *ui)
- {
-     if (ui == NULL)
-         return;
-@@ -195,7 +195,7 @@ static int general_allocate_boolean(UI *ui,
-  * Returns the index to the place in the stack or -1 for error.  Uses a
-  * direct reference to the prompt.
-  */
--int UI_add_input_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_add_input_string(UI *ui, const char *prompt, int flags,
-                         char *result_buf, int minsize, int maxsize)
- {
-     return general_allocate_string(ui, prompt, 0,
-@@ -204,7 +204,7 @@ int UI_add_input_string(UI *ui, const char *prompt, int flags,
- }
- 
- /* Same as UI_add_input_string(), excepts it takes a copy of the prompt */
--int UI_dup_input_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_dup_input_string(UI *ui, const char *prompt, int flags,
-                         char *result_buf, int minsize, int maxsize)
- {
-     char *prompt_copy = NULL;
-@@ -222,7 +222,7 @@ int UI_dup_input_string(UI *ui, const char *prompt, int flags,
-                                    maxsize, NULL);
- }
- 
--int UI_add_verify_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_add_verify_string(UI *ui, const char *prompt, int flags,
-                          char *result_buf, int minsize, int maxsize,
-                          const char *test_buf)
- {
-@@ -231,7 +231,7 @@ int UI_add_verify_string(UI *ui, const char *prompt, int flags,
-                                    maxsize, test_buf);
- }
- 
--int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_dup_verify_string(UI *ui, const char *prompt, int flags,
-                          char *result_buf, int minsize, int maxsize,
-                          const char *test_buf)
- {
-@@ -250,7 +250,7 @@ int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
-                                    maxsize, test_buf);
- }
- 
--int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-+int __cdecl UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-                          const char *ok_chars, const char *cancel_chars,
-                          int flags, char *result_buf)
- {
-@@ -259,7 +259,7 @@ int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-                                     flags, result_buf);
- }
- 
--int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-+int __cdecl UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-                          const char *ok_chars, const char *cancel_chars,
-                          int flags, char *result_buf)
- {
-@@ -311,13 +311,13 @@ int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-     return -1;
- }
- 
--int UI_add_info_string(UI *ui, const char *text)
-+int __cdecl UI_add_info_string(UI *ui, const char *text)
- {
-     return general_allocate_string(ui, text, 0, UIT_INFO, 0, NULL, 0, 0,
-                                    NULL);
- }
- 
--int UI_dup_info_string(UI *ui, const char *text)
-+int __cdecl UI_dup_info_string(UI *ui, const char *text)
- {
-     char *text_copy = NULL;
- 
-@@ -333,13 +333,13 @@ int UI_dup_info_string(UI *ui, const char *text)
-                                    0, 0, NULL);
- }
- 
--int UI_add_error_string(UI *ui, const char *text)
-+int __cdecl UI_add_error_string(UI *ui, const char *text)
- {
-     return general_allocate_string(ui, text, 0, UIT_ERROR, 0, NULL, 0, 0,
-                                    NULL);
- }
- 
--int UI_dup_error_string(UI *ui, const char *text)
-+int __cdecl UI_dup_error_string(UI *ui, const char *text)
- {
-     char *text_copy = NULL;
- 
-@@ -354,7 +354,7 @@ int UI_dup_error_string(UI *ui, const char *text)
-                                    0, 0, NULL);
- }
- 
--char *UI_construct_prompt(UI *ui, const char *object_desc,
-+char * __cdecl UI_construct_prompt(UI *ui, const char *object_desc,
-                           const char *object_name)
- {
-     char *prompt = NULL;
-@@ -389,7 +389,7 @@ char *UI_construct_prompt(UI *ui, const char *object_desc,
-     return prompt;
- }
- 
--void *UI_add_user_data(UI *ui, void *user_data)
-+void * __cdecl UI_add_user_data(UI *ui, void *user_data)
- {
-     void *old_data = ui->user_data;
- 
-@@ -402,7 +402,7 @@ void *UI_add_user_data(UI *ui, void *user_data)
-     return old_data;
- }
- 
--int UI_dup_user_data(UI *ui, void *user_data)
-+int __cdecl UI_dup_user_data(UI *ui, void *user_data)
- {
-     void *duplicate = NULL;
- 
-@@ -424,12 +424,12 @@ int UI_dup_user_data(UI *ui, void *user_data)
-     return 0;
- }
- 
--void *UI_get0_user_data(UI *ui)
-+void * __cdecl UI_get0_user_data(UI *ui)
- {
-     return ui->user_data;
- }
- 
--const char *UI_get0_result(UI *ui, int i)
-+const char * __cdecl UI_get0_result(UI *ui, int i)
- {
-     if (i < 0) {
-         UIerr(UI_F_UI_GET0_RESULT, UI_R_INDEX_TOO_SMALL);
-@@ -442,7 +442,7 @@ const char *UI_get0_result(UI *ui, int i)
-     return UI_get0_result_string(sk_UI_STRING_value(ui->strings, i));
- }
- 
--int UI_get_result_length(UI *ui, int i)
-+int __cdecl UI_get_result_length(UI *ui, int i)
- {
-     if (i < 0) {
-         UIerr(UI_F_UI_GET_RESULT_LENGTH, UI_R_INDEX_TOO_SMALL);
-@@ -469,7 +469,7 @@ static int print_error(const char *str, size_t len, UI *ui)
-     return 0;
- }
- 
--int UI_process(UI *ui)
-+int __cdecl UI_process(UI *ui)
- {
-     int i, ok = 0;
-     const char *state = "processing";
-@@ -548,7 +548,7 @@ int UI_process(UI *ui)
-     return ok;
- }
- 
--int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
-+int __cdecl UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
- {
-     if (ui == NULL) {
-         UIerr(UI_F_UI_CTRL, ERR_R_PASSED_NULL_PARAMETER);
-@@ -573,28 +573,28 @@ int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void))
-     return -1;
- }
- 
--int UI_set_ex_data(UI *r, int idx, void *arg)
-+int __cdecl UI_set_ex_data(UI *r, int idx, void *arg)
- {
-     return CRYPTO_set_ex_data(&r->ex_data, idx, arg);
- }
- 
--void *UI_get_ex_data(UI *r, int idx)
-+void * __cdecl UI_get_ex_data(UI *r, int idx)
- {
-     return CRYPTO_get_ex_data(&r->ex_data, idx);
- }
- 
--const UI_METHOD *UI_get_method(UI *ui)
-+const UI_METHOD * __cdecl UI_get_method(UI *ui)
- {
-     return ui->meth;
- }
- 
--const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth)
-+const UI_METHOD * __cdecl UI_set_method(UI *ui, const UI_METHOD *meth)
- {
-     ui->meth = meth;
-     return ui->meth;
- }
- 
--UI_METHOD *UI_create_method(const char *name)
-+UI_METHOD * __cdecl UI_create_method(const char *name)
- {
-     UI_METHOD *ui_method = NULL;
- 
-@@ -616,7 +616,7 @@ UI_METHOD *UI_create_method(const char *name)
-  * (that is, it hasn't been allocated using UI_create_method(), you deserve
-  * anything Murphy can throw at you and more! You have been warned.
-  */
--void UI_destroy_method(UI_METHOD *ui_method)
-+void __cdecl UI_destroy_method(UI_METHOD *ui_method)
- {
-     if (ui_method == NULL)
-         return;
-@@ -627,7 +627,7 @@ void UI_destroy_method(UI_METHOD *ui_method)
-     OPENSSL_free(ui_method);
- }
- 
--int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
-+int __cdecl UI_method_set_opener(UI_METHOD *method, int (__cdecl *opener) (UI *ui))
- {
-     if (method != NULL) {
-         method->ui_open_session = opener;
-@@ -636,8 +636,8 @@ int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui))
-     return -1;
- }
- 
--int UI_method_set_writer(UI_METHOD *method,
--                         int (*writer) (UI *ui, UI_STRING *uis))
-+int __cdecl UI_method_set_writer(UI_METHOD *method,
-+                         int (__cdecl *writer) (UI *ui, UI_STRING *uis))
- {
-     if (method != NULL) {
-         method->ui_write_string = writer;
-@@ -646,7 +646,7 @@ int UI_method_set_writer(UI_METHOD *method,
-     return -1;
- }
- 
--int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
-+int __cdecl UI_method_set_flusher(UI_METHOD *method, int (__cdecl *flusher) (UI *ui))
- {
-     if (method != NULL) {
-         method->ui_flush = flusher;
-@@ -655,8 +655,8 @@ int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui))
-     return -1;
- }
- 
--int UI_method_set_reader(UI_METHOD *method,
--                         int (*reader) (UI *ui, UI_STRING *uis))
-+int __cdecl UI_method_set_reader(UI_METHOD *method,
-+                         int (__cdecl *reader) (UI *ui, UI_STRING *uis))
- {
-     if (method != NULL) {
-         method->ui_read_string = reader;
-@@ -665,7 +665,7 @@ int UI_method_set_reader(UI_METHOD *method,
-     return -1;
- }
- 
--int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
-+int __cdecl UI_method_set_closer(UI_METHOD *method, int (__cdecl *closer) (UI *ui))
- {
-     if (method != NULL) {
-         method->ui_close_session = closer;
-@@ -674,9 +674,9 @@ int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui))
-     return -1;
- }
- 
--int UI_method_set_data_duplicator(UI_METHOD *method,
--                                  void *(*duplicator) (UI *ui, void *ui_data),
--                                  void (*destructor)(UI *ui, void *ui_data))
-+int __cdecl UI_method_set_data_duplicator(UI_METHOD *method,
-+                                  void *(__cdecl *duplicator) (UI *ui, void *ui_data),
-+                                  void (__cdecl *destructor)(UI *ui, void *ui_data))
- {
-     if (method != NULL) {
-         method->ui_duplicate_data = duplicator;
-@@ -686,8 +686,8 @@ int UI_method_set_data_duplicator(UI_METHOD *method,
-     return -1;
- }
- 
--int UI_method_set_prompt_constructor(UI_METHOD *method,
--                                     char *(*prompt_constructor) (UI *ui,
-+int __cdecl UI_method_set_prompt_constructor(UI_METHOD *method,
-+                                     char *(__cdecl *prompt_constructor) (UI *ui,
-                                                                   const char
-                                                                   *object_desc,
-                                                                   const char
-@@ -700,47 +700,47 @@ int UI_method_set_prompt_constructor(UI_METHOD *method,
-     return -1;
- }
- 
--int UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
-+int __cdecl UI_method_set_ex_data(UI_METHOD *method, int idx, void *data)
- {
-     return CRYPTO_set_ex_data(&method->ex_data, idx, data);
- }
- 
--int (*UI_method_get_opener(const UI_METHOD *method)) (UI *)
-+int (__cdecl *UI_method_get_opener(const UI_METHOD *method)) (UI *)
- {
-     if (method != NULL)
-         return method->ui_open_session;
-     return NULL;
- }
- 
--int (*UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
-+int (__cdecl *UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *)
- {
-     if (method != NULL)
-         return method->ui_write_string;
-     return NULL;
- }
- 
--int (*UI_method_get_flusher(const UI_METHOD *method)) (UI *)
-+int (__cdecl *UI_method_get_flusher(const UI_METHOD *method)) (UI *)
- {
-     if (method != NULL)
-         return method->ui_flush;
-     return NULL;
- }
- 
--int (*UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
-+int (__cdecl *UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *)
- {
-     if (method != NULL)
-         return method->ui_read_string;
-     return NULL;
- }
- 
--int (*UI_method_get_closer(const UI_METHOD *method)) (UI *)
-+int (__cdecl *UI_method_get_closer(const UI_METHOD *method)) (UI *)
- {
-     if (method != NULL)
-         return method->ui_close_session;
-     return NULL;
- }
- 
--char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
-+char *(__cdecl *UI_method_get_prompt_constructor(const UI_METHOD *method))
-     (UI *, const char *, const char *)
- {
-     if (method != NULL)
-@@ -748,41 +748,41 @@ char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
-     return NULL;
- }
- 
--void *(*UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
-+void *(__cdecl *UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *)
- {
-     if (method != NULL)
-         return method->ui_duplicate_data;
-     return NULL;
- }
- 
--void (*UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
-+void (__cdecl *UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *)
- {
-     if (method != NULL)
-         return method->ui_destroy_data;
-     return NULL;
- }
- 
--const void *UI_method_get_ex_data(const UI_METHOD *method, int idx)
-+const void * __cdecl UI_method_get_ex_data(const UI_METHOD *method, int idx)
- {
-     return CRYPTO_get_ex_data(&method->ex_data, idx);
- }
- 
--enum UI_string_types UI_get_string_type(UI_STRING *uis)
-+enum UI_string_types __cdecl UI_get_string_type(UI_STRING *uis)
- {
-     return uis->type;
- }
- 
--int UI_get_input_flags(UI_STRING *uis)
-+int __cdecl UI_get_input_flags(UI_STRING *uis)
- {
-     return uis->input_flags;
- }
- 
--const char *UI_get0_output_string(UI_STRING *uis)
-+const char * __cdecl UI_get0_output_string(UI_STRING *uis)
- {
-     return uis->out_string;
- }
- 
--const char *UI_get0_action_string(UI_STRING *uis)
-+const char * __cdecl UI_get0_action_string(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_BOOLEAN:
-@@ -797,7 +797,7 @@ const char *UI_get0_action_string(UI_STRING *uis)
-     return NULL;
- }
- 
--const char *UI_get0_result_string(UI_STRING *uis)
-+const char * __cdecl UI_get0_result_string(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_PROMPT:
-@@ -812,7 +812,7 @@ const char *UI_get0_result_string(UI_STRING *uis)
-     return NULL;
- }
- 
--int UI_get_result_string_length(UI_STRING *uis)
-+int __cdecl UI_get_result_string_length(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_PROMPT:
-@@ -827,7 +827,7 @@ int UI_get_result_string_length(UI_STRING *uis)
-     return -1;
- }
- 
--const char *UI_get0_test_string(UI_STRING *uis)
-+const char * __cdecl UI_get0_test_string(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_VERIFY:
-@@ -842,7 +842,7 @@ const char *UI_get0_test_string(UI_STRING *uis)
-     return NULL;
- }
- 
--int UI_get_result_minsize(UI_STRING *uis)
-+int __cdecl UI_get_result_minsize(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_PROMPT:
-@@ -857,7 +857,7 @@ int UI_get_result_minsize(UI_STRING *uis)
-     return -1;
- }
- 
--int UI_get_result_maxsize(UI_STRING *uis)
-+int __cdecl UI_get_result_maxsize(UI_STRING *uis)
- {
-     switch (uis->type) {
-     case UIT_PROMPT:
-@@ -872,7 +872,7 @@ int UI_get_result_maxsize(UI_STRING *uis)
-     return -1;
- }
- 
--int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
-+int __cdecl UI_set_result(UI *ui, UI_STRING *uis, const char *result)
- {
- #if 0
      /*
-@@ -884,7 +884,7 @@ int UI_set_result(UI *ui, UI_STRING *uis, const char *result)
-     return UI_set_result_ex(ui, uis, result, strlen(result));
- }
- 
--int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
-+int __cdecl UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len)
- {
-     ui->flags &= ~UI_FLAG_REDOABLE;
- 
-diff --git a/crypto/ui/ui_locl.h b/crypto/ui/ui_locl.h
-index 19b33b8fc6..c128fc3515 100644
---- a/crypto/ui/ui_locl.h
-+++ b/crypto/ui/ui_locl.h
-@@ -28,21 +28,21 @@ struct ui_method_st {
-      * whatever. This function should use the ex_data structure to save
-      * intermediate data.
-      */
--    int (*ui_open_session) (UI *ui);
--    int (*ui_write_string) (UI *ui, UI_STRING *uis);
-+    int (__cdecl *ui_open_session) (UI *ui);
-+    int (__cdecl *ui_write_string) (UI *ui, UI_STRING *uis);
-     /*
-      * Flush the output.  If a GUI dialog box is used, this function can be
-      * used to actually display it.
-      */
--    int (*ui_flush) (UI *ui);
--    int (*ui_read_string) (UI *ui, UI_STRING *uis);
--    int (*ui_close_session) (UI *ui);
-+    int (__cdecl *ui_flush) (UI *ui);
-+    int (__cdecl *ui_read_string) (UI *ui, UI_STRING *uis);
-+    int (__cdecl *ui_close_session) (UI *ui);
-     /*
-      * Duplicate the ui_data that often comes alongside a ui_method.  This
-      * allows some backends to save away UI information for later use.
-      */
--    void *(*ui_duplicate_data) (UI *ui, void *ui_data);
--    void (*ui_destroy_data) (UI *ui, void *ui_data);
-+    void *(__cdecl *ui_duplicate_data) (UI *ui, void *ui_data);
-+    void (__cdecl *ui_destroy_data) (UI *ui, void *ui_data);
-     /*
-      * Construct a prompt in a user-defined manner.  object_desc is a textual
-      * short description of the object, for example "pass phrase", and
-@@ -50,7 +50,7 @@ struct ui_method_st {
-      * name. The returned string shall always be allocated on the heap with
-      * OPENSSL_malloc(), and need to be free'd with OPENSSL_free().
-      */
--    char *(*ui_construct_prompt) (UI *ui, const char *object_desc,
-+    char *(__cdecl *ui_construct_prompt) (UI *ui, const char *object_desc,
-                                   const char *object_name);
-     /*
-      * UI_METHOD specific application data.
-diff --git a/crypto/ui/ui_null.c b/crypto/ui/ui_null.c
-index 9e5f6fca59..de87d40272 100644
---- a/crypto/ui/ui_null.c
-+++ b/crypto/ui/ui_null.c
-@@ -20,7 +20,7 @@ static const UI_METHOD ui_null = {
- };
- 
- /* The method with all the built-in thingies */
--const UI_METHOD *UI_null(void)
-+const UI_METHOD * __cdecl UI_null(void)
- {
-     return &ui_null;
- }
-diff --git a/crypto/ui/ui_openssl.c b/crypto/ui/ui_openssl.c
-index 467e6a640f..7fe4e634a5 100644
---- a/crypto/ui/ui_openssl.c
-+++ b/crypto/ui/ui_openssl.c
-@@ -192,19 +192,19 @@ static int noecho_fgets(char *buf, int size, FILE *tty);
- # endif
- static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl);
- 
--static int read_string(UI *ui, UI_STRING *uis);
--static int write_string(UI *ui, UI_STRING *uis);
-+static int __cdecl read_string(UI *ui, UI_STRING *uis);
-+static int __cdecl write_string(UI *ui, UI_STRING *uis);
- 
--static int open_console(UI *ui);
--static int echo_console(UI *ui);
--static int noecho_console(UI *ui);
--static int close_console(UI *ui);
-+static int __cdecl open_console(UI *ui);
-+static int __cdecl echo_console(UI *ui);
-+static int __cdecl noecho_console(UI *ui);
-+static int __cdecl close_console(UI *ui);
- 
- /*
-  * The following function makes sure that info and error strings are printed
-  * before any prompt.
-  */
--static int write_string(UI *ui, UI_STRING *uis)
-+static int __cdecl write_string(UI *ui, UI_STRING *uis)
- {
-     switch (UI_get_string_type(uis)) {
-     case UIT_ERROR:
-@@ -221,7 +221,7 @@ static int write_string(UI *ui, UI_STRING *uis)
+      * Well, largest suitable chunk size actually is
+@@ -83,7 +83,7 @@ int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *_inp, size_t bytes)
      return 1;
  }
  
--static int read_string(UI *ui, UI_STRING *uis)
-+static int __cdecl read_string(UI *ui, UI_STRING *uis)
+-void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
++void __cdecl WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
  {
-     int ok = 0;
- 
-@@ -374,7 +374,7 @@ static int read_string_inner(UI *ui, UI_STRING *uis, int echo, int strip_nl)
- }
- 
- /* Internal functions to open, handle and close a channel to the console.  */
--static int open_console(UI *ui)
-+static int __cdecl open_console(UI *ui)
- {
-     CRYPTO_THREAD_write_lock(ui->lock);
-     is_a_tty = 1;
-@@ -481,7 +481,7 @@ static int open_console(UI *ui)
-     return 1;
- }
- 
--static int noecho_console(UI *ui)
-+static int __cdecl noecho_console(UI *ui)
- {
- # ifdef TTY_FLAGS
-     memcpy(&(tty_new), &(tty_orig), sizeof(tty_orig));
-@@ -523,7 +523,7 @@ static int noecho_console(UI *ui)
-     return 1;
- }
- 
--static int echo_console(UI *ui)
-+static int __cdecl echo_console(UI *ui)
- {
- # if defined(TTY_set) && !defined(OPENSSL_SYS_VMS)
-     memcpy(&(tty_new), &(tty_orig), sizeof(tty_orig));
-@@ -560,7 +560,7 @@ static int echo_console(UI *ui)
-     return 1;
- }
- 
--static int close_console(UI *ui)
-+static int __cdecl close_console(UI *ui)
- {
-     if (tty_in != stdin)
-         fclose(tty_in);
-@@ -720,7 +720,7 @@ static UI_METHOD ui_openssl = {
- };
- 
- /* The method with all the built-in console thingies */
--UI_METHOD *UI_OpenSSL(void)
-+UI_METHOD * __cdecl UI_OpenSSL(void)
- {
-     return &ui_openssl;
- }
-@@ -733,12 +733,12 @@ static const UI_METHOD *default_UI_meth = NULL;
- 
- #endif
- 
--void UI_set_default_method(const UI_METHOD *meth)
-+void __cdecl UI_set_default_method(const UI_METHOD *meth)
- {
-     default_UI_meth = meth;
- }
- 
--const UI_METHOD *UI_get_default_method(void)
-+const UI_METHOD * __cdecl UI_get_default_method(void)
- {
-     return default_UI_meth;
- }
-diff --git a/crypto/ui/ui_util.c b/crypto/ui/ui_util.c
-index b379324f9b..1cf462cc12 100644
---- a/crypto/ui/ui_util.c
-+++ b/crypto/ui/ui_util.c
-@@ -15,7 +15,7 @@
- #define BUFSIZ 256
- #endif
- 
--int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
-+int __cdecl UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
-                            int verify)
- {
-     char buff[BUFSIZ];
-@@ -28,7 +28,7 @@ int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
-     return ret;
- }
- 
--int UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
-+int __cdecl UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
-                     int verify)
- {
-     int ok = 0;
-@@ -95,11 +95,11 @@ DEFINE_RUN_ONCE_STATIC(ui_method_data_index_init)
-     return 1;
- }
- 
--static int ui_open(UI *ui)
-+static int __cdecl ui_open(UI *ui)
- {
-     return 1;
- }
--static int ui_read(UI *ui, UI_STRING *uis)
-+static int __cdecl ui_read(UI *ui, UI_STRING *uis)
- {
-     switch (UI_get_string_type(uis)) {
-     case UIT_PROMPT:
-@@ -129,16 +129,16 @@ static int ui_read(UI *ui, UI_STRING *uis)
+     size_t n;
+     unsigned int bitoff = c->bitoff,
+@@ -205,7 +205,7 @@ void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *_inp, size_t bits)
      }
-     return 1;
- }
--static int ui_write(UI *ui, UI_STRING *uis)
-+static int __cdecl ui_write(UI *ui, UI_STRING *uis)
- {
-     return 1;
- }
--static int ui_close(UI *ui)
-+static int __cdecl ui_close(UI *ui)
- {
-     return 1;
  }
  
--UI_METHOD *UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag)
-+UI_METHOD * __cdecl UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag)
+-int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
++int __cdecl WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
  {
-     struct pem_password_cb_data *data = NULL;
-     UI_METHOD *ui_method = NULL;
-diff --git a/include/openssl/ui.h b/include/openssl/ui.h
-index 7c721ec818..7c50e5e8fb 100644
---- a/include/openssl/ui.h
-+++ b/include/openssl/ui.h
-@@ -39,9 +39,9 @@ extern "C" {
-  */
+     unsigned int bitoff = c->bitoff, byteoff = bitoff / 8;
+     size_t i, j, v;
+@@ -244,7 +244,7 @@ int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c)
+     return 0;
+ }
  
- /* Creators and destructor.   */
--UI *UI_new(void);
--UI *UI_new_method(const UI_METHOD *method);
--void UI_free(UI *ui);
-+UI * __cdecl UI_new(void);
-+UI * __cdecl UI_new_method(const UI_METHOD *method);
-+void __cdecl UI_free(UI *ui);
+-unsigned char *WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md)
++unsigned char * __cdecl WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md)
+ {
+     WHIRLPOOL_CTX ctx;
+     static unsigned char m[WHIRLPOOL_DIGEST_LENGTH];
+diff --git a/include/openssl/whrlpool.h b/include/openssl/whrlpool.h
+index 20ea3503b7..b8835bed8c 100644
+--- a/include/openssl/whrlpool.h
++++ b/include/openssl/whrlpool.h
+@@ -34,11 +34,11 @@ typedef struct {
+     size_t bitlen[WHIRLPOOL_COUNTER / sizeof(size_t)];
+ } WHIRLPOOL_CTX;
  
- /*-
-    The following functions are used to add strings to be printed and prompt
-@@ -86,26 +86,26 @@ void UI_free(UI *ui);
+-int WHIRLPOOL_Init(WHIRLPOOL_CTX *c);
+-int WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *inp, size_t bytes);
+-void WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *inp, size_t bits);
+-int WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c);
+-unsigned char *WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md);
++int __cdecl WHIRLPOOL_Init(WHIRLPOOL_CTX *c);
++int __cdecl WHIRLPOOL_Update(WHIRLPOOL_CTX *c, const void *inp, size_t bytes);
++void __cdecl WHIRLPOOL_BitUpdate(WHIRLPOOL_CTX *c, const void *inp, size_t bits);
++int __cdecl WHIRLPOOL_Final(unsigned char *md, WHIRLPOOL_CTX *c);
++unsigned char * __cdecl WHIRLPOOL(const void *inp, size_t bytes, unsigned char *md);
  
-    On success, the all return an index of the added information.  That index
-    is useful when retrieving results with UI_get0_result(). */
--int UI_add_input_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_add_input_string(UI *ui, const char *prompt, int flags,
-                         char *result_buf, int minsize, int maxsize);
--int UI_dup_input_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_dup_input_string(UI *ui, const char *prompt, int flags,
-                         char *result_buf, int minsize, int maxsize);
--int UI_add_verify_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_add_verify_string(UI *ui, const char *prompt, int flags,
-                          char *result_buf, int minsize, int maxsize,
-                          const char *test_buf);
--int UI_dup_verify_string(UI *ui, const char *prompt, int flags,
-+int __cdecl UI_dup_verify_string(UI *ui, const char *prompt, int flags,
-                          char *result_buf, int minsize, int maxsize,
-                          const char *test_buf);
--int UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-+int __cdecl UI_add_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-                          const char *ok_chars, const char *cancel_chars,
-                          int flags, char *result_buf);
--int UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-+int __cdecl UI_dup_input_boolean(UI *ui, const char *prompt, const char *action_desc,
-                          const char *ok_chars, const char *cancel_chars,
-                          int flags, char *result_buf);
--int UI_add_info_string(UI *ui, const char *text);
--int UI_dup_info_string(UI *ui, const char *text);
--int UI_add_error_string(UI *ui, const char *text);
--int UI_dup_error_string(UI *ui, const char *text);
-+int __cdecl UI_add_info_string(UI *ui, const char *text);
-+int __cdecl UI_dup_info_string(UI *ui, const char *text);
-+int __cdecl UI_add_error_string(UI *ui, const char *text);
-+int __cdecl UI_dup_error_string(UI *ui, const char *text);
- 
- /* These are the possible flags.  They can be or'ed together. */
- /* Use to have echoing of input */
-@@ -149,7 +149,7 @@ int UI_dup_error_string(UI *ui, const char *text);
-  *
-  *       "Enter pass phrase for foo.key:"
- */
--char *UI_construct_prompt(UI *ui_method,
-+char * __cdecl UI_construct_prompt(UI *ui_method,
-                           const char *object_desc, const char *object_name);
- 
- /*
-@@ -163,29 +163,29 @@ char *UI_construct_prompt(UI *ui_method,
-  * Note that the UI_OpenSSL() method completely ignores the user data. Other
-  * methods may not, however.
-  */
--void *UI_add_user_data(UI *ui, void *user_data);
-+void * __cdecl UI_add_user_data(UI *ui, void *user_data);
- /*
-  * Alternatively, this function is used to duplicate the user data.
-  * This uses the duplicator method function.  The destroy function will
-  * be used to free the user data in this case.
-  */
--int UI_dup_user_data(UI *ui, void *user_data);
-+int __cdecl UI_dup_user_data(UI *ui, void *user_data);
- /* We need a user data retrieving function as well.  */
--void *UI_get0_user_data(UI *ui);
-+void * __cdecl UI_get0_user_data(UI *ui);
- 
- /* Return the result associated with a prompt given with the index i. */
--const char *UI_get0_result(UI *ui, int i);
--int UI_get_result_length(UI *ui, int i);
-+const char * __cdecl UI_get0_result(UI *ui, int i);
-+int __cdecl UI_get_result_length(UI *ui, int i);
- 
- /* When all strings have been added, process the whole thing. */
--int UI_process(UI *ui);
-+int __cdecl UI_process(UI *ui);
- 
- /*
-  * Give a user interface parameterised control commands.  This can be used to
-  * send down an integer, a data pointer or a function pointer, as well as be
-  * used to get information from a UI.
-  */
--int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
-+int __cdecl UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
- 
- /* The commands */
- /*
-@@ -207,19 +207,19 @@ int UI_ctrl(UI *ui, int cmd, long i, void *p, void (*f) (void));
- 
- # define UI_get_ex_new_index(l, p, newf, dupf, freef) \
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_UI, l, p, newf, dupf, freef)
--int UI_set_ex_data(UI *r, int idx, void *arg);
--void *UI_get_ex_data(UI *r, int idx);
-+int __cdecl UI_set_ex_data(UI *r, int idx, void *arg);
-+void * __cdecl UI_get_ex_data(UI *r, int idx);
- 
- /* Use specific methods instead of the built-in one */
--void UI_set_default_method(const UI_METHOD *meth);
--const UI_METHOD *UI_get_default_method(void);
--const UI_METHOD *UI_get_method(UI *ui);
--const UI_METHOD *UI_set_method(UI *ui, const UI_METHOD *meth);
-+void __cdecl UI_set_default_method(const UI_METHOD *meth);
-+const UI_METHOD * __cdecl UI_get_default_method(void);
-+const UI_METHOD * __cdecl UI_get_method(UI *ui);
-+const UI_METHOD * __cdecl UI_set_method(UI *ui, const UI_METHOD *meth);
- 
- # ifndef OPENSSL_NO_UI_CONSOLE
- 
- /* The method with all the built-in thingies */
--UI_METHOD *UI_OpenSSL(void);
-+UI_METHOD * __cdecl UI_OpenSSL(void);
- 
- # endif
- 
-@@ -227,7 +227,7 @@ UI_METHOD *UI_OpenSSL(void);
-  * NULL method.  Literally does nothing, but may serve as a placeholder
-  * to avoid internal default.
-  */
--const UI_METHOD *UI_null(void);
-+const UI_METHOD * __cdecl UI_null(void);
- 
- /* ---------- For method writers ---------- */
- /*-
-@@ -293,35 +293,35 @@ enum UI_string_types {
- };
- 
- /* Create and manipulate methods */
--UI_METHOD *UI_create_method(const char *name);
--void UI_destroy_method(UI_METHOD *ui_method);
--int UI_method_set_opener(UI_METHOD *method, int (*opener) (UI *ui));
--int UI_method_set_writer(UI_METHOD *method,
--                         int (*writer) (UI *ui, UI_STRING *uis));
--int UI_method_set_flusher(UI_METHOD *method, int (*flusher) (UI *ui));
--int UI_method_set_reader(UI_METHOD *method,
--                         int (*reader) (UI *ui, UI_STRING *uis));
--int UI_method_set_closer(UI_METHOD *method, int (*closer) (UI *ui));
--int UI_method_set_data_duplicator(UI_METHOD *method,
--                                  void *(*duplicator) (UI *ui, void *ui_data),
--                                  void (*destructor)(UI *ui, void *ui_data));
--int UI_method_set_prompt_constructor(UI_METHOD *method,
--                                     char *(*prompt_constructor) (UI *ui,
-+UI_METHOD * __cdecl UI_create_method(const char *name);
-+void __cdecl UI_destroy_method(UI_METHOD *ui_method);
-+int __cdecl UI_method_set_opener(UI_METHOD *method, int (__cdecl *opener) (UI *ui));
-+int __cdecl UI_method_set_writer(UI_METHOD *method,
-+                         int (__cdecl *writer) (UI *ui, UI_STRING *uis));
-+int __cdecl UI_method_set_flusher(UI_METHOD *method, int (__cdecl *flusher) (UI *ui));
-+int __cdecl UI_method_set_reader(UI_METHOD *method,
-+                         int (__cdecl *reader) (UI *ui, UI_STRING *uis));
-+int __cdecl UI_method_set_closer(UI_METHOD *method, int (__cdecl *closer) (UI *ui));
-+int __cdecl UI_method_set_data_duplicator(UI_METHOD *method,
-+                                  void *(__cdecl *duplicator) (UI *ui, void *ui_data),
-+                                  void (__cdecl *destructor)(UI *ui, void *ui_data));
-+int __cdecl UI_method_set_prompt_constructor(UI_METHOD *method,
-+                                     char *(__cdecl *prompt_constructor) (UI *ui,
-                                                                   const char
-                                                                   *object_desc,
-                                                                   const char
-                                                                   *object_name));
--int UI_method_set_ex_data(UI_METHOD *method, int idx, void *data);
--int (*UI_method_get_opener(const UI_METHOD *method)) (UI *);
--int (*UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *);
--int (*UI_method_get_flusher(const UI_METHOD *method)) (UI *);
--int (*UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *);
--int (*UI_method_get_closer(const UI_METHOD *method)) (UI *);
--char *(*UI_method_get_prompt_constructor(const UI_METHOD *method))
-+int __cdecl UI_method_set_ex_data(UI_METHOD *method, int idx, void *data);
-+int (__cdecl *UI_method_get_opener(const UI_METHOD *method)) (UI *);
-+int (__cdecl *UI_method_get_writer(const UI_METHOD *method)) (UI *, UI_STRING *);
-+int (__cdecl *UI_method_get_flusher(const UI_METHOD *method)) (UI *);
-+int (__cdecl *UI_method_get_reader(const UI_METHOD *method)) (UI *, UI_STRING *);
-+int (__cdecl *UI_method_get_closer(const UI_METHOD *method)) (UI *);
-+char *(__cdecl *UI_method_get_prompt_constructor(const UI_METHOD *method))
-     (UI *, const char *, const char *);
--void *(*UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *);
--void (*UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *);
--const void *UI_method_get_ex_data(const UI_METHOD *method, int idx);
-+void *(__cdecl *UI_method_get_data_duplicator(const UI_METHOD *method)) (UI *, void *);
-+void (__cdecl *UI_method_get_data_destructor(const UI_METHOD *method)) (UI *, void *);
-+const void * __cdecl UI_method_get_ex_data(const UI_METHOD *method, int idx);
- 
- /*
-  * The following functions are helpers for method writers to access relevant
-@@ -329,37 +329,37 @@ const void *UI_method_get_ex_data(const UI_METHOD *method, int idx);
-  */
- 
- /* Return type of the UI_STRING */
--enum UI_string_types UI_get_string_type(UI_STRING *uis);
-+enum UI_string_types __cdecl UI_get_string_type(UI_STRING *uis);
- /* Return input flags of the UI_STRING */
--int UI_get_input_flags(UI_STRING *uis);
-+int __cdecl UI_get_input_flags(UI_STRING *uis);
- /* Return the actual string to output (the prompt, info or error) */
--const char *UI_get0_output_string(UI_STRING *uis);
-+const char * __cdecl UI_get0_output_string(UI_STRING *uis);
- /*
-  * Return the optional action string to output (the boolean prompt
-  * instruction)
-  */
--const char *UI_get0_action_string(UI_STRING *uis);
-+const char * __cdecl UI_get0_action_string(UI_STRING *uis);
- /* Return the result of a prompt */
--const char *UI_get0_result_string(UI_STRING *uis);
--int UI_get_result_string_length(UI_STRING *uis);
-+const char * __cdecl UI_get0_result_string(UI_STRING *uis);
-+int __cdecl UI_get_result_string_length(UI_STRING *uis);
- /*
-  * Return the string to test the result against.  Only useful with verifies.
-  */
--const char *UI_get0_test_string(UI_STRING *uis);
-+const char * __cdecl UI_get0_test_string(UI_STRING *uis);
- /* Return the required minimum size of the result */
--int UI_get_result_minsize(UI_STRING *uis);
-+int __cdecl UI_get_result_minsize(UI_STRING *uis);
- /* Return the required maximum size of the result */
--int UI_get_result_maxsize(UI_STRING *uis);
-+int __cdecl UI_get_result_maxsize(UI_STRING *uis);
- /* Set the result of a UI_STRING. */
--int UI_set_result(UI *ui, UI_STRING *uis, const char *result);
--int UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len);
-+int __cdecl UI_set_result(UI *ui, UI_STRING *uis, const char *result);
-+int __cdecl UI_set_result_ex(UI *ui, UI_STRING *uis, const char *result, int len);
- 
- /* A couple of popular utility functions */
--int UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
-+int __cdecl UI_UTIL_read_pw_string(char *buf, int length, const char *prompt,
-                            int verify);
--int UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
-+int __cdecl UI_UTIL_read_pw(char *buf, char *buff, int size, const char *prompt,
-                     int verify);
--UI_METHOD *UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag);
-+UI_METHOD * __cdecl UI_UTIL_wrap_read_pem_callback(pem_password_cb *cb, int rwflag);
- 
- 
- # ifdef  __cplusplus
-diff --git a/include/openssl/uierr.h b/include/openssl/uierr.h
-index bd68864d0d..e006b09742 100644
---- a/include/openssl/uierr.h
-+++ b/include/openssl/uierr.h
-@@ -18,7 +18,7 @@
- # ifdef  __cplusplus
- extern "C"
- # endif
--int ERR_load_UI_strings(void);
-+int __cdecl ERR_load_UI_strings(void);
- 
- /*
-  * UI function codes.
+ # ifdef __cplusplus
+ }
