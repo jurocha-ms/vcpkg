@@ -1,3 +1,17 @@
+diff --git a/Configurations/windows-makefile.tmpl b/Configurations/windows-makefile.tmpl
+index 8ef70b8699..ad33ae3021 100644
+--- a/Configurations/windows-makefile.tmpl
++++ b/Configurations/windows-makefile.tmpl
+@@ -353,7 +353,8 @@ list-tests:
+ 	@$(ECHO) "Tests are not supported with your chosen Configure options"
+ 	@{- output_on() if !$disabled{tests}; "" -}
+ 
+-install: install_sw install_ssldirs install_docs
++#install: install_sw install_ssldirs install_docs
++install: install_sw install_ssldirs
+ 
+ uninstall: uninstall_docs uninstall_sw
+ 
 diff --git a/apps/cms.c b/apps/cms.c
 index 15edd67dbe..fc22cedc30 100644
 --- a/apps/cms.c
@@ -25355,6 +25369,64 @@ index d4792ee04f..19a4a6b2a0 100644
  {
      TS_VERIFY_CTX *ret = ctx;
      ASN1_OBJECT *policy;
+diff --git a/crypto/txt_db/txt_db.c b/crypto/txt_db/txt_db.c
+index c4e1782514..a3e49aa60d 100644
+--- a/crypto/txt_db/txt_db.c
++++ b/crypto/txt_db/txt_db.c
+@@ -17,7 +17,7 @@
+ #undef BUFSIZE
+ #define BUFSIZE 512
+ 
+-TXT_DB *TXT_DB_read(BIO *in, int num)
++TXT_DB * __cdecl TXT_DB_read(BIO *in, int num)
+ {
+     TXT_DB *ret = NULL;
+     int esc = 0;
+@@ -127,7 +127,7 @@ TXT_DB *TXT_DB_read(BIO *in, int num)
+     return NULL;
+ }
+ 
+-OPENSSL_STRING *TXT_DB_get_by_index(TXT_DB *db, int idx,
++OPENSSL_STRING * __cdecl TXT_DB_get_by_index(TXT_DB *db, int idx,
+                                     OPENSSL_STRING *value)
+ {
+     OPENSSL_STRING *ret;
+@@ -147,7 +147,7 @@ OPENSSL_STRING *TXT_DB_get_by_index(TXT_DB *db, int idx,
+     return ret;
+ }
+ 
+-int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
++int __cdecl TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
+                         OPENSSL_LH_HASHFUNC hash, OPENSSL_LH_COMPFUNC cmp)
+ {
+     LHASH_OF(OPENSSL_STRING) *idx;
+@@ -187,7 +187,7 @@ int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
+     return 1;
+ }
+ 
+-long TXT_DB_write(BIO *out, TXT_DB *db)
++long __cdecl TXT_DB_write(BIO *out, TXT_DB *db)
+ {
+     long i, j, n, nn, l, tot = 0;
+     char *p, **pp, *f;
+@@ -234,7 +234,7 @@ long TXT_DB_write(BIO *out, TXT_DB *db)
+     return ret;
+ }
+ 
+-int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
++int __cdecl TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
+ {
+     int i;
+     OPENSSL_STRING *r;
+@@ -279,7 +279,7 @@ int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *row)
+     return 0;
+ }
+ 
+-void TXT_DB_free(TXT_DB *db)
++void __cdecl TXT_DB_free(TXT_DB *db)
+ {
+     int i, n;
+     char **p, *max;
 diff --git a/crypto/ui/ui_lib.c b/crypto/ui/ui_lib.c
 index f550972d3e..a30b5d2ebe 100644
 --- a/crypto/ui/ui_lib.c
@@ -39007,6 +39079,31 @@ index 07f23339c8..5ccecabd5f 100644
  
  /*
   * TS function codes.
+diff --git a/include/openssl/txt_db.h b/include/openssl/txt_db.h
+index ec981a439f..81f1ded6ad 100644
+--- a/include/openssl/txt_db.h
++++ b/include/openssl/txt_db.h
+@@ -41,14 +41,14 @@ typedef struct txt_db_st {
+     OPENSSL_STRING *arg_row;
+ } TXT_DB;
+ 
+-TXT_DB *TXT_DB_read(BIO *in, int num);
+-long TXT_DB_write(BIO *out, TXT_DB *db);
+-int TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
++TXT_DB * __cdecl TXT_DB_read(BIO *in, int num);
++long __cdecl TXT_DB_write(BIO *out, TXT_DB *db);
++int __cdecl TXT_DB_create_index(TXT_DB *db, int field, int (*qual) (OPENSSL_STRING *),
+                         OPENSSL_LH_HASHFUNC hash, OPENSSL_LH_COMPFUNC cmp);
+-void TXT_DB_free(TXT_DB *db);
+-OPENSSL_STRING *TXT_DB_get_by_index(TXT_DB *db, int idx,
++void __cdecl TXT_DB_free(TXT_DB *db);
++OPENSSL_STRING * __cdecl TXT_DB_get_by_index(TXT_DB *db, int idx,
+                                     OPENSSL_STRING *value);
+-int TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *value);
++int __cdecl TXT_DB_insert(TXT_DB *db, OPENSSL_STRING *value);
+ 
+ #ifdef  __cplusplus
+ }
 diff --git a/include/openssl/x509.h b/include/openssl/x509.h
 index 39ca0ba575..d2b7862f63 100644
 --- a/include/openssl/x509.h
