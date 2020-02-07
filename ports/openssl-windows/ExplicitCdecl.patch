@@ -1,3 +1,25 @@
+diff --git a/apps/cms.c b/apps/cms.c
+index 15edd67dbe..fc22cedc30 100644
+--- a/apps/cms.c
++++ b/apps/cms.c
+@@ -24,7 +24,7 @@
+ # include <openssl/cms.h>
+ 
+ static int save_certs(char *signerfile, STACK_OF(X509) *signers);
+-static int cms_cb(int ok, X509_STORE_CTX *ctx);
++static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx);
+ static void receipt_request_print(CMS_ContentInfo *cms);
+ static CMS_ReceiptRequest *make_receipt_request(STACK_OF(OPENSSL_STRING)
+                                                 *rr_to, int rr_allorfirst, STACK_OF(OPENSSL_STRING)
+@@ -1129,7 +1129,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
+ 
+ /* Minimal callback just to output policy info (if any) */
+ 
+-static int cms_cb(int ok, X509_STORE_CTX *ctx)
++static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx)
+ {
+     int error;
+ 
 diff --git a/apps/openssl.c b/apps/openssl.c
 index 9648f35b02..f2e2fc5676 100644
 --- a/apps/openssl.c
@@ -43,10 +65,19 @@ index f9d6fba109..56e3603a99 100644
      return strcmp((const char *)a, (const char *)b);
  }
 diff --git a/apps/s_apps.h b/apps/s_apps.h
-index f94e659e71..dc524c1bce 100644
+index f94e659e71..7fa266e961 100644
 --- a/apps/s_apps.h
 +++ b/apps/s_apps.h
-@@ -33,7 +33,7 @@ int init_client(int *sock, const char *host, const char *port,
+@@ -19,7 +19,7 @@ int do_server(int *accept_sock, const char *host, const char *port,
+               int family, int type, int protocol, do_server_cb cb,
+               unsigned char *context, int naccept, BIO *bio_s_out);
+ 
+-int verify_callback(int ok, X509_STORE_CTX *ctx);
++int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx);
+ 
+ int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file);
+ int set_cert_key_stuff(SSL_CTX *ctx, X509 *cert, EVP_PKEY *key,
+@@ -33,10 +33,10 @@ int init_client(int *sock, const char *host, const char *port,
                  int family, int type, int protocol);
  int should_retry(int i);
  
@@ -54,11 +85,24 @@ index f94e659e71..dc524c1bce 100644
 +long __cdecl bio_dump_callback(BIO *bio, int cmd, const char *argp,
                         int argi, long argl, long ret);
  
- void apps_ssl_info_callback(const SSL *s, int where, int ret);
+-void apps_ssl_info_callback(const SSL *s, int where, int ret);
++void __cdecl apps_ssl_info_callback(const SSL *s, int where, int ret);
+ void msg_cb(int write_p, int version, int content_type, const void *buf,
+             size_t len, SSL *ssl, void *arg);
+ void tlsext_cb(SSL *s, int client_server, int type, const unsigned char *data,
 diff --git a/apps/s_cb.c b/apps/s_cb.c
-index 5dc1d03f28..a4c7143506 100644
+index 5dc1d03f28..869a318464 100644
 --- a/apps/s_cb.c
 +++ b/apps/s_cb.c
+@@ -40,7 +40,7 @@ static const char *lookup(int val, const STRINT_PAIR* list, const char* def)
+     return def;
+ }
+ 
+-int verify_callback(int ok, X509_STORE_CTX *ctx)
++int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx)
+ {
+     X509 *err_cert;
+     int err, depth;
 @@ -429,7 +429,7 @@ int ssl_print_tmp_key(BIO *out, SSL *s)
      return 1;
  }
@@ -68,6 +112,143 @@ index 5dc1d03f28..a4c7143506 100644
                         int argi, long argl, long ret)
  {
      BIO *out;
+@@ -451,7 +451,7 @@ long bio_dump_callback(BIO *bio, int cmd, const char *argp,
+     return ret;
+ }
+ 
+-void apps_ssl_info_callback(const SSL *s, int where, int ret)
++void __cdecl apps_ssl_info_callback(const SSL *s, int where, int ret)
+ {
+     const char *str;
+     int w;
+@@ -1315,7 +1315,7 @@ int ssl_load_stores(SSL_CTX *ctx,
+ typedef struct {
+     BIO *out;
+     int verbose;
+-    int (*old_cb) (const SSL *s, const SSL_CTX *ctx, int op, int bits, int nid,
++    int (__cdecl *old_cb) (const SSL *s, const SSL_CTX *ctx, int op, int bits, int nid,
+                    void *other, void *ex);
+ } security_debug_ex;
+ 
+@@ -1344,7 +1344,7 @@ static STRINT_PAIR callback_types[] = {
+     {NULL}
+ };
+ 
+-static int security_callback_debug(const SSL *s, const SSL_CTX *ctx,
++static int __cdecl security_callback_debug(const SSL *s, const SSL_CTX *ctx,
+                                    int op, int bits, int nid,
+                                    void *other, void *ex)
+ {
+diff --git a/apps/s_client.c b/apps/s_client.c
+index 26a6789d81..24902f2032 100644
+--- a/apps/s_client.c
++++ b/apps/s_client.c
+@@ -847,7 +847,7 @@ static void freeandcopy(char **dest, const char *source)
+         *dest = OPENSSL_strdup(source);
+ }
+ 
+-static int new_session_cb(SSL *s, SSL_SESSION *sess)
++static int __cdecl new_session_cb(SSL *s, SSL_SESSION *sess)
+ {
+ 
+     if (sess_out != NULL) {
+diff --git a/apps/s_server.c b/apps/s_server.c
+index 929a08bd85..1fa254698d 100644
+--- a/apps/s_server.c
++++ b/apps/s_server.c
+@@ -3530,7 +3530,7 @@ typedef struct simple_ssl_session_st {
+ 
+ static simple_ssl_session *first = NULL;
+ 
+-static int add_session(SSL *ssl, SSL_SESSION *session)
++static int __cdecl add_session(SSL *ssl, SSL_SESSION *session)
+ {
+     simple_ssl_session *sess = app_malloc(sizeof(*sess), "get session");
+     unsigned char *p;
+@@ -3569,7 +3569,7 @@ static int add_session(SSL *ssl, SSL_SESSION *session)
+     return 0;
+ }
+ 
+-static SSL_SESSION *get_session(SSL *ssl, const unsigned char *id, int idlen,
++static SSL_SESSION * __cdecl get_session(SSL *ssl, const unsigned char *id, int idlen,
+                                 int *do_copy)
+ {
+     simple_ssl_session *sess;
+@@ -3585,7 +3585,7 @@ static SSL_SESSION *get_session(SSL *ssl, const unsigned char *id, int idlen,
+     return NULL;
+ }
+ 
+-static void del_session(SSL_CTX *sctx, SSL_SESSION *session)
++static void __cdecl del_session(SSL_CTX *sctx, SSL_SESSION *session)
+ {
+     simple_ssl_session *sess, *prev = NULL;
+     const unsigned char *id;
+diff --git a/apps/smime.c b/apps/smime.c
+index 6fd473775f..394951814f 100644
+--- a/apps/smime.c
++++ b/apps/smime.c
+@@ -20,7 +20,7 @@
+ #include <openssl/x509v3.h>
+ 
+ static int save_certs(char *signerfile, STACK_OF(X509) *signers);
+-static int smime_cb(int ok, X509_STORE_CTX *ctx);
++static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx);
+ 
+ #define SMIME_OP        0x10
+ #define SMIME_IP        0x20
+@@ -631,7 +631,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
+ 
+ /* Minimal callback just to output policy info (if any) */
+ 
+-static int smime_cb(int ok, X509_STORE_CTX *ctx)
++static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx)
+ {
+     int error;
+ 
+diff --git a/apps/ts.c b/apps/ts.c
+index 930c1daaab..5c3bcc4879 100644
+--- a/apps/ts.c
++++ b/apps/ts.c
+@@ -75,7 +75,7 @@ static TS_VERIFY_CTX *create_verify_ctx(const char *data, const char *digest,
+                                         X509_VERIFY_PARAM *vpm);
+ static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
+                                      X509_VERIFY_PARAM *vpm);
+-static int verify_cb(int ok, X509_STORE_CTX *ctx);
++static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx);
+ 
+ typedef enum OPTION_choice {
+     OPT_ERR = -1, OPT_EOF = 0, OPT_HELP,
+@@ -979,7 +979,7 @@ static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
+     return NULL;
+ }
+ 
+-static int verify_cb(int ok, X509_STORE_CTX *ctx)
++static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx)
+ {
+     return ok;
+ }
+diff --git a/apps/verify.c b/apps/verify.c
+index 1f93856060..e3f3703343 100644
+--- a/apps/verify.c
++++ b/apps/verify.c
+@@ -18,7 +18,7 @@
+ #include <openssl/x509v3.h>
+ #include <openssl/pem.h>
+ 
+-static int cb(int ok, X509_STORE_CTX *ctx);
++static int __cdecl cb(int ok, X509_STORE_CTX *ctx);
+ static int check(X509_STORE *ctx, const char *file,
+                  STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
+                  STACK_OF(X509_CRL) *crls, int show_chain);
+@@ -269,7 +269,7 @@ static int check(X509_STORE *ctx, const char *file,
+     return ret;
+ }
+ 
+-static int cb(int ok, X509_STORE_CTX *ctx)
++static int __cdecl cb(int ok, X509_STORE_CTX *ctx)
+ {
+     int cert_error = X509_STORE_CTX_get_error(ctx);
+     X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
 diff --git a/apps/win32_init.c b/apps/win32_init.c
 index df4bff41a2..b8436cc54f 100644
 --- a/apps/win32_init.c
@@ -81,6 +262,28 @@ index df4bff41a2..b8436cc54f 100644
  {
      int i;
  
+diff --git a/apps/x509.c b/apps/x509.c
+index 81291a9a4f..be15a68f04 100644
+--- a/apps/x509.c
++++ b/apps/x509.c
+@@ -32,7 +32,7 @@
+ #define POSTFIX ".srl"
+ #define DEF_DAYS        30
+ 
+-static int callb(int ok, X509_STORE_CTX *ctx);
++static int __cdecl callb(int ok, X509_STORE_CTX *ctx);
+ static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
+                 const EVP_MD *digest, CONF *conf, const char *section,
+                 int preserve_dates);
+@@ -1021,7 +1021,7 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
+     return ret;
+ }
+ 
+-static int callb(int ok, X509_STORE_CTX *ctx)
++static int __cdecl callb(int ok, X509_STORE_CTX *ctx)
+ {
+     int err;
+     X509 *err_cert;
 diff --git a/crypto/aes/aes_cbc.c b/crypto/aes/aes_cbc.c
 index 342841fc4f..01061c06f4 100644
 --- a/crypto/aes/aes_cbc.c
@@ -16510,6 +16713,19 @@ index 27eb471c28..f9fda6966d 100644
  
  void sm3_block_data_order(SM3_CTX *c, const void *p, size_t num);
  
+diff --git a/crypto/include/internal/x509_int.h b/crypto/include/internal/x509_int.h
+index b53c2b03c3..27f416c0f6 100644
+--- a/crypto/include/internal/x509_int.h
++++ b/crypto/include/internal/x509_int.h
+@@ -206,7 +206,7 @@ struct x509_store_ctx_st {      /* X509_STORE_CTX */
+     /* called to verify a certificate */
+     int (*verify) (X509_STORE_CTX *ctx);
+     /* error callback */
+-    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
++    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
+     /* get issuers cert from ctx */
+     int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
+     /* check issued */
 diff --git a/crypto/init.c b/crypto/init.c
 index 9fc0e8ef68..c87de50e62 100644
 --- a/crypto/init.c
@@ -24526,6 +24742,19 @@ index b691a83a0d..0070026868 100644
  {
      OPENSSL_free(ent->dir);
      sk_BY_DIR_HASH_pop_free(ent->hashes, by_dir_hash_free);
+diff --git a/crypto/x509/x509_lcl.h b/crypto/x509/x509_lcl.h
+index c517a77456..85b3aa04b9 100644
+--- a/crypto/x509/x509_lcl.h
++++ b/crypto/x509/x509_lcl.h
+@@ -113,7 +113,7 @@ struct x509_store_st {
+     /* called to verify a certificate */
+     int (*verify) (X509_STORE_CTX *ctx);
+     /* error callback */
+-    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
++    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
+     /* get issuers cert from ctx */
+     int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
+     /* check issued */
 diff --git a/crypto/x509/x509_lu.c b/crypto/x509/x509_lu.c
 index b7d2e66574..9c5b36cabc 100644
 --- a/crypto/x509/x509_lu.c
@@ -24581,6 +24810,28 @@ index d749af4d59..7ca429180f 100644
  {
      if (!p)
          return;
+diff --git a/crypto/x509/x509_vfy.c b/crypto/x509/x509_vfy.c
+index 6be2c71e86..a7d0d135a3 100644
+--- a/crypto/x509/x509_vfy.c
++++ b/crypto/x509/x509_vfy.c
+@@ -66,7 +66,7 @@
+ static int build_chain(X509_STORE_CTX *ctx);
+ static int verify_chain(X509_STORE_CTX *ctx);
+ static int dane_verify(X509_STORE_CTX *ctx);
+-static int null_callback(int ok, X509_STORE_CTX *e);
++static int __cdecl null_callback(int ok, X509_STORE_CTX *e);
+ static int check_issued(X509_STORE_CTX *ctx, X509 *x, X509 *issuer);
+ static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x);
+ static int check_chain_extensions(X509_STORE_CTX *ctx);
+@@ -99,7 +99,7 @@ static int check_crl_chain(X509_STORE_CTX *ctx,
+ 
+ static int internal_verify(X509_STORE_CTX *ctx);
+ 
+-static int null_callback(int ok, X509_STORE_CTX *e)
++static int __cdecl null_callback(int ok, X509_STORE_CTX *e)
+ {
+     return ok;
+ }
 diff --git a/crypto/x509/x509_vpm.c b/crypto/x509/x509_vpm.c
 index aea186295c..2a354ce00c 100644
 --- a/crypto/x509/x509_vpm.c
@@ -35501,1798 +35752,7 @@ index 0b57c2356c..6bad149e05 100644
  # endif
  
 diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
-index 6724ccf2d2..d6717a06d4 100644
---- a/include/openssl/ssl.h
-+++ b/include/openssl/ssl.h
-@@ -1648,7 +1648,7 @@ __owur int SSL_SESSION_set1_id(SSL_SESSION *s, const unsigned char *sid,
-                                unsigned int sid_len);
- __owur int SSL_SESSION_is_resumable(const SSL_SESSION *s);
- 
--__owur SSL_SESSION *SSL_SESSION_new(void);
-+__owur SSL_SESSION * __cdecl SSL_SESSION_new(void);
- __owur SSL_SESSION *SSL_SESSION_dup(SSL_SESSION *src);
- const unsigned char *SSL_SESSION_get_id(const SSL_SESSION *s,
-                                         unsigned int *len);
-@@ -1662,7 +1662,7 @@ int SSL_SESSION_print(BIO *fp, const SSL_SESSION *ses);
- int SSL_SESSION_print_keylog(BIO *bp, const SSL_SESSION *x);
- int SSL_SESSION_up_ref(SSL_SESSION *ses);
- void SSL_SESSION_free(SSL_SESSION *ses);
--__owur int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
-+__owur int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
- __owur int SSL_set_session(SSL *to, SSL_SESSION *session);
- int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
- int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
-@@ -1671,7 +1671,7 @@ __owur int SSL_set_generate_session_id(SSL *s, GEN_SESSION_CB cb);
- __owur int SSL_has_matching_session_id(const SSL *s,
-                                        const unsigned char *id,
-                                        unsigned int id_len);
--SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
-+SSL_SESSION * __cdecl d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
-                              long length);
- 
- # ifdef HEADER_X509_H
-diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index cfc075057a..e71b68d81a 100644
---- a/include/openssl/stack.h
-+++ b/include/openssl/stack.h
-@@ -16,12 +16,12 @@ extern "C" {
- 
- typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
- 
--typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
--typedef void (*OPENSSL_sk_freefunc)(void *);
--typedef void *(*OPENSSL_sk_copyfunc)(const void *);
-+typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
-+typedef void (__cdecl *OPENSSL_sk_freefunc)(void *);
-+typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
- 
--int OPENSSL_sk_num(const OPENSSL_STACK *);
--void *OPENSSL_sk_value(const OPENSSL_STACK *, int);
-+int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
-+void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
- 
- void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
- 
-@@ -30,7 +30,7 @@ OPENSSL_STACK *OPENSSL_sk_new_null(void);
- OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
- int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
- void OPENSSL_sk_free(OPENSSL_STACK *);
--void OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (*func) (void *));
-+void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
- OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
-                                     OPENSSL_sk_copyfunc c,
-                                     OPENSSL_sk_freefunc f);
-diff --git a/include/openssl/store.h b/include/openssl/store.h
-index a40a7339e6..00b9ad2a3a 100644
---- a/include/openssl/store.h
-+++ b/include/openssl/store.h
-@@ -149,7 +149,7 @@ const char *OSSL_STORE_INFO_type_string(int type);
- /*
-  * Free the OSSL_STORE_INFO
-  */
--void OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
-+void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
- 
- 
- /*-
-diff --git a/include/openssl/ts.h b/include/openssl/ts.h
-index 3b58aa527e..2fa90dbfea 100644
---- a/include/openssl/ts.h
-+++ b/include/openssl/ts.h
-@@ -68,216 +68,216 @@ DEFINE_STACK_OF(ESS_CERT_ID_V2)
- 
- typedef struct TS_resp_st TS_RESP;
- 
--TS_REQ *TS_REQ_new(void);
--void TS_REQ_free(TS_REQ *a);
--int i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
--TS_REQ *d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
-+TS_REQ * __cdecl TS_REQ_new(void);
-+void __cdecl TS_REQ_free(TS_REQ *a);
-+int __cdecl i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
-+TS_REQ * __cdecl d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
- 
--TS_REQ *TS_REQ_dup(TS_REQ *a);
-+TS_REQ * __cdecl TS_REQ_dup(TS_REQ *a);
- 
- #ifndef OPENSSL_NO_STDIO
--TS_REQ *d2i_TS_REQ_fp(FILE *fp, TS_REQ **a);
--int i2d_TS_REQ_fp(FILE *fp, TS_REQ *a);
-+TS_REQ * __cdecl d2i_TS_REQ_fp(FILE *fp, TS_REQ **a);
-+int __cdecl i2d_TS_REQ_fp(FILE *fp, TS_REQ *a);
- #endif
--TS_REQ *d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
--int i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
-+TS_REQ * __cdecl d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
-+int __cdecl i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
- 
--TS_MSG_IMPRINT *TS_MSG_IMPRINT_new(void);
--void TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
--int i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
--TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
-+TS_MSG_IMPRINT * __cdecl TS_MSG_IMPRINT_new(void);
-+void __cdecl TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
-+int __cdecl i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
-+TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
-                                    const unsigned char **pp, long length);
- 
--TS_MSG_IMPRINT *TS_MSG_IMPRINT_dup(TS_MSG_IMPRINT *a);
-+TS_MSG_IMPRINT * __cdecl TS_MSG_IMPRINT_dup(TS_MSG_IMPRINT *a);
- 
- #ifndef OPENSSL_NO_STDIO
--TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a);
--int i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a);
-+TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a);
-+int __cdecl i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a);
- #endif
--TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT **a);
--int i2d_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT *a);
-+TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT **a);
-+int __cdecl i2d_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT *a);
- 
--TS_RESP *TS_RESP_new(void);
--void TS_RESP_free(TS_RESP *a);
--int i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
--TS_RESP *d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
--TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token);
--TS_RESP *TS_RESP_dup(TS_RESP *a);
-+TS_RESP * __cdecl TS_RESP_new(void);
-+void __cdecl TS_RESP_free(TS_RESP *a);
-+int __cdecl i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
-+TS_RESP * __cdecl d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
-+TS_TST_INFO * __cdecl PKCS7_to_TS_TST_INFO(PKCS7 *token);
-+TS_RESP * __cdecl TS_RESP_dup(TS_RESP *a);
- 
- #ifndef OPENSSL_NO_STDIO
--TS_RESP *d2i_TS_RESP_fp(FILE *fp, TS_RESP **a);
--int i2d_TS_RESP_fp(FILE *fp, TS_RESP *a);
-+TS_RESP * __cdecl d2i_TS_RESP_fp(FILE *fp, TS_RESP **a);
-+int __cdecl i2d_TS_RESP_fp(FILE *fp, TS_RESP *a);
- #endif
--TS_RESP *d2i_TS_RESP_bio(BIO *bio, TS_RESP **a);
--int i2d_TS_RESP_bio(BIO *bio, TS_RESP *a);
-+TS_RESP * __cdecl d2i_TS_RESP_bio(BIO *bio, TS_RESP **a);
-+int __cdecl i2d_TS_RESP_bio(BIO *bio, TS_RESP *a);
- 
--TS_STATUS_INFO *TS_STATUS_INFO_new(void);
--void TS_STATUS_INFO_free(TS_STATUS_INFO *a);
--int i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
--TS_STATUS_INFO *d2i_TS_STATUS_INFO(TS_STATUS_INFO **a,
-+TS_STATUS_INFO * __cdecl TS_STATUS_INFO_new(void);
-+void __cdecl TS_STATUS_INFO_free(TS_STATUS_INFO *a);
-+int __cdecl i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
-+TS_STATUS_INFO * __cdecl d2i_TS_STATUS_INFO(TS_STATUS_INFO **a,
-                                    const unsigned char **pp, long length);
--TS_STATUS_INFO *TS_STATUS_INFO_dup(TS_STATUS_INFO *a);
-+TS_STATUS_INFO * __cdecl TS_STATUS_INFO_dup(TS_STATUS_INFO *a);
- 
--TS_TST_INFO *TS_TST_INFO_new(void);
--void TS_TST_INFO_free(TS_TST_INFO *a);
--int i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
--TS_TST_INFO *d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
-+TS_TST_INFO * __cdecl TS_TST_INFO_new(void);
-+void __cdecl TS_TST_INFO_free(TS_TST_INFO *a);
-+int __cdecl i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
-+TS_TST_INFO * __cdecl d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
-                              long length);
--TS_TST_INFO *TS_TST_INFO_dup(TS_TST_INFO *a);
-+TS_TST_INFO * __cdecl TS_TST_INFO_dup(TS_TST_INFO *a);
- 
- #ifndef OPENSSL_NO_STDIO
--TS_TST_INFO *d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a);
--int i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a);
-+TS_TST_INFO * __cdecl d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a);
-+int __cdecl i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a);
- #endif
--TS_TST_INFO *d2i_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO **a);
--int i2d_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO *a);
-+TS_TST_INFO * __cdecl d2i_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO **a);
-+int __cdecl i2d_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO *a);
- 
--TS_ACCURACY *TS_ACCURACY_new(void);
--void TS_ACCURACY_free(TS_ACCURACY *a);
--int i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
--TS_ACCURACY *d2i_TS_ACCURACY(TS_ACCURACY **a, const unsigned char **pp,
-+TS_ACCURACY * __cdecl TS_ACCURACY_new(void);
-+void __cdecl TS_ACCURACY_free(TS_ACCURACY *a);
-+int __cdecl i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
-+TS_ACCURACY * __cdecl d2i_TS_ACCURACY(TS_ACCURACY **a, const unsigned char **pp,
-                              long length);
--TS_ACCURACY *TS_ACCURACY_dup(TS_ACCURACY *a);
-+TS_ACCURACY * __cdecl TS_ACCURACY_dup(TS_ACCURACY *a);
- 
--ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_new(void);
--void ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
--int i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
--ESS_ISSUER_SERIAL *d2i_ESS_ISSUER_SERIAL(ESS_ISSUER_SERIAL **a,
-+ESS_ISSUER_SERIAL * __cdecl ESS_ISSUER_SERIAL_new(void);
-+void __cdecl ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
-+int __cdecl i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
-+ESS_ISSUER_SERIAL * __cdecl d2i_ESS_ISSUER_SERIAL(ESS_ISSUER_SERIAL **a,
-                                          const unsigned char **pp,
-                                          long length);
--ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_dup(ESS_ISSUER_SERIAL *a);
-+ESS_ISSUER_SERIAL * __cdecl ESS_ISSUER_SERIAL_dup(ESS_ISSUER_SERIAL *a);
- 
--ESS_CERT_ID *ESS_CERT_ID_new(void);
--void ESS_CERT_ID_free(ESS_CERT_ID *a);
--int i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
--ESS_CERT_ID *d2i_ESS_CERT_ID(ESS_CERT_ID **a, const unsigned char **pp,
-+ESS_CERT_ID * __cdecl ESS_CERT_ID_new(void);
-+void __cdecl ESS_CERT_ID_free(ESS_CERT_ID *a);
-+int __cdecl i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
-+ESS_CERT_ID * __cdecl d2i_ESS_CERT_ID(ESS_CERT_ID **a, const unsigned char **pp,
-                              long length);
--ESS_CERT_ID *ESS_CERT_ID_dup(ESS_CERT_ID *a);
-+ESS_CERT_ID * __cdecl ESS_CERT_ID_dup(ESS_CERT_ID *a);
- 
--ESS_SIGNING_CERT *ESS_SIGNING_CERT_new(void);
--void ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
--int i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
--ESS_SIGNING_CERT *d2i_ESS_SIGNING_CERT(ESS_SIGNING_CERT **a,
-+ESS_SIGNING_CERT * __cdecl ESS_SIGNING_CERT_new(void);
-+void __cdecl ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
-+int __cdecl i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
-+ESS_SIGNING_CERT * __cdecl d2i_ESS_SIGNING_CERT(ESS_SIGNING_CERT **a,
-                                        const unsigned char **pp, long length);
--ESS_SIGNING_CERT *ESS_SIGNING_CERT_dup(ESS_SIGNING_CERT *a);
-+ESS_SIGNING_CERT * __cdecl ESS_SIGNING_CERT_dup(ESS_SIGNING_CERT *a);
- 
--ESS_CERT_ID_V2 *ESS_CERT_ID_V2_new(void);
--void ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
--int i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
--ESS_CERT_ID_V2 *d2i_ESS_CERT_ID_V2(ESS_CERT_ID_V2 **a,
-+ESS_CERT_ID_V2 * __cdecl ESS_CERT_ID_V2_new(void);
-+void __cdecl ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
-+int __cdecl i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
-+ESS_CERT_ID_V2 * __cdecl d2i_ESS_CERT_ID_V2(ESS_CERT_ID_V2 **a,
-                                    const unsigned char **pp, long length);
--ESS_CERT_ID_V2 *ESS_CERT_ID_V2_dup(ESS_CERT_ID_V2 *a);
-+ESS_CERT_ID_V2 * __cdecl ESS_CERT_ID_V2_dup(ESS_CERT_ID_V2 *a);
- 
--ESS_SIGNING_CERT_V2 *ESS_SIGNING_CERT_V2_new(void);
--void ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
--int i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
--ESS_SIGNING_CERT_V2 *d2i_ESS_SIGNING_CERT_V2(ESS_SIGNING_CERT_V2 **a,
-+ESS_SIGNING_CERT_V2 * __cdecl ESS_SIGNING_CERT_V2_new(void);
-+void __cdecl ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
-+int __cdecl i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
-+ESS_SIGNING_CERT_V2 * __cdecl d2i_ESS_SIGNING_CERT_V2(ESS_SIGNING_CERT_V2 **a,
-                                              const unsigned char **pp,
-                                              long length);
--ESS_SIGNING_CERT_V2 *ESS_SIGNING_CERT_V2_dup(ESS_SIGNING_CERT_V2 *a);
-+ESS_SIGNING_CERT_V2 * __cdecl ESS_SIGNING_CERT_V2_dup(ESS_SIGNING_CERT_V2 *a);
- 
--int TS_REQ_set_version(TS_REQ *a, long version);
--long TS_REQ_get_version(const TS_REQ *a);
-+int __cdecl TS_REQ_set_version(TS_REQ *a, long version);
-+long __cdecl TS_REQ_get_version(const TS_REQ *a);
- 
--int TS_STATUS_INFO_set_status(TS_STATUS_INFO *a, int i);
--const ASN1_INTEGER *TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a);
-+int __cdecl TS_STATUS_INFO_set_status(TS_STATUS_INFO *a, int i);
-+const ASN1_INTEGER * __cdecl TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a);
- 
- const STACK_OF(ASN1_UTF8STRING) *
--TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a);
-+__cdecl TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a);
- 
- const ASN1_BIT_STRING *
--TS_STATUS_INFO_get0_failure_info(const TS_STATUS_INFO *a);
-+__cdecl TS_STATUS_INFO_get0_failure_info(const TS_STATUS_INFO *a);
- 
--int TS_REQ_set_msg_imprint(TS_REQ *a, TS_MSG_IMPRINT *msg_imprint);
--TS_MSG_IMPRINT *TS_REQ_get_msg_imprint(TS_REQ *a);
-+int __cdecl TS_REQ_set_msg_imprint(TS_REQ *a, TS_MSG_IMPRINT *msg_imprint);
-+TS_MSG_IMPRINT * __cdecl TS_REQ_get_msg_imprint(TS_REQ *a);
- 
--int TS_MSG_IMPRINT_set_algo(TS_MSG_IMPRINT *a, X509_ALGOR *alg);
--X509_ALGOR *TS_MSG_IMPRINT_get_algo(TS_MSG_IMPRINT *a);
-+int __cdecl TS_MSG_IMPRINT_set_algo(TS_MSG_IMPRINT *a, X509_ALGOR *alg);
-+X509_ALGOR * __cdecl TS_MSG_IMPRINT_get_algo(TS_MSG_IMPRINT *a);
- 
--int TS_MSG_IMPRINT_set_msg(TS_MSG_IMPRINT *a, unsigned char *d, int len);
--ASN1_OCTET_STRING *TS_MSG_IMPRINT_get_msg(TS_MSG_IMPRINT *a);
-+int __cdecl TS_MSG_IMPRINT_set_msg(TS_MSG_IMPRINT *a, unsigned char *d, int len);
-+ASN1_OCTET_STRING * __cdecl TS_MSG_IMPRINT_get_msg(TS_MSG_IMPRINT *a);
- 
--int TS_REQ_set_policy_id(TS_REQ *a, const ASN1_OBJECT *policy);
--ASN1_OBJECT *TS_REQ_get_policy_id(TS_REQ *a);
-+int __cdecl TS_REQ_set_policy_id(TS_REQ *a, const ASN1_OBJECT *policy);
-+ASN1_OBJECT * __cdecl TS_REQ_get_policy_id(TS_REQ *a);
- 
--int TS_REQ_set_nonce(TS_REQ *a, const ASN1_INTEGER *nonce);
--const ASN1_INTEGER *TS_REQ_get_nonce(const TS_REQ *a);
-+int __cdecl TS_REQ_set_nonce(TS_REQ *a, const ASN1_INTEGER *nonce);
-+const ASN1_INTEGER * __cdecl TS_REQ_get_nonce(const TS_REQ *a);
- 
--int TS_REQ_set_cert_req(TS_REQ *a, int cert_req);
--int TS_REQ_get_cert_req(const TS_REQ *a);
-+int __cdecl TS_REQ_set_cert_req(TS_REQ *a, int cert_req);
-+int __cdecl TS_REQ_get_cert_req(const TS_REQ *a);
- 
--STACK_OF(X509_EXTENSION) *TS_REQ_get_exts(TS_REQ *a);
--void TS_REQ_ext_free(TS_REQ *a);
--int TS_REQ_get_ext_count(TS_REQ *a);
--int TS_REQ_get_ext_by_NID(TS_REQ *a, int nid, int lastpos);
--int TS_REQ_get_ext_by_OBJ(TS_REQ *a, const ASN1_OBJECT *obj, int lastpos);
--int TS_REQ_get_ext_by_critical(TS_REQ *a, int crit, int lastpos);
--X509_EXTENSION *TS_REQ_get_ext(TS_REQ *a, int loc);
--X509_EXTENSION *TS_REQ_delete_ext(TS_REQ *a, int loc);
--int TS_REQ_add_ext(TS_REQ *a, X509_EXTENSION *ex, int loc);
--void *TS_REQ_get_ext_d2i(TS_REQ *a, int nid, int *crit, int *idx);
-+STACK_OF(X509_EXTENSION) * __cdecl TS_REQ_get_exts(TS_REQ *a);
-+void __cdecl TS_REQ_ext_free(TS_REQ *a);
-+int __cdecl TS_REQ_get_ext_count(TS_REQ *a);
-+int __cdecl TS_REQ_get_ext_by_NID(TS_REQ *a, int nid, int lastpos);
-+int __cdecl TS_REQ_get_ext_by_OBJ(TS_REQ *a, const ASN1_OBJECT *obj, int lastpos);
-+int __cdecl TS_REQ_get_ext_by_critical(TS_REQ *a, int crit, int lastpos);
-+X509_EXTENSION * __cdecl TS_REQ_get_ext(TS_REQ *a, int loc);
-+X509_EXTENSION * __cdecl TS_REQ_delete_ext(TS_REQ *a, int loc);
-+int __cdecl TS_REQ_add_ext(TS_REQ *a, X509_EXTENSION *ex, int loc);
-+void * __cdecl TS_REQ_get_ext_d2i(TS_REQ *a, int nid, int *crit, int *idx);
- 
- /* Function declarations for TS_REQ defined in ts/ts_req_print.c */
- 
--int TS_REQ_print_bio(BIO *bio, TS_REQ *a);
-+int __cdecl TS_REQ_print_bio(BIO *bio, TS_REQ *a);
- 
- /* Function declarations for TS_RESP defined in ts/ts_resp_utils.c */
- 
--int TS_RESP_set_status_info(TS_RESP *a, TS_STATUS_INFO *info);
--TS_STATUS_INFO *TS_RESP_get_status_info(TS_RESP *a);
-+int __cdecl TS_RESP_set_status_info(TS_RESP *a, TS_STATUS_INFO *info);
-+TS_STATUS_INFO * __cdecl TS_RESP_get_status_info(TS_RESP *a);
- 
- /* Caller loses ownership of PKCS7 and TS_TST_INFO objects. */
--void TS_RESP_set_tst_info(TS_RESP *a, PKCS7 *p7, TS_TST_INFO *tst_info);
--PKCS7 *TS_RESP_get_token(TS_RESP *a);
--TS_TST_INFO *TS_RESP_get_tst_info(TS_RESP *a);
-+void __cdecl TS_RESP_set_tst_info(TS_RESP *a, PKCS7 *p7, TS_TST_INFO *tst_info);
-+PKCS7 * __cdecl TS_RESP_get_token(TS_RESP *a);
-+TS_TST_INFO * __cdecl TS_RESP_get_tst_info(TS_RESP *a);
- 
--int TS_TST_INFO_set_version(TS_TST_INFO *a, long version);
--long TS_TST_INFO_get_version(const TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_version(TS_TST_INFO *a, long version);
-+long __cdecl TS_TST_INFO_get_version(const TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_policy_id(TS_TST_INFO *a, ASN1_OBJECT *policy_id);
--ASN1_OBJECT *TS_TST_INFO_get_policy_id(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_policy_id(TS_TST_INFO *a, ASN1_OBJECT *policy_id);
-+ASN1_OBJECT * __cdecl TS_TST_INFO_get_policy_id(TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_msg_imprint(TS_TST_INFO *a, TS_MSG_IMPRINT *msg_imprint);
--TS_MSG_IMPRINT *TS_TST_INFO_get_msg_imprint(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_msg_imprint(TS_TST_INFO *a, TS_MSG_IMPRINT *msg_imprint);
-+TS_MSG_IMPRINT * __cdecl TS_TST_INFO_get_msg_imprint(TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_serial(TS_TST_INFO *a, const ASN1_INTEGER *serial);
--const ASN1_INTEGER *TS_TST_INFO_get_serial(const TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_serial(TS_TST_INFO *a, const ASN1_INTEGER *serial);
-+const ASN1_INTEGER * __cdecl TS_TST_INFO_get_serial(const TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_time(TS_TST_INFO *a, const ASN1_GENERALIZEDTIME *gtime);
--const ASN1_GENERALIZEDTIME *TS_TST_INFO_get_time(const TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_time(TS_TST_INFO *a, const ASN1_GENERALIZEDTIME *gtime);
-+const ASN1_GENERALIZEDTIME * __cdecl TS_TST_INFO_get_time(const TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_accuracy(TS_TST_INFO *a, TS_ACCURACY *accuracy);
--TS_ACCURACY *TS_TST_INFO_get_accuracy(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_accuracy(TS_TST_INFO *a, TS_ACCURACY *accuracy);
-+TS_ACCURACY * __cdecl TS_TST_INFO_get_accuracy(TS_TST_INFO *a);
- 
--int TS_ACCURACY_set_seconds(TS_ACCURACY *a, const ASN1_INTEGER *seconds);
--const ASN1_INTEGER *TS_ACCURACY_get_seconds(const TS_ACCURACY *a);
-+int __cdecl TS_ACCURACY_set_seconds(TS_ACCURACY *a, const ASN1_INTEGER *seconds);
-+const ASN1_INTEGER * __cdecl TS_ACCURACY_get_seconds(const TS_ACCURACY *a);
- 
--int TS_ACCURACY_set_millis(TS_ACCURACY *a, const ASN1_INTEGER *millis);
--const ASN1_INTEGER *TS_ACCURACY_get_millis(const TS_ACCURACY *a);
-+int __cdecl TS_ACCURACY_set_millis(TS_ACCURACY *a, const ASN1_INTEGER *millis);
-+const ASN1_INTEGER * __cdecl TS_ACCURACY_get_millis(const TS_ACCURACY *a);
- 
--int TS_ACCURACY_set_micros(TS_ACCURACY *a, const ASN1_INTEGER *micros);
--const ASN1_INTEGER *TS_ACCURACY_get_micros(const TS_ACCURACY *a);
-+int __cdecl TS_ACCURACY_set_micros(TS_ACCURACY *a, const ASN1_INTEGER *micros);
-+const ASN1_INTEGER * __cdecl TS_ACCURACY_get_micros(const TS_ACCURACY *a);
- 
--int TS_TST_INFO_set_ordering(TS_TST_INFO *a, int ordering);
--int TS_TST_INFO_get_ordering(const TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_ordering(TS_TST_INFO *a, int ordering);
-+int __cdecl TS_TST_INFO_get_ordering(const TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_nonce(TS_TST_INFO *a, const ASN1_INTEGER *nonce);
--const ASN1_INTEGER *TS_TST_INFO_get_nonce(const TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_nonce(TS_TST_INFO *a, const ASN1_INTEGER *nonce);
-+const ASN1_INTEGER * __cdecl TS_TST_INFO_get_nonce(const TS_TST_INFO *a);
- 
--int TS_TST_INFO_set_tsa(TS_TST_INFO *a, GENERAL_NAME *tsa);
--GENERAL_NAME *TS_TST_INFO_get_tsa(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_set_tsa(TS_TST_INFO *a, GENERAL_NAME *tsa);
-+GENERAL_NAME * __cdecl TS_TST_INFO_get_tsa(TS_TST_INFO *a);
- 
--STACK_OF(X509_EXTENSION) *TS_TST_INFO_get_exts(TS_TST_INFO *a);
--void TS_TST_INFO_ext_free(TS_TST_INFO *a);
--int TS_TST_INFO_get_ext_count(TS_TST_INFO *a);
--int TS_TST_INFO_get_ext_by_NID(TS_TST_INFO *a, int nid, int lastpos);
--int TS_TST_INFO_get_ext_by_OBJ(TS_TST_INFO *a, const ASN1_OBJECT *obj,
-+STACK_OF(X509_EXTENSION) * __cdecl TS_TST_INFO_get_exts(TS_TST_INFO *a);
-+void __cdecl TS_TST_INFO_ext_free(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_get_ext_count(TS_TST_INFO *a);
-+int __cdecl TS_TST_INFO_get_ext_by_NID(TS_TST_INFO *a, int nid, int lastpos);
-+int __cdecl TS_TST_INFO_get_ext_by_OBJ(TS_TST_INFO *a, const ASN1_OBJECT *obj,
-                                int lastpos);
--int TS_TST_INFO_get_ext_by_critical(TS_TST_INFO *a, int crit, int lastpos);
--X509_EXTENSION *TS_TST_INFO_get_ext(TS_TST_INFO *a, int loc);
--X509_EXTENSION *TS_TST_INFO_delete_ext(TS_TST_INFO *a, int loc);
--int TS_TST_INFO_add_ext(TS_TST_INFO *a, X509_EXTENSION *ex, int loc);
--void *TS_TST_INFO_get_ext_d2i(TS_TST_INFO *a, int nid, int *crit, int *idx);
-+int __cdecl TS_TST_INFO_get_ext_by_critical(TS_TST_INFO *a, int crit, int lastpos);
-+X509_EXTENSION * __cdecl TS_TST_INFO_get_ext(TS_TST_INFO *a, int loc);
-+X509_EXTENSION * __cdecl TS_TST_INFO_delete_ext(TS_TST_INFO *a, int loc);
-+int __cdecl TS_TST_INFO_add_ext(TS_TST_INFO *a, X509_EXTENSION *ex, int loc);
-+void * __cdecl TS_TST_INFO_get_ext_d2i(TS_TST_INFO *a, int nid, int *crit, int *idx);
- 
- /*
-  * Declarations related to response generation, defined in ts/ts_resp_sign.c.
-@@ -325,46 +325,46 @@ typedef struct TS_resp_ctx TS_RESP_CTX;
- DEFINE_STACK_OF_CONST(EVP_MD)
- 
- /* Creates a response context that can be used for generating responses. */
--TS_RESP_CTX *TS_RESP_CTX_new(void);
--void TS_RESP_CTX_free(TS_RESP_CTX *ctx);
-+TS_RESP_CTX * __cdecl TS_RESP_CTX_new(void);
-+void __cdecl TS_RESP_CTX_free(TS_RESP_CTX *ctx);
- 
- /* This parameter must be set. */
--int TS_RESP_CTX_set_signer_cert(TS_RESP_CTX *ctx, X509 *signer);
-+int __cdecl TS_RESP_CTX_set_signer_cert(TS_RESP_CTX *ctx, X509 *signer);
- 
- /* This parameter must be set. */
--int TS_RESP_CTX_set_signer_key(TS_RESP_CTX *ctx, EVP_PKEY *key);
-+int __cdecl TS_RESP_CTX_set_signer_key(TS_RESP_CTX *ctx, EVP_PKEY *key);
- 
--int TS_RESP_CTX_set_signer_digest(TS_RESP_CTX *ctx,
-+int __cdecl TS_RESP_CTX_set_signer_digest(TS_RESP_CTX *ctx,
-                                   const EVP_MD *signer_digest);
--int TS_RESP_CTX_set_ess_cert_id_digest(TS_RESP_CTX *ctx, const EVP_MD *md);
-+int __cdecl TS_RESP_CTX_set_ess_cert_id_digest(TS_RESP_CTX *ctx, const EVP_MD *md);
- 
- /* This parameter must be set. */
--int TS_RESP_CTX_set_def_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *def_policy);
-+int __cdecl TS_RESP_CTX_set_def_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *def_policy);
- 
- /* No additional certs are included in the response by default. */
--int TS_RESP_CTX_set_certs(TS_RESP_CTX *ctx, STACK_OF(X509) *certs);
-+int __cdecl TS_RESP_CTX_set_certs(TS_RESP_CTX *ctx, STACK_OF(X509) *certs);
- 
- /*
-  * Adds a new acceptable policy, only the default policy is accepted by
-  * default.
-  */
--int TS_RESP_CTX_add_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *policy);
-+int __cdecl TS_RESP_CTX_add_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *policy);
- 
- /*
-  * Adds a new acceptable message digest. Note that no message digests are
-  * accepted by default. The md argument is shared with the caller.
-  */
--int TS_RESP_CTX_add_md(TS_RESP_CTX *ctx, const EVP_MD *md);
-+int __cdecl TS_RESP_CTX_add_md(TS_RESP_CTX *ctx, const EVP_MD *md);
- 
- /* Accuracy is not included by default. */
--int TS_RESP_CTX_set_accuracy(TS_RESP_CTX *ctx,
-+int __cdecl TS_RESP_CTX_set_accuracy(TS_RESP_CTX *ctx,
-                              int secs, int millis, int micros);
- 
- /*
-  * Clock precision digits, i.e. the number of decimal digits: '0' means sec,
-  * '3' msec, '6' usec, and so on. Default is 0.
-  */
--int TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
-+int __cdecl TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
-                                            unsigned clock_precision_digits);
- /* At most we accept usec precision. */
- # define TS_MAX_CLOCK_PRECISION_DIGITS   6
-@@ -373,50 +373,50 @@ int TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
- # define TS_MAX_STATUS_LENGTH   (1024 * 1024)
- 
- /* No flags are set by default. */
--void TS_RESP_CTX_add_flags(TS_RESP_CTX *ctx, int flags);
-+void __cdecl TS_RESP_CTX_add_flags(TS_RESP_CTX *ctx, int flags);
- 
- /* Default callback always returns a constant. */
--void TS_RESP_CTX_set_serial_cb(TS_RESP_CTX *ctx, TS_serial_cb cb, void *data);
-+void __cdecl TS_RESP_CTX_set_serial_cb(TS_RESP_CTX *ctx, TS_serial_cb cb, void *data);
- 
- /* Default callback uses the gettimeofday() and gmtime() system calls. */
--void TS_RESP_CTX_set_time_cb(TS_RESP_CTX *ctx, TS_time_cb cb, void *data);
-+void __cdecl TS_RESP_CTX_set_time_cb(TS_RESP_CTX *ctx, TS_time_cb cb, void *data);
- 
- /*
-  * Default callback rejects all extensions. The extension callback is called
-  * when the TS_TST_INFO object is already set up and not signed yet.
-  */
- /* FIXME: extension handling is not tested yet. */
--void TS_RESP_CTX_set_extension_cb(TS_RESP_CTX *ctx,
-+void __cdecl TS_RESP_CTX_set_extension_cb(TS_RESP_CTX *ctx,
-                                   TS_extension_cb cb, void *data);
- 
- /* The following methods can be used in the callbacks. */
--int TS_RESP_CTX_set_status_info(TS_RESP_CTX *ctx,
-+int __cdecl TS_RESP_CTX_set_status_info(TS_RESP_CTX *ctx,
-                                 int status, const char *text);
- 
- /* Sets the status info only if it is still TS_STATUS_GRANTED. */
--int TS_RESP_CTX_set_status_info_cond(TS_RESP_CTX *ctx,
-+int __cdecl TS_RESP_CTX_set_status_info_cond(TS_RESP_CTX *ctx,
-                                      int status, const char *text);
- 
--int TS_RESP_CTX_add_failure_info(TS_RESP_CTX *ctx, int failure);
-+int __cdecl TS_RESP_CTX_add_failure_info(TS_RESP_CTX *ctx, int failure);
- 
- /* The get methods below can be used in the extension callback. */
--TS_REQ *TS_RESP_CTX_get_request(TS_RESP_CTX *ctx);
-+TS_REQ * __cdecl TS_RESP_CTX_get_request(TS_RESP_CTX *ctx);
- 
--TS_TST_INFO *TS_RESP_CTX_get_tst_info(TS_RESP_CTX *ctx);
-+TS_TST_INFO * __cdecl TS_RESP_CTX_get_tst_info(TS_RESP_CTX *ctx);
- 
- /*
-  * Creates the signed TS_TST_INFO and puts it in TS_RESP.
-  * In case of errors it sets the status info properly.
-  * Returns NULL only in case of memory allocation/fatal error.
-  */
--TS_RESP *TS_RESP_create_response(TS_RESP_CTX *ctx, BIO *req_bio);
-+TS_RESP * __cdecl TS_RESP_create_response(TS_RESP_CTX *ctx, BIO *req_bio);
- 
- /*
-  * Declarations related to response verification,
-  * they are defined in ts/ts_resp_verify.c.
-  */
- 
--int TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
-+int __cdecl TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
-                              X509_STORE *store, X509 **signer_out);
- 
- /* Context structure for the generic verify method. */
-@@ -463,23 +463,23 @@ int TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
- 
- typedef struct TS_verify_ctx TS_VERIFY_CTX;
- 
--int TS_RESP_verify_response(TS_VERIFY_CTX *ctx, TS_RESP *response);
--int TS_RESP_verify_token(TS_VERIFY_CTX *ctx, PKCS7 *token);
-+int __cdecl TS_RESP_verify_response(TS_VERIFY_CTX *ctx, TS_RESP *response);
-+int __cdecl TS_RESP_verify_token(TS_VERIFY_CTX *ctx, PKCS7 *token);
- 
- /*
-  * Declarations related to response verification context,
-  */
--TS_VERIFY_CTX *TS_VERIFY_CTX_new(void);
--void TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx);
--void TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx);
--void TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx);
--int TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f);
--int TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f);
--BIO *TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b);
--unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
-+TS_VERIFY_CTX * __cdecl TS_VERIFY_CTX_new(void);
-+void __cdecl TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx);
-+void __cdecl TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx);
-+void __cdecl TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx);
-+int __cdecl TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f);
-+int __cdecl TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f);
-+BIO * __cdecl TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b);
-+unsigned char * __cdecl TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
-                                          unsigned char *hexstr, long len);
--X509_STORE *TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s);
--STACK_OF(X509) *TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs);
-+X509_STORE * __cdecl TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s);
-+STACK_OF(X509) * __cdecl TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs);
- 
- /*-
-  * If ctx is NULL, it allocates and returns a new object, otherwise
-@@ -497,59 +497,59 @@ STACK_OF(X509) *TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *cert
-  * tsa_name = NULL
-  * Important: after calling this method TS_VFY_SIGNATURE should be added!
-  */
--TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx);
-+TS_VERIFY_CTX * __cdecl TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx);
- 
- /* Function declarations for TS_RESP defined in ts/ts_resp_print.c */
- 
--int TS_RESP_print_bio(BIO *bio, TS_RESP *a);
--int TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a);
--int TS_TST_INFO_print_bio(BIO *bio, TS_TST_INFO *a);
-+int __cdecl TS_RESP_print_bio(BIO *bio, TS_RESP *a);
-+int __cdecl TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a);
-+int __cdecl TS_TST_INFO_print_bio(BIO *bio, TS_TST_INFO *a);
- 
- /* Common utility functions defined in ts/ts_lib.c */
- 
--int TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num);
--int TS_OBJ_print_bio(BIO *bio, const ASN1_OBJECT *obj);
--int TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions);
--int TS_X509_ALGOR_print_bio(BIO *bio, const X509_ALGOR *alg);
--int TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *msg);
-+int __cdecl TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num);
-+int __cdecl TS_OBJ_print_bio(BIO *bio, const ASN1_OBJECT *obj);
-+int __cdecl TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions);
-+int __cdecl TS_X509_ALGOR_print_bio(BIO *bio, const X509_ALGOR *alg);
-+int __cdecl TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *msg);
- 
- /*
-  * Function declarations for handling configuration options, defined in
-  * ts/ts_conf.c
-  */
- 
--X509 *TS_CONF_load_cert(const char *file);
--STACK_OF(X509) *TS_CONF_load_certs(const char *file);
--EVP_PKEY *TS_CONF_load_key(const char *file, const char *pass);
--const char *TS_CONF_get_tsa_section(CONF *conf, const char *section);
--int TS_CONF_set_serial(CONF *conf, const char *section, TS_serial_cb cb,
-+X509 * __cdecl TS_CONF_load_cert(const char *file);
-+STACK_OF(X509) * __cdecl TS_CONF_load_certs(const char *file);
-+EVP_PKEY * __cdecl TS_CONF_load_key(const char *file, const char *pass);
-+const char * __cdecl TS_CONF_get_tsa_section(CONF *conf, const char *section);
-+int __cdecl TS_CONF_set_serial(CONF *conf, const char *section, TS_serial_cb cb,
-                        TS_RESP_CTX *ctx);
- #ifndef OPENSSL_NO_ENGINE
--int TS_CONF_set_crypto_device(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_crypto_device(CONF *conf, const char *section,
-                               const char *device);
--int TS_CONF_set_default_engine(const char *name);
-+int __cdecl TS_CONF_set_default_engine(const char *name);
- #endif
--int TS_CONF_set_signer_cert(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_signer_cert(CONF *conf, const char *section,
-                             const char *cert, TS_RESP_CTX *ctx);
--int TS_CONF_set_certs(CONF *conf, const char *section, const char *certs,
-+int __cdecl TS_CONF_set_certs(CONF *conf, const char *section, const char *certs,
-                       TS_RESP_CTX *ctx);
--int TS_CONF_set_signer_key(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_signer_key(CONF *conf, const char *section,
-                            const char *key, const char *pass,
-                            TS_RESP_CTX *ctx);
--int TS_CONF_set_signer_digest(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_signer_digest(CONF *conf, const char *section,
-                                const char *md, TS_RESP_CTX *ctx);
--int TS_CONF_set_def_policy(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_def_policy(CONF *conf, const char *section,
-                            const char *policy, TS_RESP_CTX *ctx);
--int TS_CONF_set_policies(CONF *conf, const char *section, TS_RESP_CTX *ctx);
--int TS_CONF_set_digests(CONF *conf, const char *section, TS_RESP_CTX *ctx);
--int TS_CONF_set_accuracy(CONF *conf, const char *section, TS_RESP_CTX *ctx);
--int TS_CONF_set_clock_precision_digits(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_policies(CONF *conf, const char *section, TS_RESP_CTX *ctx);
-+int __cdecl TS_CONF_set_digests(CONF *conf, const char *section, TS_RESP_CTX *ctx);
-+int __cdecl TS_CONF_set_accuracy(CONF *conf, const char *section, TS_RESP_CTX *ctx);
-+int __cdecl TS_CONF_set_clock_precision_digits(CONF *conf, const char *section,
-                                        TS_RESP_CTX *ctx);
--int TS_CONF_set_ordering(CONF *conf, const char *section, TS_RESP_CTX *ctx);
--int TS_CONF_set_tsa_name(CONF *conf, const char *section, TS_RESP_CTX *ctx);
--int TS_CONF_set_ess_cert_id_chain(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_ordering(CONF *conf, const char *section, TS_RESP_CTX *ctx);
-+int __cdecl TS_CONF_set_tsa_name(CONF *conf, const char *section, TS_RESP_CTX *ctx);
-+int __cdecl TS_CONF_set_ess_cert_id_chain(CONF *conf, const char *section,
-                                   TS_RESP_CTX *ctx);
--int TS_CONF_set_ess_cert_id_digest(CONF *conf, const char *section,
-+int __cdecl TS_CONF_set_ess_cert_id_digest(CONF *conf, const char *section,
-                                       TS_RESP_CTX *ctx);
- 
- #  ifdef  __cplusplus
-diff --git a/include/openssl/x509.h b/include/openssl/x509.h
-index 39ca0ba575..d2b7862f63 100644
---- a/include/openssl/x509.h
-+++ b/include/openssl/x509.h
-@@ -401,19 +401,19 @@ RSA *d2i_RSAPrivateKey_fp(FILE *fp, RSA **rsa);
- int i2d_RSAPrivateKey_fp(FILE *fp, RSA *rsa);
- RSA *d2i_RSAPublicKey_fp(FILE *fp, RSA **rsa);
- int i2d_RSAPublicKey_fp(FILE *fp, RSA *rsa);
--RSA *d2i_RSA_PUBKEY_fp(FILE *fp, RSA **rsa);
-+RSA * __cdecl d2i_RSA_PUBKEY_fp(FILE *fp, RSA **rsa);
- int i2d_RSA_PUBKEY_fp(FILE *fp, RSA *rsa);
- #  endif
- #  ifndef OPENSSL_NO_DSA
--DSA *d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
-+DSA * __cdecl d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
- int i2d_DSA_PUBKEY_fp(FILE *fp, DSA *dsa);
--DSA *d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa);
-+DSA * __cdecl d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa);
- int i2d_DSAPrivateKey_fp(FILE *fp, DSA *dsa);
- #  endif
- #  ifndef OPENSSL_NO_EC
--EC_KEY *d2i_EC_PUBKEY_fp(FILE *fp, EC_KEY **eckey);
-+EC_KEY * __cdecl d2i_EC_PUBKEY_fp(FILE *fp, EC_KEY **eckey);
- int i2d_EC_PUBKEY_fp(FILE *fp, EC_KEY *eckey);
--EC_KEY *d2i_ECPrivateKey_fp(FILE *fp, EC_KEY **eckey);
-+EC_KEY * __cdecl d2i_ECPrivateKey_fp(FILE *fp, EC_KEY **eckey);
- int i2d_ECPrivateKey_fp(FILE *fp, EC_KEY *eckey);
- #  endif
- X509_SIG *d2i_PKCS8_fp(FILE *fp, X509_SIG **p8);
-@@ -423,9 +423,9 @@ PKCS8_PRIV_KEY_INFO *d2i_PKCS8_PRIV_KEY_INFO_fp(FILE *fp,
- int i2d_PKCS8_PRIV_KEY_INFO_fp(FILE *fp, PKCS8_PRIV_KEY_INFO *p8inf);
- int i2d_PKCS8PrivateKeyInfo_fp(FILE *fp, EVP_PKEY *key);
- int i2d_PrivateKey_fp(FILE *fp, EVP_PKEY *pkey);
--EVP_PKEY *d2i_PrivateKey_fp(FILE *fp, EVP_PKEY **a);
-+EVP_PKEY * __cdecl d2i_PrivateKey_fp(FILE *fp, EVP_PKEY **a);
- int i2d_PUBKEY_fp(FILE *fp, EVP_PKEY *pkey);
--EVP_PKEY *d2i_PUBKEY_fp(FILE *fp, EVP_PKEY **a);
-+EVP_PKEY * __cdecl d2i_PUBKEY_fp(FILE *fp, EVP_PKEY **a);
- # endif
- 
- X509 *d2i_X509_bio(BIO *bp, X509 **x509);
-@@ -439,19 +439,19 @@ RSA *d2i_RSAPrivateKey_bio(BIO *bp, RSA **rsa);
- int i2d_RSAPrivateKey_bio(BIO *bp, RSA *rsa);
- RSA *d2i_RSAPublicKey_bio(BIO *bp, RSA **rsa);
- int i2d_RSAPublicKey_bio(BIO *bp, RSA *rsa);
--RSA *d2i_RSA_PUBKEY_bio(BIO *bp, RSA **rsa);
-+RSA * __cdecl d2i_RSA_PUBKEY_bio(BIO *bp, RSA **rsa);
- int i2d_RSA_PUBKEY_bio(BIO *bp, RSA *rsa);
- #  endif
- #  ifndef OPENSSL_NO_DSA
--DSA *d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
-+DSA * __cdecl d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
- int i2d_DSA_PUBKEY_bio(BIO *bp, DSA *dsa);
--DSA *d2i_DSAPrivateKey_bio(BIO *bp, DSA **dsa);
-+DSA * __cdecl d2i_DSAPrivateKey_bio(BIO *bp, DSA **dsa);
- int i2d_DSAPrivateKey_bio(BIO *bp, DSA *dsa);
- #  endif
- #  ifndef OPENSSL_NO_EC
--EC_KEY *d2i_EC_PUBKEY_bio(BIO *bp, EC_KEY **eckey);
-+EC_KEY * __cdecl d2i_EC_PUBKEY_bio(BIO *bp, EC_KEY **eckey);
- int i2d_EC_PUBKEY_bio(BIO *bp, EC_KEY *eckey);
--EC_KEY *d2i_ECPrivateKey_bio(BIO *bp, EC_KEY **eckey);
-+EC_KEY * __cdecl d2i_ECPrivateKey_bio(BIO *bp, EC_KEY **eckey);
- int i2d_ECPrivateKey_bio(BIO *bp, EC_KEY *eckey);
- #  endif
- X509_SIG *d2i_PKCS8_bio(BIO *bp, X509_SIG **p8);
-@@ -461,17 +461,17 @@ PKCS8_PRIV_KEY_INFO *d2i_PKCS8_PRIV_KEY_INFO_bio(BIO *bp,
- int i2d_PKCS8_PRIV_KEY_INFO_bio(BIO *bp, PKCS8_PRIV_KEY_INFO *p8inf);
- int i2d_PKCS8PrivateKeyInfo_bio(BIO *bp, EVP_PKEY *key);
- int i2d_PrivateKey_bio(BIO *bp, EVP_PKEY *pkey);
--EVP_PKEY *d2i_PrivateKey_bio(BIO *bp, EVP_PKEY **a);
-+EVP_PKEY * __cdecl d2i_PrivateKey_bio(BIO *bp, EVP_PKEY **a);
- int i2d_PUBKEY_bio(BIO *bp, EVP_PKEY *pkey);
--EVP_PKEY *d2i_PUBKEY_bio(BIO *bp, EVP_PKEY **a);
--
--X509 *X509_dup(X509 *x509);
--X509_ATTRIBUTE *X509_ATTRIBUTE_dup(X509_ATTRIBUTE *xa);
--X509_EXTENSION *X509_EXTENSION_dup(X509_EXTENSION *ex);
--X509_CRL *X509_CRL_dup(X509_CRL *crl);
--X509_REVOKED *X509_REVOKED_dup(X509_REVOKED *rev);
--X509_REQ *X509_REQ_dup(X509_REQ *req);
--X509_ALGOR *X509_ALGOR_dup(X509_ALGOR *xn);
-+EVP_PKEY * __cdecl d2i_PUBKEY_bio(BIO *bp, EVP_PKEY **a);
-+
-+X509 * __cdecl X509_dup(X509 *x509);
-+X509_ATTRIBUTE * __cdecl X509_ATTRIBUTE_dup(X509_ATTRIBUTE *xa);
-+X509_EXTENSION * __cdecl X509_EXTENSION_dup(X509_EXTENSION *ex);
-+X509_CRL * __cdecl X509_CRL_dup(X509_CRL *crl);
-+X509_REVOKED * __cdecl X509_REVOKED_dup(X509_REVOKED *rev);
-+X509_REQ * __cdecl X509_REQ_dup(X509_REQ *req);
-+X509_ALGOR * __cdecl X509_ALGOR_dup(X509_ALGOR *xn);
- int X509_ALGOR_set0(X509_ALGOR *alg, ASN1_OBJECT *aobj, int ptype,
-                     void *pval);
- void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
-@@ -479,8 +479,8 @@ void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
- void X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md);
- int X509_ALGOR_cmp(const X509_ALGOR *a, const X509_ALGOR *b);
- 
--X509_NAME *X509_NAME_dup(X509_NAME *xn);
--X509_NAME_ENTRY *X509_NAME_ENTRY_dup(X509_NAME_ENTRY *ne);
-+X509_NAME * __cdecl X509_NAME_dup(X509_NAME *xn);
-+X509_NAME_ENTRY * __cdecl X509_NAME_ENTRY_dup(X509_NAME_ENTRY *ne);
- 
- int X509_cmp_time(const ASN1_TIME *s, time_t *t);
- int X509_cmp_current_time(const ASN1_TIME *s);
-@@ -510,19 +510,19 @@ EVP_PKEY *X509_PUBKEY_get0(X509_PUBKEY *key);
- EVP_PKEY *X509_PUBKEY_get(X509_PUBKEY *key);
- int X509_get_pubkey_parameters(EVP_PKEY *pkey, STACK_OF(X509) *chain);
- long X509_get_pathlen(X509 *x);
--int i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
--EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
-+int __cdecl i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
-+EVP_PKEY * __cdecl d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
- # ifndef OPENSSL_NO_RSA
--int i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
--RSA *d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
-+int __cdecl i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
-+RSA * __cdecl d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
- # endif
- # ifndef OPENSSL_NO_DSA
--int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
--DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
-+int __cdecl i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
-+DSA * __cdecl d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
- # endif
- # ifndef OPENSSL_NO_EC
--int i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
--EC_KEY *d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
-+int __cdecl i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
-+EC_KEY * __cdecl d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
- # endif
- 
- DECLARE_ASN1_FUNCTIONS(X509_SIG)
-@@ -555,8 +555,8 @@ DECLARE_ASN1_FUNCTIONS(X509_CERT_AUX)
-     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509, l, p, newf, dupf, freef)
- int X509_set_ex_data(X509 *r, int idx, void *arg);
- void *X509_get_ex_data(X509 *r, int idx);
--int i2d_X509_AUX(X509 *a, unsigned char **pp);
--X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length);
-+int __cdecl i2d_X509_AUX(X509 *a, unsigned char **pp);
-+X509 * __cdecl d2i_X509_AUX(X509 **a, const unsigned char **pp, long length);
- 
- int i2d_re_X509_tbs(X509 *x, unsigned char **pp);
- 
-@@ -605,7 +605,7 @@ DECLARE_ASN1_FUNCTIONS(NETSCAPE_SPKAC)
- DECLARE_ASN1_FUNCTIONS(NETSCAPE_CERT_SEQUENCE)
- 
- X509_INFO *X509_INFO_new(void);
--void X509_INFO_free(X509_INFO *a);
-+void __cdecl X509_INFO_free(X509_INFO *a);
- char *X509_NAME_oneline(const X509_NAME *a, char *buf, int size);
- 
- int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *algor1,
-diff --git a/include/openssl/x509_vfy.h b/include/openssl/x509_vfy.h
-index adb8bce7cb..42f28f2ef7 100644
---- a/include/openssl/x509_vfy.h
-+++ b/include/openssl/x509_vfy.h
-@@ -258,7 +258,7 @@ X509_OBJECT *X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
-                                         X509_OBJECT *x);
- int X509_OBJECT_up_ref_count(X509_OBJECT *a);
- X509_OBJECT *X509_OBJECT_new(void);
--void X509_OBJECT_free(X509_OBJECT *a);
-+void __cdecl X509_OBJECT_free(X509_OBJECT *a);
- X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a);
- X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a);
- int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
-@@ -526,7 +526,7 @@ void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
- /* X509_VERIFY_PARAM functions */
- 
- X509_VERIFY_PARAM *X509_VERIFY_PARAM_new(void);
--void X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
-+void __cdecl X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
- int X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *to,
-                               const X509_VERIFY_PARAM *from);
- int X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
-diff --git a/include/openssl/x509v3.h b/include/openssl/x509v3.h
-index 6c6eca38a5..3713882f86 100644
---- a/include/openssl/x509v3.h
-+++ b/include/openssl/x509v3.h
-@@ -557,7 +557,7 @@ GENERAL_NAME *v2i_GENERAL_NAME_ex(GENERAL_NAME *out,
-                                   const X509V3_EXT_METHOD *method,
-                                   X509V3_CTX *ctx, CONF_VALUE *cnf,
-                                   int is_nc);
--void X509V3_conf_free(CONF_VALUE *val);
-+void __cdecl X509V3_conf_free(CONF_VALUE *val);
- 
- X509_EXTENSION *X509V3_EXT_nconf_nid(CONF *conf, X509V3_CTX *ctx, int ext_nid,
-                                      const char *value);
-diff --git a/ms/applink.c b/ms/applink.c
-index 238dbff35b..52cb19477b 100644
---- a/ms/applink.c
-+++ b/ms/applink.c
-@@ -38,42 +38,42 @@
- # include <io.h>
- # include <fcntl.h>
- 
--static void *app_stdin(void)
-+static void * __cdecl app_stdin(void)
- {
-     return stdin;
- }
- 
--static void *app_stdout(void)
-+static void * __cdecl app_stdout(void)
- {
-     return stdout;
- }
- 
--static void *app_stderr(void)
-+static void * __cdecl app_stderr(void)
- {
-     return stderr;
- }
- 
--static int app_feof(FILE *fp)
-+static int __cdecl app_feof(FILE *fp)
- {
-     return feof(fp);
- }
- 
--static int app_ferror(FILE *fp)
-+static int __cdecl app_ferror(FILE *fp)
- {
-     return ferror(fp);
- }
- 
--static void app_clearerr(FILE *fp)
-+static void __cdecl app_clearerr(FILE *fp)
- {
-     clearerr(fp);
- }
- 
--static int app_fileno(FILE *fp)
-+static int __cdecl app_fileno(FILE *fp)
- {
-     return _fileno(fp);
- }
- 
--static int app_fsetmod(FILE *fp, char mod)
-+static int __cdecl app_fsetmod(FILE *fp, char mod)
- {
-     return _setmode(_fileno(fp), mod == 'b' ? _O_BINARY : _O_TEXT);
- }
-diff --git a/ms/uplink.c b/ms/uplink.c
-index cd4e96b780..8156952d93 100644
---- a/ms/uplink.c
-+++ b/ms/uplink.c
-@@ -31,7 +31,7 @@ static void unimplemented(void)
-     TerminateProcess(GetCurrentProcess(), 1);
- }
- 
--void OPENSSL_Uplink(volatile void **table, int index)
-+void __cdecl OPENSSL_Uplink(volatile void **table, int index)
- {
-     static HMODULE volatile apphandle = NULL;
-     static void **volatile applinktable = NULL;
-diff --git a/ms/uplink.h b/ms/uplink.h
-index f6cd0380ae..1f0d75cc55 100644
---- a/ms/uplink.h
-+++ b/ms/uplink.h
-@@ -12,27 +12,27 @@
- 
- extern void *OPENSSL_UplinkTable[];
- 
--#define UP_stdin  (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
--#define UP_stdout (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
--#define UP_stderr (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
--#define UP_fprintf (*(int (*)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
--#define UP_fgets  (*(char *(*)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
--#define UP_fread  (*(size_t (*)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
--#define UP_fwrite (*(size_t (*)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
--#define UP_fsetmod (*(int (*)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
--#define UP_feof   (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
--#define UP_fclose (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
-+#define UP_stdin  (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
-+#define UP_stdout (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
-+#define UP_stderr (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
-+#define UP_fprintf (*(int (__cdecl *)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
-+#define UP_fgets  (*(char *(__cdecl *)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
-+#define UP_fread  (*(size_t (__cdecl *)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
-+#define UP_fwrite (*(size_t (__cdecl *)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
-+#define UP_fsetmod (*(int (__cdecl *)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
-+#define UP_feof   (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
-+#define UP_fclose (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
- 
--#define UP_fopen  (*(void *(*)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
--#define UP_fseek  (*(int (*)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
--#define UP_ftell  (*(long (*)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
--#define UP_fflush (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
--#define UP_ferror (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
--#define UP_clearerr (*(void (*)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
--#define UP_fileno (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
-+#define UP_fopen  (*(void *(__cdecl *)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
-+#define UP_fseek  (*(int (__cdecl *)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
-+#define UP_ftell  (*(long (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
-+#define UP_fflush (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
-+#define UP_ferror (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
-+#define UP_clearerr (*(void (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
-+#define UP_fileno (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
- 
--#define UP_open   (*(int (*)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
--#define UP_read   (*(ossl_ssize_t (*)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
--#define UP_write  (*(ossl_ssize_t (*)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
--#define UP_lseek  (*(long (*)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
--#define UP_close  (*(int (*)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
-+#define UP_open   (*(int (__cdecl *)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
-+#define UP_read   (*(ossl_ssize_t (__cdecl *)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
-+#define UP_write  (*(ossl_ssize_t (__cdecl *)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
-+#define UP_lseek  (*(long (__cdecl *)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
-+#define UP_close  (*(int (__cdecl *)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
-diff --git a/ssl/d1_srtp.c b/ssl/d1_srtp.c
-index ff8f0c5712..d49168d6de 100644
---- a/ssl/d1_srtp.c
-+++ b/ssl/d1_srtp.c
-@@ -109,17 +109,17 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
-     return 1;
- }
- 
--int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
-+int __cdecl SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
- {
-     return ssl_ctx_make_profiles(profiles, &ctx->srtp_profiles);
- }
- 
--int SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
-+int __cdecl SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
- {
-     return ssl_ctx_make_profiles(profiles, &s->srtp_profiles);
- }
- 
--STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
-+STACK_OF(SRTP_PROTECTION_PROFILE) * __cdecl SSL_get_srtp_profiles(SSL *s)
- {
-     if (s != NULL) {
-         if (s->srtp_profiles != NULL) {
-@@ -132,7 +132,7 @@ STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
-     return NULL;
- }
- 
--SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s)
-+SRTP_PROTECTION_PROFILE * __cdecl SSL_get_selected_srtp_profile(SSL *s)
- {
-     return s->srtp_profile;
- }
-diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
-index 066bf47221..0162fa70af 100644
---- a/ssl/s3_lib.c
-+++ b/ssl/s3_lib.c
-@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
-     },
- };
- 
--static int cipher_compare(const void *a, const void *b)
-+static int __cdecl cipher_compare(const void *a, const void *b)
- {
-     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
-     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
-diff --git a/ssl/ssl_asn1.c b/ssl/ssl_asn1.c
-index b56c5e96c5..0b1371d60b 100644
---- a/ssl/ssl_asn1.c
-+++ b/ssl/ssl_asn1.c
-@@ -101,7 +101,7 @@ static void ssl_session_sinit(ASN1_OCTET_STRING **dest, ASN1_OCTET_STRING *os,
-         *dest = NULL;
- }
- 
--int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
-+int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
- {
- 
-     SSL_SESSION_ASN1 as;
-@@ -236,7 +236,7 @@ static int ssl_session_memcpy(unsigned char *dst, size_t *pdstlen,
-     return 1;
- }
- 
--SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
-+SSL_SESSION * __cdecl d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
-                              long length)
- {
-     long id;
-diff --git a/ssl/ssl_cert.c b/ssl/ssl_cert.c
-index 9df9fb9677..a704f5ed41 100644
---- a/ssl/ssl_cert.c
-+++ b/ssl/ssl_cert.c
-@@ -567,7 +567,7 @@ int SSL_CTX_add_client_CA(SSL_CTX *ctx, X509 *x)
-     return add_ca_name(&ctx->client_ca_names, x);
- }
- 
--static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
-+static int __cdecl xname_cmp(const X509_NAME *a, const X509_NAME *b)
- {
-     unsigned char *abuf = NULL, *bbuf = NULL;
-     int alen, blen, ret;
-@@ -591,7 +591,7 @@ static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
-     return ret;
- }
- 
--static int xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
-+static int __cdecl xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
- {
-     return xname_cmp(*a, *b);
- }
-@@ -682,7 +682,7 @@ int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
-     X509 *x = NULL;
-     X509_NAME *xn = NULL;
-     int ret = 1;
--    int (*oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
-+    int (__cdecl *oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
- 
-     oldcmp = sk_X509_NAME_set_cmp_func(stack, xname_sk_cmp);
- 
-diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 27a1b2ec68..1263b04638 100644
---- a/ssl/ssl_ciph.c
-+++ b/ssl/ssl_ciph.c
-@@ -450,7 +450,7 @@ int ssl_load_ciphers(void)
- 
- #ifndef OPENSSL_NO_COMP
- 
--static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
-+static int __cdecl sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
- {
-     return ((*a)->id - (*b)->id);
- }
-@@ -1946,7 +1946,7 @@ STACK_OF(SSL_COMP) *SSL_COMP_set0_compression_methods(STACK_OF(SSL_COMP)
-     return old_meths;
- }
- 
--static void cmeth_free(SSL_COMP *cm)
-+static void __cdecl cmeth_free(SSL_COMP *cm)
- {
-     OPENSSL_free(cm);
- }
-diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index ac820cf9fe..a5d417fc31 100644
---- a/ssl/ssl_lib.c
-+++ b/ssl/ssl_lib.c
-@@ -179,7 +179,7 @@ static void dane_ctx_final(struct dane_ctx_st *dctx)
-     dctx->mdmax = 0;
- }
- 
--static void tlsa_free(danetls_record *t)
-+static void __cdecl tlsa_free(danetls_record *t)
- {
-     if (t == NULL)
-         return;
-@@ -2411,7 +2411,7 @@ long SSL_CTX_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
-     }
- }
- 
--int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
-+int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
- {
-     if (a->id > b->id)
-         return 1;
-@@ -2420,7 +2420,7 @@ int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
-     return 0;
- }
- 
--int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
-+int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
-                           const SSL_CIPHER *const *bp)
- {
-     if ((*ap)->id > (*bp)->id)
-@@ -2888,7 +2888,7 @@ static unsigned long ssl_session_hash(const SSL_SESSION *a)
-  * being able to construct an SSL_SESSION that will collide with any existing
-  * session with a matching session ID.
-  */
--static int ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
-+static int __cdecl ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
- {
-     if (a->ssl_version != b->ssl_version)
-         return 1;
-diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
-index 25875c9f6d..d49523aee1 100644
---- a/ssl/ssl_locl.h
-+++ b/ssl/ssl_locl.h
-@@ -2263,9 +2263,9 @@ __owur SSL_SESSION *lookup_sess_in_cache(SSL *s, const unsigned char *sess_id,
-                                          size_t sess_id_len);
- __owur int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello);
- __owur SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket);
--__owur int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
-+__owur int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
- DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
--__owur int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
-+__owur int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
-                                  const SSL_CIPHER *const *bp);
- __owur STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
-                                                     STACK_OF(SSL_CIPHER) *tls13_ciphersuites,
-diff --git a/ssl/ssl_sess.c b/ssl/ssl_sess.c
-index 52cfa7ef6d..243dff6c56 100644
---- a/ssl/ssl_sess.c
-+++ b/ssl/ssl_sess.c
-@@ -62,7 +62,7 @@ void *SSL_SESSION_get_ex_data(const SSL_SESSION *s, int idx)
-     return CRYPTO_get_ex_data(&s->ex_data, idx);
- }
- 
--SSL_SESSION *SSL_SESSION_new(void)
-+SSL_SESSION * __cdecl SSL_SESSION_new(void)
- {
-     SSL_SESSION *ss;
- 
-diff --git a/ssl/statem/statem_lib.c b/ssl/statem/statem_lib.c
-index 22e9f0490e..1c9ed9b9cf 100644
---- a/ssl/statem/statem_lib.c
-+++ b/ssl/statem/statem_lib.c
-@@ -2218,7 +2218,7 @@ int create_synthetic_message_hash(SSL *s, const unsigned char *hashval,
-     return 1;
- }
- 
--static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
-+static int __cdecl ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
- {
-     return X509_NAME_cmp(*a, *b);
- }
-diff --git a/test/aborttest.c b/test/aborttest.c
-index ba5055edff..885734d4bf 100644
---- a/test/aborttest.c
-+++ b/test/aborttest.c
-@@ -9,7 +9,7 @@
- 
- #include <openssl/crypto.h>
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
-     return 0;
-diff --git a/test/asynctest.c b/test/asynctest.c
-index 9728a37911..2061b76020 100644
---- a/test/asynctest.c
-+++ b/test/asynctest.c
-@@ -269,7 +269,7 @@ static int test_ASYNC_block_pause(void)
-     return 1;
- }
- 
--int main(int argc, char **argv)
-+int __cdecl main(int argc, char **argv)
- {
-     if (!ASYNC_is_capable()) {
-         fprintf(stderr,
-diff --git a/test/bio_callback_test.c b/test/bio_callback_test.c
-index 8a17602d79..6928f40587 100644
---- a/test/bio_callback_test.c
-+++ b/test/bio_callback_test.c
-@@ -21,7 +21,7 @@ static int         my_param_argi[MAXCOUNT];
- static long        my_param_argl[MAXCOUNT];
- static long        my_param_ret[MAXCOUNT];
- 
--static long my_bio_callback(BIO *b, int oper, const char *argp, int argi,
-+static long __cdecl my_bio_callback(BIO *b, int oper, const char *argp, int argi,
-                             long argl, long ret)
- {
-     if (my_param_count >= MAXCOUNT)
-diff --git a/test/danetest.c b/test/danetest.c
-index 54a79ab51f..ba6ad6fb57 100644
---- a/test/danetest.c
-+++ b/test/danetest.c
-@@ -100,7 +100,7 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
-     long len;
-     char *errtype = 0;                /* if error: cert or pkey? */
-     STACK_OF(X509) *chain;
--    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
-+    typedef X509 *(__cdecl * d2i_X509_t)(X509 **, const unsigned char **, long);
- 
-     if (!TEST_ptr(chain = sk_X509_new_null()))
-         goto err;
-diff --git a/test/dhtest.c b/test/dhtest.c
-index 9d5609b943..35606f58a7 100644
---- a/test/dhtest.c
-+++ b/test/dhtest.c
-@@ -484,7 +484,7 @@ static const unsigned char dhtest_rfc5114_2048_224_bad_y[] = {
- };
- 
- typedef struct {
--    DH *(*get_param) (void);
-+    DH *(__cdecl *get_param) (void);
-     const unsigned char *xA;
-     size_t xA_len;
-     const unsigned char *yA;
-diff --git a/test/evp_test.c b/test/evp_test.c
-index abb51384e8..7529cdd862 100644
---- a/test/evp_test.c
-+++ b/test/evp_test.c
-@@ -106,7 +106,7 @@ struct evp_test_buffer_st {
-     int count_set;
- };
- 
--static void evp_test_buffer_free(EVP_TEST_BUFFER *db)
-+static void __cdecl evp_test_buffer_free(EVP_TEST_BUFFER *db)
- {
-     if (db != NULL) {
-         OPENSSL_free(db->buf);
-@@ -919,7 +919,7 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
- }
- 
- /* Because OPENSSL_free is a macro, it can't be passed as a function pointer */
--static void openssl_free(char *m)
-+static void __cdecl openssl_free(char *m)
- {
-     OPENSSL_free(m);
- }
-@@ -1077,7 +1077,7 @@ typedef struct pkey_data_st {
-     /* Context for this operation */
-     EVP_PKEY_CTX *ctx;
-     /* Key operation to perform */
--    int (*keyop) (EVP_PKEY_CTX *ctx,
-+    int (__cdecl *keyop) (EVP_PKEY_CTX *ctx,
-                   unsigned char *sig, size_t *siglen,
-                   const unsigned char *tbs, size_t tbslen);
-     /* Input to MAC */
-@@ -1094,8 +1094,8 @@ typedef struct pkey_data_st {
-  */
- static int pkey_test_init(EVP_TEST *t, const char *name,
-                           int use_public,
--                          int (*keyopinit) (EVP_PKEY_CTX *ctx),
--                          int (*keyop)(EVP_PKEY_CTX *ctx,
-+                          int (__cdecl *keyopinit) (EVP_PKEY_CTX *ctx),
-+                          int (__cdecl *keyop)(EVP_PKEY_CTX *ctx,
-                                        unsigned char *sig, size_t *siglen,
-                                        const unsigned char *tbs,
-                                        size_t tbslen))
-diff --git a/test/generate_buildtest.pl b/test/generate_buildtest.pl
-index f9a663bea6..dff61939c1 100644
---- a/test/generate_buildtest.pl
-+++ b/test/generate_buildtest.pl
-@@ -27,7 +27,7 @@ print <<"_____";
- # include <openssl/$name.h>
- #endif
- 
--int main(void)
-+int __cdecl main(void)
- {
-     return 0;
- }
-diff --git a/test/lhash_test.c b/test/lhash_test.c
-index 162286b7cd..3740062220 100644
---- a/test/lhash_test.c
-+++ b/test/lhash_test.c
-@@ -39,7 +39,7 @@ static unsigned long int int_hash(const int *p)
-     return 3 & *p;      /* To force collisions */
- }
- 
--static int int_cmp(const int *p, const int *q)
-+static int __cdecl int_cmp(const int *p, const int *q)
- {
-     return *p != *q;
- }
-diff --git a/test/memleaktest.c b/test/memleaktest.c
-index d239bd23b8..6179fa76ed 100644
---- a/test/memleaktest.c
-+++ b/test/memleaktest.c
-@@ -23,7 +23,7 @@
-  * but that is worse than avoiding the test framework's main.
-  */
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
- #ifndef OPENSSL_NO_CRYPTO_MDEBUG
-     char *p;
-diff --git a/test/modes_internal_test.c b/test/modes_internal_test.c
-index e0f1adf6af..89f7b76696 100644
---- a/test/modes_internal_test.c
-+++ b/test/modes_internal_test.c
-@@ -127,18 +127,18 @@ typedef struct {
-     const char *case_name;
-     size_t (*last_blocks_correction)(const unsigned char *in,
-                                      unsigned char *out, size_t len);
--    size_t (*encrypt_block)(const unsigned char *in,
-+    size_t (__cdecl *encrypt_block)(const unsigned char *in,
-                             unsigned char *out, size_t len,
-                             const void *key, unsigned char ivec[16],
-                             block128_f block);
--    size_t (*encrypt_stream)(const unsigned char *in, unsigned char *out,
-+    size_t (__cdecl *encrypt_stream)(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
--    size_t (*decrypt_block)(const unsigned char *in,
-+    size_t (__cdecl *decrypt_block)(const unsigned char *in,
-                             unsigned char *out, size_t len,
-                             const void *key, unsigned char ivec[16],
-                             block128_f block);
--    size_t (*decrypt_stream)(const unsigned char *in, unsigned char *out,
-+    size_t (__cdecl *decrypt_stream)(const unsigned char *in, unsigned char *out,
-                              size_t len, const void *key,
-                              unsigned char ivec[16], cbc128_f cbc);
- } CTS128_FIXTURE;
-diff --git a/test/ossl_shim/ossl_shim.cc b/test/ossl_shim/ossl_shim.cc
-index 90d1f1ef40..a38fe0fdc9 100644
---- a/test/ossl_shim/ossl_shim.cc
-+++ b/test/ossl_shim/ossl_shim.cc
-@@ -1295,6 +1295,6 @@ static int Main(int argc, char **argv) {
- 
- }  // namespace bssl
- 
--int main(int argc, char **argv) {
-+int __cdecl main(int argc, char **argv) {
-   return bssl::Main(argc, argv);
- }
-diff --git a/test/rsa_complex.c b/test/rsa_complex.c
-index fac581254a..55564a2d0a 100644
---- a/test/rsa_complex.c
-+++ b/test/rsa_complex.c
-@@ -20,7 +20,7 @@
- #include <openssl/rsa.h>
- #include <stdlib.h>
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     /* There are explicitly no run time checks for this one */
-     return EXIT_SUCCESS;
-diff --git a/test/shlibloadtest.c b/test/shlibloadtest.c
-index 86bbfcd849..a4ca1ae484 100644
---- a/test/shlibloadtest.c
-+++ b/test/shlibloadtest.c
-@@ -294,7 +294,7 @@ end:
-  * it to link against libcrypto (which the framework uses). The point of the
-  * test is to check dynamic loading and unloading of libcrypto/libssl.
-  */
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     const char *p;
- 
-diff --git a/test/ssltest_old.c b/test/ssltest_old.c
-index 36e6031f3a..4d97ea7bb9 100644
---- a/test/ssltest_old.c
-+++ b/test/ssltest_old.c
-@@ -872,7 +872,7 @@ static int set_protocol_version(const char *version, SSL *ssl, int setting)
-     return 1;
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     const char *CApath = NULL, *CAfile = NULL;
-     int badop = 0;
-diff --git a/test/ssltestlib.c b/test/ssltestlib.c
-index 456afdf471..aec9b1d7f7 100644
---- a/test/ssltestlib.c
-+++ b/test/ssltestlib.c
-@@ -279,7 +279,7 @@ struct mempacket_st {
-     unsigned int type;
- };
- 
--static void mempacket_free(MEMPACKET *pkt)
-+static void __cdecl mempacket_free(MEMPACKET *pkt)
- {
-     if (pkt->data != NULL)
-         OPENSSL_free(pkt->data);
-diff --git a/test/stack_test.c b/test/stack_test.c
-index 680f68d60e..3f8e4f96f5 100644
---- a/test/stack_test.c
-+++ b/test/stack_test.c
-@@ -41,7 +41,7 @@ DEFINE_SPECIAL_STACK_OF_CONST(uchar, unsigned char)
- DEFINE_STACK_OF(SS)
- DEFINE_STACK_OF_CONST(SU)
- 
--static int int_compare(const int *const *a, const int *const *b)
-+static int __cdecl int_compare(const int *const *a, const int *const *b)
- {
-     if (**a < **b)
-         return -1;
-@@ -165,7 +165,7 @@ end:
-     return testresult;
- }
- 
--static int uchar_compare(const unsigned char *const *a,
-+static int __cdecl uchar_compare(const unsigned char *const *a,
-                          const unsigned char *const *b)
- {
-     return **a - (signed int)**b;
-@@ -251,7 +251,7 @@ end:
-     return testresult;
- }
- 
--static SS *SS_copy(const SS *p)
-+static SS * __cdecl SS_copy(const SS *p)
- {
-     SS *q = OPENSSL_malloc(sizeof(*q));
- 
-@@ -260,7 +260,7 @@ static SS *SS_copy(const SS *p)
-     return q;
- }
- 
--static void SS_free(SS *p) {
-+static void __cdecl SS_free(SS *p) {
-     OPENSSL_free(p);
- }
- 
-diff --git a/test/testutil/main.c b/test/testutil/main.c
-index d3ccdda391..f86bc5dbc5 100644
---- a/test/testutil/main.c
-+++ b/test/testutil/main.c
-@@ -31,7 +31,7 @@ static void check_arg_usage(void)
-         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
- }
- 
--int main(int argc, char *argv[])
-+int __cdecl main(int argc, char *argv[])
- {
-     int ret = EXIT_FAILURE;
- 
-diff --git a/test/versions.c b/test/versions.c
-index 3ab05ec35d..c9e32f6793 100644
---- a/test/versions.c
-+++ b/test/versions.c
-@@ -12,7 +12,7 @@
- #include <openssl/crypto.h>
- 
- /* A simple helper for the perl function OpenSSL::Test::openssl_versions */
--int main(void)
-+int __cdecl main(void)
- {
-     printf("Build version: 0x%08lX\n", OPENSSL_VERSION_NUMBER);
-     printf("Library version: 0x%08lX\n", OpenSSL_version_num());
-diff --git a/test/x509aux.c b/test/x509aux.c
-index e41f1f6809..7b80c58e3a 100644
---- a/test/x509aux.c
-+++ b/test/x509aux.c
-@@ -26,8 +26,8 @@ static int test_certs(int num)
-     char *header = 0;
-     unsigned char *data = 0;
-     long len;
--    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
--    typedef int (*i2d_X509_t)(X509 *, unsigned char **);
-+    typedef X509 *(__cdecl * d2i_X509_t)(X509 **, const unsigned char **, long);
-+    typedef int (__cdecl * i2d_X509_t)(X509 *, unsigned char **);
-     int err = 0;
-     BIO *fp = BIO_new_file(test_get_argument(num), "r");
-     X509 *reuse = NULL;
-diff --git a/util/mkdef.pl b/util/mkdef.pl
-index 3ac79821b0..ed05e5584d 100755
---- a/util/mkdef.pl
-+++ b/util/mkdef.pl
-@@ -297,7 +297,7 @@ if($do_crypto == 1) {
-  * to link to all of them. This is *not* intended to be run!
-  */
- 
--int main()
-+int __cdecl main()
- {
- EOF
- 	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/apps/cms.c b/apps/cms.c
-index 15edd67dbe..fc22cedc30 100644
---- a/apps/cms.c
-+++ b/apps/cms.c
-@@ -24,7 +24,7 @@
- # include <openssl/cms.h>
- 
- static int save_certs(char *signerfile, STACK_OF(X509) *signers);
--static int cms_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx);
- static void receipt_request_print(CMS_ContentInfo *cms);
- static CMS_ReceiptRequest *make_receipt_request(STACK_OF(OPENSSL_STRING)
-                                                 *rr_to, int rr_allorfirst, STACK_OF(OPENSSL_STRING)
-@@ -1129,7 +1129,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
- 
- /* Minimal callback just to output policy info (if any) */
- 
--static int cms_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx)
- {
-     int error;
- 
-diff --git a/apps/s_apps.h b/apps/s_apps.h
-index dc524c1bce..7fa266e961 100644
---- a/apps/s_apps.h
-+++ b/apps/s_apps.h
-@@ -19,7 +19,7 @@ int do_server(int *accept_sock, const char *host, const char *port,
-               int family, int type, int protocol, do_server_cb cb,
-               unsigned char *context, int naccept, BIO *bio_s_out);
- 
--int verify_callback(int ok, X509_STORE_CTX *ctx);
-+int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx);
- 
- int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file);
- int set_cert_key_stuff(SSL_CTX *ctx, X509 *cert, EVP_PKEY *key,
-@@ -36,7 +36,7 @@ int should_retry(int i);
- long __cdecl bio_dump_callback(BIO *bio, int cmd, const char *argp,
-                        int argi, long argl, long ret);
- 
--void apps_ssl_info_callback(const SSL *s, int where, int ret);
-+void __cdecl apps_ssl_info_callback(const SSL *s, int where, int ret);
- void msg_cb(int write_p, int version, int content_type, const void *buf,
-             size_t len, SSL *ssl, void *arg);
- void tlsext_cb(SSL *s, int client_server, int type, const unsigned char *data,
-diff --git a/apps/s_cb.c b/apps/s_cb.c
-index a4c7143506..869a318464 100644
---- a/apps/s_cb.c
-+++ b/apps/s_cb.c
-@@ -40,7 +40,7 @@ static const char *lookup(int val, const STRINT_PAIR* list, const char* def)
-     return def;
- }
- 
--int verify_callback(int ok, X509_STORE_CTX *ctx)
-+int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx)
- {
-     X509 *err_cert;
-     int err, depth;
-@@ -451,7 +451,7 @@ long __cdecl bio_dump_callback(BIO *bio, int cmd, const char *argp,
-     return ret;
- }
- 
--void apps_ssl_info_callback(const SSL *s, int where, int ret)
-+void __cdecl apps_ssl_info_callback(const SSL *s, int where, int ret)
- {
-     const char *str;
-     int w;
-@@ -1315,7 +1315,7 @@ int ssl_load_stores(SSL_CTX *ctx,
- typedef struct {
-     BIO *out;
-     int verbose;
--    int (*old_cb) (const SSL *s, const SSL_CTX *ctx, int op, int bits, int nid,
-+    int (__cdecl *old_cb) (const SSL *s, const SSL_CTX *ctx, int op, int bits, int nid,
-                    void *other, void *ex);
- } security_debug_ex;
- 
-@@ -1344,7 +1344,7 @@ static STRINT_PAIR callback_types[] = {
-     {NULL}
- };
- 
--static int security_callback_debug(const SSL *s, const SSL_CTX *ctx,
-+static int __cdecl security_callback_debug(const SSL *s, const SSL_CTX *ctx,
-                                    int op, int bits, int nid,
-                                    void *other, void *ex)
- {
-diff --git a/apps/s_client.c b/apps/s_client.c
-index 26a6789d81..24902f2032 100644
---- a/apps/s_client.c
-+++ b/apps/s_client.c
-@@ -847,7 +847,7 @@ static void freeandcopy(char **dest, const char *source)
-         *dest = OPENSSL_strdup(source);
- }
- 
--static int new_session_cb(SSL *s, SSL_SESSION *sess)
-+static int __cdecl new_session_cb(SSL *s, SSL_SESSION *sess)
- {
- 
-     if (sess_out != NULL) {
-diff --git a/apps/s_server.c b/apps/s_server.c
-index 929a08bd85..1fa254698d 100644
---- a/apps/s_server.c
-+++ b/apps/s_server.c
-@@ -3530,7 +3530,7 @@ typedef struct simple_ssl_session_st {
- 
- static simple_ssl_session *first = NULL;
- 
--static int add_session(SSL *ssl, SSL_SESSION *session)
-+static int __cdecl add_session(SSL *ssl, SSL_SESSION *session)
- {
-     simple_ssl_session *sess = app_malloc(sizeof(*sess), "get session");
-     unsigned char *p;
-@@ -3569,7 +3569,7 @@ static int add_session(SSL *ssl, SSL_SESSION *session)
-     return 0;
- }
- 
--static SSL_SESSION *get_session(SSL *ssl, const unsigned char *id, int idlen,
-+static SSL_SESSION * __cdecl get_session(SSL *ssl, const unsigned char *id, int idlen,
-                                 int *do_copy)
- {
-     simple_ssl_session *sess;
-@@ -3585,7 +3585,7 @@ static SSL_SESSION *get_session(SSL *ssl, const unsigned char *id, int idlen,
-     return NULL;
- }
- 
--static void del_session(SSL_CTX *sctx, SSL_SESSION *session)
-+static void __cdecl del_session(SSL_CTX *sctx, SSL_SESSION *session)
- {
-     simple_ssl_session *sess, *prev = NULL;
-     const unsigned char *id;
-diff --git a/apps/smime.c b/apps/smime.c
-index 6fd473775f..394951814f 100644
---- a/apps/smime.c
-+++ b/apps/smime.c
-@@ -20,7 +20,7 @@
- #include <openssl/x509v3.h>
- 
- static int save_certs(char *signerfile, STACK_OF(X509) *signers);
--static int smime_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx);
- 
- #define SMIME_OP        0x10
- #define SMIME_IP        0x20
-@@ -631,7 +631,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
- 
- /* Minimal callback just to output policy info (if any) */
- 
--static int smime_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx)
- {
-     int error;
- 
-diff --git a/apps/ts.c b/apps/ts.c
-index 930c1daaab..5c3bcc4879 100644
---- a/apps/ts.c
-+++ b/apps/ts.c
-@@ -75,7 +75,7 @@ static TS_VERIFY_CTX *create_verify_ctx(const char *data, const char *digest,
-                                         X509_VERIFY_PARAM *vpm);
- static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
-                                      X509_VERIFY_PARAM *vpm);
--static int verify_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx);
- 
- typedef enum OPTION_choice {
-     OPT_ERR = -1, OPT_EOF = 0, OPT_HELP,
-@@ -979,7 +979,7 @@ static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
-     return NULL;
- }
- 
--static int verify_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx)
- {
-     return ok;
- }
-diff --git a/apps/verify.c b/apps/verify.c
-index 1f93856060..e3f3703343 100644
---- a/apps/verify.c
-+++ b/apps/verify.c
-@@ -18,7 +18,7 @@
- #include <openssl/x509v3.h>
- #include <openssl/pem.h>
- 
--static int cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl cb(int ok, X509_STORE_CTX *ctx);
- static int check(X509_STORE *ctx, const char *file,
-                  STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
-                  STACK_OF(X509_CRL) *crls, int show_chain);
-@@ -269,7 +269,7 @@ static int check(X509_STORE *ctx, const char *file,
-     return ret;
- }
- 
--static int cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl cb(int ok, X509_STORE_CTX *ctx)
- {
-     int cert_error = X509_STORE_CTX_get_error(ctx);
-     X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
-diff --git a/apps/x509.c b/apps/x509.c
-index 81291a9a4f..be15a68f04 100644
---- a/apps/x509.c
-+++ b/apps/x509.c
-@@ -32,7 +32,7 @@
- #define POSTFIX ".srl"
- #define DEF_DAYS        30
- 
--static int callb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl callb(int ok, X509_STORE_CTX *ctx);
- static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
-                 const EVP_MD *digest, CONF *conf, const char *section,
-                 int preserve_dates);
-@@ -1021,7 +1021,7 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
-     return ret;
- }
- 
--static int callb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl callb(int ok, X509_STORE_CTX *ctx)
- {
-     int err;
-     X509 *err_cert;
-diff --git a/crypto/include/internal/x509_int.h b/crypto/include/internal/x509_int.h
-index b53c2b03c3..27f416c0f6 100644
---- a/crypto/include/internal/x509_int.h
-+++ b/crypto/include/internal/x509_int.h
-@@ -206,7 +206,7 @@ struct x509_store_ctx_st {      /* X509_STORE_CTX */
-     /* called to verify a certificate */
-     int (*verify) (X509_STORE_CTX *ctx);
-     /* error callback */
--    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
-     /* get issuers cert from ctx */
-     int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
-     /* check issued */
-diff --git a/crypto/x509/x509_lcl.h b/crypto/x509/x509_lcl.h
-index c517a77456..85b3aa04b9 100644
---- a/crypto/x509/x509_lcl.h
-+++ b/crypto/x509/x509_lcl.h
-@@ -113,7 +113,7 @@ struct x509_store_st {
-     /* called to verify a certificate */
-     int (*verify) (X509_STORE_CTX *ctx);
-     /* error callback */
--    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
-     /* get issuers cert from ctx */
-     int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
-     /* check issued */
-diff --git a/crypto/x509/x509_vfy.c b/crypto/x509/x509_vfy.c
-index 6be2c71e86..a7d0d135a3 100644
---- a/crypto/x509/x509_vfy.c
-+++ b/crypto/x509/x509_vfy.c
-@@ -66,7 +66,7 @@
- static int build_chain(X509_STORE_CTX *ctx);
- static int verify_chain(X509_STORE_CTX *ctx);
- static int dane_verify(X509_STORE_CTX *ctx);
--static int null_callback(int ok, X509_STORE_CTX *e);
-+static int __cdecl null_callback(int ok, X509_STORE_CTX *e);
- static int check_issued(X509_STORE_CTX *ctx, X509 *x, X509 *issuer);
- static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x);
- static int check_chain_extensions(X509_STORE_CTX *ctx);
-@@ -99,7 +99,7 @@ static int check_crl_chain(X509_STORE_CTX *ctx,
- 
- static int internal_verify(X509_STORE_CTX *ctx);
- 
--static int null_callback(int ok, X509_STORE_CTX *e)
-+static int __cdecl null_callback(int ok, X509_STORE_CTX *e)
- {
-     return ok;
- }
-diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
-index d6717a06d4..ac89b2b6ef 100644
+index 6724ccf2d2..ac89b2b6ef 100644
 --- a/include/openssl/ssl.h
 +++ b/include/openssl/ssl.h
 @@ -291,7 +291,7 @@ typedef int (*SSL_custom_ext_parse_cb_ex)(SSL *s, unsigned int ext_type,
@@ -37894,9 +36354,10 @@ index d6717a06d4..ac89b2b6ef 100644
 -__owur int SSL_SESSION_is_resumable(const SSL_SESSION *s);
 +__owur int __cdecl SSL_SESSION_is_resumable(const SSL_SESSION *s);
  
- __owur SSL_SESSION * __cdecl SSL_SESSION_new(void);
+-__owur SSL_SESSION *SSL_SESSION_new(void);
 -__owur SSL_SESSION *SSL_SESSION_dup(SSL_SESSION *src);
 -const unsigned char *SSL_SESSION_get_id(const SSL_SESSION *s,
++__owur SSL_SESSION * __cdecl SSL_SESSION_new(void);
 +__owur SSL_SESSION * __cdecl SSL_SESSION_dup(SSL_SESSION *src);
 +const unsigned char * __cdecl SSL_SESSION_get_id(const SSL_SESSION *s,
                                          unsigned int *len);
@@ -37913,17 +36374,18 @@ index d6717a06d4..ac89b2b6ef 100644
 -int SSL_SESSION_print_keylog(BIO *bp, const SSL_SESSION *x);
 -int SSL_SESSION_up_ref(SSL_SESSION *ses);
 -void SSL_SESSION_free(SSL_SESSION *ses);
-+int __cdecl SSL_SESSION_print(BIO *fp, const SSL_SESSION *ses);
-+int __cdecl SSL_SESSION_print_keylog(BIO *bp, const SSL_SESSION *x);
-+int __cdecl SSL_SESSION_up_ref(SSL_SESSION *ses);
-+void __cdecl SSL_SESSION_free(SSL_SESSION *ses);
- __owur int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
+-__owur int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
 -__owur int SSL_set_session(SSL *to, SSL_SESSION *session);
 -int SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
 -int SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
 -__owur int SSL_CTX_set_generate_session_id(SSL_CTX *ctx, GEN_SESSION_CB cb);
 -__owur int SSL_set_generate_session_id(SSL *s, GEN_SESSION_CB cb);
 -__owur int SSL_has_matching_session_id(const SSL *s,
++int __cdecl SSL_SESSION_print(BIO *fp, const SSL_SESSION *ses);
++int __cdecl SSL_SESSION_print_keylog(BIO *bp, const SSL_SESSION *x);
++int __cdecl SSL_SESSION_up_ref(SSL_SESSION *ses);
++void __cdecl SSL_SESSION_free(SSL_SESSION *ses);
++__owur int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp);
 +__owur int __cdecl SSL_set_session(SSL *to, SSL_SESSION *session);
 +int __cdecl SSL_CTX_add_session(SSL_CTX *ctx, SSL_SESSION *session);
 +int __cdecl SSL_CTX_remove_session(SSL_CTX *ctx, SSL_SESSION *session);
@@ -37932,7 +36394,8 @@ index d6717a06d4..ac89b2b6ef 100644
 +__owur int __cdecl SSL_has_matching_session_id(const SSL *s,
                                         const unsigned char *id,
                                         unsigned int id_len);
- SSL_SESSION * __cdecl d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
+-SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
++SSL_SESSION * __cdecl d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
                               long length);
  
  # ifdef HEADER_X509_H
@@ -38780,8 +37243,826 @@ index d6717a06d4..ac89b2b6ef 100644
                                   SSL_allow_early_data_cb_fn cb,
                                   void *arg);
  
+diff --git a/include/openssl/sslerr.h b/include/openssl/sslerr.h
+index 3d6850dea3..2b90e60a38 100644
+--- a/include/openssl/sslerr.h
++++ b/include/openssl/sslerr.h
+@@ -18,7 +18,8 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_SSL_strings(void);
++
++int __cdecl ERR_load_SSL_strings(void);
+ 
+ /*
+  * SSL function codes.
+diff --git a/include/openssl/stack.h b/include/openssl/stack.h
+index cfc075057a..e71b68d81a 100644
+--- a/include/openssl/stack.h
++++ b/include/openssl/stack.h
+@@ -16,12 +16,12 @@ extern "C" {
+ 
+ typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
+ 
+-typedef int (*OPENSSL_sk_compfunc)(const void *, const void *);
+-typedef void (*OPENSSL_sk_freefunc)(void *);
+-typedef void *(*OPENSSL_sk_copyfunc)(const void *);
++typedef int (__cdecl *OPENSSL_sk_compfunc)(const void *, const void *);
++typedef void (__cdecl *OPENSSL_sk_freefunc)(void *);
++typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
+ 
+-int OPENSSL_sk_num(const OPENSSL_STACK *);
+-void *OPENSSL_sk_value(const OPENSSL_STACK *, int);
++int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
++void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
+ 
+ void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
+ 
+@@ -30,7 +30,7 @@ OPENSSL_STACK *OPENSSL_sk_new_null(void);
+ OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
+ int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
+ void OPENSSL_sk_free(OPENSSL_STACK *);
+-void OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (*func) (void *));
++void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
+ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
+                                     OPENSSL_sk_copyfunc c,
+                                     OPENSSL_sk_freefunc f);
+diff --git a/include/openssl/store.h b/include/openssl/store.h
+index a40a7339e6..00b9ad2a3a 100644
+--- a/include/openssl/store.h
++++ b/include/openssl/store.h
+@@ -149,7 +149,7 @@ const char *OSSL_STORE_INFO_type_string(int type);
+ /*
+  * Free the OSSL_STORE_INFO
+  */
+-void OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
++void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
+ 
+ 
+ /*-
+diff --git a/include/openssl/ts.h b/include/openssl/ts.h
+index 3b58aa527e..2fa90dbfea 100644
+--- a/include/openssl/ts.h
++++ b/include/openssl/ts.h
+@@ -68,216 +68,216 @@ DEFINE_STACK_OF(ESS_CERT_ID_V2)
+ 
+ typedef struct TS_resp_st TS_RESP;
+ 
+-TS_REQ *TS_REQ_new(void);
+-void TS_REQ_free(TS_REQ *a);
+-int i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
+-TS_REQ *d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
++TS_REQ * __cdecl TS_REQ_new(void);
++void __cdecl TS_REQ_free(TS_REQ *a);
++int __cdecl i2d_TS_REQ(const TS_REQ *a, unsigned char **pp);
++TS_REQ * __cdecl d2i_TS_REQ(TS_REQ **a, const unsigned char **pp, long length);
+ 
+-TS_REQ *TS_REQ_dup(TS_REQ *a);
++TS_REQ * __cdecl TS_REQ_dup(TS_REQ *a);
+ 
+ #ifndef OPENSSL_NO_STDIO
+-TS_REQ *d2i_TS_REQ_fp(FILE *fp, TS_REQ **a);
+-int i2d_TS_REQ_fp(FILE *fp, TS_REQ *a);
++TS_REQ * __cdecl d2i_TS_REQ_fp(FILE *fp, TS_REQ **a);
++int __cdecl i2d_TS_REQ_fp(FILE *fp, TS_REQ *a);
+ #endif
+-TS_REQ *d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
+-int i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
++TS_REQ * __cdecl d2i_TS_REQ_bio(BIO *fp, TS_REQ **a);
++int __cdecl i2d_TS_REQ_bio(BIO *fp, TS_REQ *a);
+ 
+-TS_MSG_IMPRINT *TS_MSG_IMPRINT_new(void);
+-void TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
+-int i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
+-TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
++TS_MSG_IMPRINT * __cdecl TS_MSG_IMPRINT_new(void);
++void __cdecl TS_MSG_IMPRINT_free(TS_MSG_IMPRINT *a);
++int __cdecl i2d_TS_MSG_IMPRINT(const TS_MSG_IMPRINT *a, unsigned char **pp);
++TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT(TS_MSG_IMPRINT **a,
+                                    const unsigned char **pp, long length);
+ 
+-TS_MSG_IMPRINT *TS_MSG_IMPRINT_dup(TS_MSG_IMPRINT *a);
++TS_MSG_IMPRINT * __cdecl TS_MSG_IMPRINT_dup(TS_MSG_IMPRINT *a);
+ 
+ #ifndef OPENSSL_NO_STDIO
+-TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a);
+-int i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a);
++TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT **a);
++int __cdecl i2d_TS_MSG_IMPRINT_fp(FILE *fp, TS_MSG_IMPRINT *a);
+ #endif
+-TS_MSG_IMPRINT *d2i_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT **a);
+-int i2d_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT *a);
++TS_MSG_IMPRINT * __cdecl d2i_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT **a);
++int __cdecl i2d_TS_MSG_IMPRINT_bio(BIO *bio, TS_MSG_IMPRINT *a);
+ 
+-TS_RESP *TS_RESP_new(void);
+-void TS_RESP_free(TS_RESP *a);
+-int i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
+-TS_RESP *d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
+-TS_TST_INFO *PKCS7_to_TS_TST_INFO(PKCS7 *token);
+-TS_RESP *TS_RESP_dup(TS_RESP *a);
++TS_RESP * __cdecl TS_RESP_new(void);
++void __cdecl TS_RESP_free(TS_RESP *a);
++int __cdecl i2d_TS_RESP(const TS_RESP *a, unsigned char **pp);
++TS_RESP * __cdecl d2i_TS_RESP(TS_RESP **a, const unsigned char **pp, long length);
++TS_TST_INFO * __cdecl PKCS7_to_TS_TST_INFO(PKCS7 *token);
++TS_RESP * __cdecl TS_RESP_dup(TS_RESP *a);
+ 
+ #ifndef OPENSSL_NO_STDIO
+-TS_RESP *d2i_TS_RESP_fp(FILE *fp, TS_RESP **a);
+-int i2d_TS_RESP_fp(FILE *fp, TS_RESP *a);
++TS_RESP * __cdecl d2i_TS_RESP_fp(FILE *fp, TS_RESP **a);
++int __cdecl i2d_TS_RESP_fp(FILE *fp, TS_RESP *a);
+ #endif
+-TS_RESP *d2i_TS_RESP_bio(BIO *bio, TS_RESP **a);
+-int i2d_TS_RESP_bio(BIO *bio, TS_RESP *a);
++TS_RESP * __cdecl d2i_TS_RESP_bio(BIO *bio, TS_RESP **a);
++int __cdecl i2d_TS_RESP_bio(BIO *bio, TS_RESP *a);
+ 
+-TS_STATUS_INFO *TS_STATUS_INFO_new(void);
+-void TS_STATUS_INFO_free(TS_STATUS_INFO *a);
+-int i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
+-TS_STATUS_INFO *d2i_TS_STATUS_INFO(TS_STATUS_INFO **a,
++TS_STATUS_INFO * __cdecl TS_STATUS_INFO_new(void);
++void __cdecl TS_STATUS_INFO_free(TS_STATUS_INFO *a);
++int __cdecl i2d_TS_STATUS_INFO(const TS_STATUS_INFO *a, unsigned char **pp);
++TS_STATUS_INFO * __cdecl d2i_TS_STATUS_INFO(TS_STATUS_INFO **a,
+                                    const unsigned char **pp, long length);
+-TS_STATUS_INFO *TS_STATUS_INFO_dup(TS_STATUS_INFO *a);
++TS_STATUS_INFO * __cdecl TS_STATUS_INFO_dup(TS_STATUS_INFO *a);
+ 
+-TS_TST_INFO *TS_TST_INFO_new(void);
+-void TS_TST_INFO_free(TS_TST_INFO *a);
+-int i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
+-TS_TST_INFO *d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
++TS_TST_INFO * __cdecl TS_TST_INFO_new(void);
++void __cdecl TS_TST_INFO_free(TS_TST_INFO *a);
++int __cdecl i2d_TS_TST_INFO(const TS_TST_INFO *a, unsigned char **pp);
++TS_TST_INFO * __cdecl d2i_TS_TST_INFO(TS_TST_INFO **a, const unsigned char **pp,
+                              long length);
+-TS_TST_INFO *TS_TST_INFO_dup(TS_TST_INFO *a);
++TS_TST_INFO * __cdecl TS_TST_INFO_dup(TS_TST_INFO *a);
+ 
+ #ifndef OPENSSL_NO_STDIO
+-TS_TST_INFO *d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a);
+-int i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a);
++TS_TST_INFO * __cdecl d2i_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO **a);
++int __cdecl i2d_TS_TST_INFO_fp(FILE *fp, TS_TST_INFO *a);
+ #endif
+-TS_TST_INFO *d2i_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO **a);
+-int i2d_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO *a);
++TS_TST_INFO * __cdecl d2i_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO **a);
++int __cdecl i2d_TS_TST_INFO_bio(BIO *bio, TS_TST_INFO *a);
+ 
+-TS_ACCURACY *TS_ACCURACY_new(void);
+-void TS_ACCURACY_free(TS_ACCURACY *a);
+-int i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
+-TS_ACCURACY *d2i_TS_ACCURACY(TS_ACCURACY **a, const unsigned char **pp,
++TS_ACCURACY * __cdecl TS_ACCURACY_new(void);
++void __cdecl TS_ACCURACY_free(TS_ACCURACY *a);
++int __cdecl i2d_TS_ACCURACY(const TS_ACCURACY *a, unsigned char **pp);
++TS_ACCURACY * __cdecl d2i_TS_ACCURACY(TS_ACCURACY **a, const unsigned char **pp,
+                              long length);
+-TS_ACCURACY *TS_ACCURACY_dup(TS_ACCURACY *a);
++TS_ACCURACY * __cdecl TS_ACCURACY_dup(TS_ACCURACY *a);
+ 
+-ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_new(void);
+-void ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
+-int i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
+-ESS_ISSUER_SERIAL *d2i_ESS_ISSUER_SERIAL(ESS_ISSUER_SERIAL **a,
++ESS_ISSUER_SERIAL * __cdecl ESS_ISSUER_SERIAL_new(void);
++void __cdecl ESS_ISSUER_SERIAL_free(ESS_ISSUER_SERIAL *a);
++int __cdecl i2d_ESS_ISSUER_SERIAL(const ESS_ISSUER_SERIAL *a, unsigned char **pp);
++ESS_ISSUER_SERIAL * __cdecl d2i_ESS_ISSUER_SERIAL(ESS_ISSUER_SERIAL **a,
+                                          const unsigned char **pp,
+                                          long length);
+-ESS_ISSUER_SERIAL *ESS_ISSUER_SERIAL_dup(ESS_ISSUER_SERIAL *a);
++ESS_ISSUER_SERIAL * __cdecl ESS_ISSUER_SERIAL_dup(ESS_ISSUER_SERIAL *a);
+ 
+-ESS_CERT_ID *ESS_CERT_ID_new(void);
+-void ESS_CERT_ID_free(ESS_CERT_ID *a);
+-int i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
+-ESS_CERT_ID *d2i_ESS_CERT_ID(ESS_CERT_ID **a, const unsigned char **pp,
++ESS_CERT_ID * __cdecl ESS_CERT_ID_new(void);
++void __cdecl ESS_CERT_ID_free(ESS_CERT_ID *a);
++int __cdecl i2d_ESS_CERT_ID(const ESS_CERT_ID *a, unsigned char **pp);
++ESS_CERT_ID * __cdecl d2i_ESS_CERT_ID(ESS_CERT_ID **a, const unsigned char **pp,
+                              long length);
+-ESS_CERT_ID *ESS_CERT_ID_dup(ESS_CERT_ID *a);
++ESS_CERT_ID * __cdecl ESS_CERT_ID_dup(ESS_CERT_ID *a);
+ 
+-ESS_SIGNING_CERT *ESS_SIGNING_CERT_new(void);
+-void ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
+-int i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
+-ESS_SIGNING_CERT *d2i_ESS_SIGNING_CERT(ESS_SIGNING_CERT **a,
++ESS_SIGNING_CERT * __cdecl ESS_SIGNING_CERT_new(void);
++void __cdecl ESS_SIGNING_CERT_free(ESS_SIGNING_CERT *a);
++int __cdecl i2d_ESS_SIGNING_CERT(const ESS_SIGNING_CERT *a, unsigned char **pp);
++ESS_SIGNING_CERT * __cdecl d2i_ESS_SIGNING_CERT(ESS_SIGNING_CERT **a,
+                                        const unsigned char **pp, long length);
+-ESS_SIGNING_CERT *ESS_SIGNING_CERT_dup(ESS_SIGNING_CERT *a);
++ESS_SIGNING_CERT * __cdecl ESS_SIGNING_CERT_dup(ESS_SIGNING_CERT *a);
+ 
+-ESS_CERT_ID_V2 *ESS_CERT_ID_V2_new(void);
+-void ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
+-int i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
+-ESS_CERT_ID_V2 *d2i_ESS_CERT_ID_V2(ESS_CERT_ID_V2 **a,
++ESS_CERT_ID_V2 * __cdecl ESS_CERT_ID_V2_new(void);
++void __cdecl ESS_CERT_ID_V2_free(ESS_CERT_ID_V2 *a);
++int __cdecl i2d_ESS_CERT_ID_V2(const ESS_CERT_ID_V2 *a, unsigned char **pp);
++ESS_CERT_ID_V2 * __cdecl d2i_ESS_CERT_ID_V2(ESS_CERT_ID_V2 **a,
+                                    const unsigned char **pp, long length);
+-ESS_CERT_ID_V2 *ESS_CERT_ID_V2_dup(ESS_CERT_ID_V2 *a);
++ESS_CERT_ID_V2 * __cdecl ESS_CERT_ID_V2_dup(ESS_CERT_ID_V2 *a);
+ 
+-ESS_SIGNING_CERT_V2 *ESS_SIGNING_CERT_V2_new(void);
+-void ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
+-int i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
+-ESS_SIGNING_CERT_V2 *d2i_ESS_SIGNING_CERT_V2(ESS_SIGNING_CERT_V2 **a,
++ESS_SIGNING_CERT_V2 * __cdecl ESS_SIGNING_CERT_V2_new(void);
++void __cdecl ESS_SIGNING_CERT_V2_free(ESS_SIGNING_CERT_V2 *a);
++int __cdecl i2d_ESS_SIGNING_CERT_V2(const ESS_SIGNING_CERT_V2 *a, unsigned char **pp);
++ESS_SIGNING_CERT_V2 * __cdecl d2i_ESS_SIGNING_CERT_V2(ESS_SIGNING_CERT_V2 **a,
+                                              const unsigned char **pp,
+                                              long length);
+-ESS_SIGNING_CERT_V2 *ESS_SIGNING_CERT_V2_dup(ESS_SIGNING_CERT_V2 *a);
++ESS_SIGNING_CERT_V2 * __cdecl ESS_SIGNING_CERT_V2_dup(ESS_SIGNING_CERT_V2 *a);
+ 
+-int TS_REQ_set_version(TS_REQ *a, long version);
+-long TS_REQ_get_version(const TS_REQ *a);
++int __cdecl TS_REQ_set_version(TS_REQ *a, long version);
++long __cdecl TS_REQ_get_version(const TS_REQ *a);
+ 
+-int TS_STATUS_INFO_set_status(TS_STATUS_INFO *a, int i);
+-const ASN1_INTEGER *TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a);
++int __cdecl TS_STATUS_INFO_set_status(TS_STATUS_INFO *a, int i);
++const ASN1_INTEGER * __cdecl TS_STATUS_INFO_get0_status(const TS_STATUS_INFO *a);
+ 
+ const STACK_OF(ASN1_UTF8STRING) *
+-TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a);
++__cdecl TS_STATUS_INFO_get0_text(const TS_STATUS_INFO *a);
+ 
+ const ASN1_BIT_STRING *
+-TS_STATUS_INFO_get0_failure_info(const TS_STATUS_INFO *a);
++__cdecl TS_STATUS_INFO_get0_failure_info(const TS_STATUS_INFO *a);
+ 
+-int TS_REQ_set_msg_imprint(TS_REQ *a, TS_MSG_IMPRINT *msg_imprint);
+-TS_MSG_IMPRINT *TS_REQ_get_msg_imprint(TS_REQ *a);
++int __cdecl TS_REQ_set_msg_imprint(TS_REQ *a, TS_MSG_IMPRINT *msg_imprint);
++TS_MSG_IMPRINT * __cdecl TS_REQ_get_msg_imprint(TS_REQ *a);
+ 
+-int TS_MSG_IMPRINT_set_algo(TS_MSG_IMPRINT *a, X509_ALGOR *alg);
+-X509_ALGOR *TS_MSG_IMPRINT_get_algo(TS_MSG_IMPRINT *a);
++int __cdecl TS_MSG_IMPRINT_set_algo(TS_MSG_IMPRINT *a, X509_ALGOR *alg);
++X509_ALGOR * __cdecl TS_MSG_IMPRINT_get_algo(TS_MSG_IMPRINT *a);
+ 
+-int TS_MSG_IMPRINT_set_msg(TS_MSG_IMPRINT *a, unsigned char *d, int len);
+-ASN1_OCTET_STRING *TS_MSG_IMPRINT_get_msg(TS_MSG_IMPRINT *a);
++int __cdecl TS_MSG_IMPRINT_set_msg(TS_MSG_IMPRINT *a, unsigned char *d, int len);
++ASN1_OCTET_STRING * __cdecl TS_MSG_IMPRINT_get_msg(TS_MSG_IMPRINT *a);
+ 
+-int TS_REQ_set_policy_id(TS_REQ *a, const ASN1_OBJECT *policy);
+-ASN1_OBJECT *TS_REQ_get_policy_id(TS_REQ *a);
++int __cdecl TS_REQ_set_policy_id(TS_REQ *a, const ASN1_OBJECT *policy);
++ASN1_OBJECT * __cdecl TS_REQ_get_policy_id(TS_REQ *a);
+ 
+-int TS_REQ_set_nonce(TS_REQ *a, const ASN1_INTEGER *nonce);
+-const ASN1_INTEGER *TS_REQ_get_nonce(const TS_REQ *a);
++int __cdecl TS_REQ_set_nonce(TS_REQ *a, const ASN1_INTEGER *nonce);
++const ASN1_INTEGER * __cdecl TS_REQ_get_nonce(const TS_REQ *a);
+ 
+-int TS_REQ_set_cert_req(TS_REQ *a, int cert_req);
+-int TS_REQ_get_cert_req(const TS_REQ *a);
++int __cdecl TS_REQ_set_cert_req(TS_REQ *a, int cert_req);
++int __cdecl TS_REQ_get_cert_req(const TS_REQ *a);
+ 
+-STACK_OF(X509_EXTENSION) *TS_REQ_get_exts(TS_REQ *a);
+-void TS_REQ_ext_free(TS_REQ *a);
+-int TS_REQ_get_ext_count(TS_REQ *a);
+-int TS_REQ_get_ext_by_NID(TS_REQ *a, int nid, int lastpos);
+-int TS_REQ_get_ext_by_OBJ(TS_REQ *a, const ASN1_OBJECT *obj, int lastpos);
+-int TS_REQ_get_ext_by_critical(TS_REQ *a, int crit, int lastpos);
+-X509_EXTENSION *TS_REQ_get_ext(TS_REQ *a, int loc);
+-X509_EXTENSION *TS_REQ_delete_ext(TS_REQ *a, int loc);
+-int TS_REQ_add_ext(TS_REQ *a, X509_EXTENSION *ex, int loc);
+-void *TS_REQ_get_ext_d2i(TS_REQ *a, int nid, int *crit, int *idx);
++STACK_OF(X509_EXTENSION) * __cdecl TS_REQ_get_exts(TS_REQ *a);
++void __cdecl TS_REQ_ext_free(TS_REQ *a);
++int __cdecl TS_REQ_get_ext_count(TS_REQ *a);
++int __cdecl TS_REQ_get_ext_by_NID(TS_REQ *a, int nid, int lastpos);
++int __cdecl TS_REQ_get_ext_by_OBJ(TS_REQ *a, const ASN1_OBJECT *obj, int lastpos);
++int __cdecl TS_REQ_get_ext_by_critical(TS_REQ *a, int crit, int lastpos);
++X509_EXTENSION * __cdecl TS_REQ_get_ext(TS_REQ *a, int loc);
++X509_EXTENSION * __cdecl TS_REQ_delete_ext(TS_REQ *a, int loc);
++int __cdecl TS_REQ_add_ext(TS_REQ *a, X509_EXTENSION *ex, int loc);
++void * __cdecl TS_REQ_get_ext_d2i(TS_REQ *a, int nid, int *crit, int *idx);
+ 
+ /* Function declarations for TS_REQ defined in ts/ts_req_print.c */
+ 
+-int TS_REQ_print_bio(BIO *bio, TS_REQ *a);
++int __cdecl TS_REQ_print_bio(BIO *bio, TS_REQ *a);
+ 
+ /* Function declarations for TS_RESP defined in ts/ts_resp_utils.c */
+ 
+-int TS_RESP_set_status_info(TS_RESP *a, TS_STATUS_INFO *info);
+-TS_STATUS_INFO *TS_RESP_get_status_info(TS_RESP *a);
++int __cdecl TS_RESP_set_status_info(TS_RESP *a, TS_STATUS_INFO *info);
++TS_STATUS_INFO * __cdecl TS_RESP_get_status_info(TS_RESP *a);
+ 
+ /* Caller loses ownership of PKCS7 and TS_TST_INFO objects. */
+-void TS_RESP_set_tst_info(TS_RESP *a, PKCS7 *p7, TS_TST_INFO *tst_info);
+-PKCS7 *TS_RESP_get_token(TS_RESP *a);
+-TS_TST_INFO *TS_RESP_get_tst_info(TS_RESP *a);
++void __cdecl TS_RESP_set_tst_info(TS_RESP *a, PKCS7 *p7, TS_TST_INFO *tst_info);
++PKCS7 * __cdecl TS_RESP_get_token(TS_RESP *a);
++TS_TST_INFO * __cdecl TS_RESP_get_tst_info(TS_RESP *a);
+ 
+-int TS_TST_INFO_set_version(TS_TST_INFO *a, long version);
+-long TS_TST_INFO_get_version(const TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_version(TS_TST_INFO *a, long version);
++long __cdecl TS_TST_INFO_get_version(const TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_policy_id(TS_TST_INFO *a, ASN1_OBJECT *policy_id);
+-ASN1_OBJECT *TS_TST_INFO_get_policy_id(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_policy_id(TS_TST_INFO *a, ASN1_OBJECT *policy_id);
++ASN1_OBJECT * __cdecl TS_TST_INFO_get_policy_id(TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_msg_imprint(TS_TST_INFO *a, TS_MSG_IMPRINT *msg_imprint);
+-TS_MSG_IMPRINT *TS_TST_INFO_get_msg_imprint(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_msg_imprint(TS_TST_INFO *a, TS_MSG_IMPRINT *msg_imprint);
++TS_MSG_IMPRINT * __cdecl TS_TST_INFO_get_msg_imprint(TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_serial(TS_TST_INFO *a, const ASN1_INTEGER *serial);
+-const ASN1_INTEGER *TS_TST_INFO_get_serial(const TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_serial(TS_TST_INFO *a, const ASN1_INTEGER *serial);
++const ASN1_INTEGER * __cdecl TS_TST_INFO_get_serial(const TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_time(TS_TST_INFO *a, const ASN1_GENERALIZEDTIME *gtime);
+-const ASN1_GENERALIZEDTIME *TS_TST_INFO_get_time(const TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_time(TS_TST_INFO *a, const ASN1_GENERALIZEDTIME *gtime);
++const ASN1_GENERALIZEDTIME * __cdecl TS_TST_INFO_get_time(const TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_accuracy(TS_TST_INFO *a, TS_ACCURACY *accuracy);
+-TS_ACCURACY *TS_TST_INFO_get_accuracy(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_accuracy(TS_TST_INFO *a, TS_ACCURACY *accuracy);
++TS_ACCURACY * __cdecl TS_TST_INFO_get_accuracy(TS_TST_INFO *a);
+ 
+-int TS_ACCURACY_set_seconds(TS_ACCURACY *a, const ASN1_INTEGER *seconds);
+-const ASN1_INTEGER *TS_ACCURACY_get_seconds(const TS_ACCURACY *a);
++int __cdecl TS_ACCURACY_set_seconds(TS_ACCURACY *a, const ASN1_INTEGER *seconds);
++const ASN1_INTEGER * __cdecl TS_ACCURACY_get_seconds(const TS_ACCURACY *a);
+ 
+-int TS_ACCURACY_set_millis(TS_ACCURACY *a, const ASN1_INTEGER *millis);
+-const ASN1_INTEGER *TS_ACCURACY_get_millis(const TS_ACCURACY *a);
++int __cdecl TS_ACCURACY_set_millis(TS_ACCURACY *a, const ASN1_INTEGER *millis);
++const ASN1_INTEGER * __cdecl TS_ACCURACY_get_millis(const TS_ACCURACY *a);
+ 
+-int TS_ACCURACY_set_micros(TS_ACCURACY *a, const ASN1_INTEGER *micros);
+-const ASN1_INTEGER *TS_ACCURACY_get_micros(const TS_ACCURACY *a);
++int __cdecl TS_ACCURACY_set_micros(TS_ACCURACY *a, const ASN1_INTEGER *micros);
++const ASN1_INTEGER * __cdecl TS_ACCURACY_get_micros(const TS_ACCURACY *a);
+ 
+-int TS_TST_INFO_set_ordering(TS_TST_INFO *a, int ordering);
+-int TS_TST_INFO_get_ordering(const TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_ordering(TS_TST_INFO *a, int ordering);
++int __cdecl TS_TST_INFO_get_ordering(const TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_nonce(TS_TST_INFO *a, const ASN1_INTEGER *nonce);
+-const ASN1_INTEGER *TS_TST_INFO_get_nonce(const TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_nonce(TS_TST_INFO *a, const ASN1_INTEGER *nonce);
++const ASN1_INTEGER * __cdecl TS_TST_INFO_get_nonce(const TS_TST_INFO *a);
+ 
+-int TS_TST_INFO_set_tsa(TS_TST_INFO *a, GENERAL_NAME *tsa);
+-GENERAL_NAME *TS_TST_INFO_get_tsa(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_set_tsa(TS_TST_INFO *a, GENERAL_NAME *tsa);
++GENERAL_NAME * __cdecl TS_TST_INFO_get_tsa(TS_TST_INFO *a);
+ 
+-STACK_OF(X509_EXTENSION) *TS_TST_INFO_get_exts(TS_TST_INFO *a);
+-void TS_TST_INFO_ext_free(TS_TST_INFO *a);
+-int TS_TST_INFO_get_ext_count(TS_TST_INFO *a);
+-int TS_TST_INFO_get_ext_by_NID(TS_TST_INFO *a, int nid, int lastpos);
+-int TS_TST_INFO_get_ext_by_OBJ(TS_TST_INFO *a, const ASN1_OBJECT *obj,
++STACK_OF(X509_EXTENSION) * __cdecl TS_TST_INFO_get_exts(TS_TST_INFO *a);
++void __cdecl TS_TST_INFO_ext_free(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_get_ext_count(TS_TST_INFO *a);
++int __cdecl TS_TST_INFO_get_ext_by_NID(TS_TST_INFO *a, int nid, int lastpos);
++int __cdecl TS_TST_INFO_get_ext_by_OBJ(TS_TST_INFO *a, const ASN1_OBJECT *obj,
+                                int lastpos);
+-int TS_TST_INFO_get_ext_by_critical(TS_TST_INFO *a, int crit, int lastpos);
+-X509_EXTENSION *TS_TST_INFO_get_ext(TS_TST_INFO *a, int loc);
+-X509_EXTENSION *TS_TST_INFO_delete_ext(TS_TST_INFO *a, int loc);
+-int TS_TST_INFO_add_ext(TS_TST_INFO *a, X509_EXTENSION *ex, int loc);
+-void *TS_TST_INFO_get_ext_d2i(TS_TST_INFO *a, int nid, int *crit, int *idx);
++int __cdecl TS_TST_INFO_get_ext_by_critical(TS_TST_INFO *a, int crit, int lastpos);
++X509_EXTENSION * __cdecl TS_TST_INFO_get_ext(TS_TST_INFO *a, int loc);
++X509_EXTENSION * __cdecl TS_TST_INFO_delete_ext(TS_TST_INFO *a, int loc);
++int __cdecl TS_TST_INFO_add_ext(TS_TST_INFO *a, X509_EXTENSION *ex, int loc);
++void * __cdecl TS_TST_INFO_get_ext_d2i(TS_TST_INFO *a, int nid, int *crit, int *idx);
+ 
+ /*
+  * Declarations related to response generation, defined in ts/ts_resp_sign.c.
+@@ -325,46 +325,46 @@ typedef struct TS_resp_ctx TS_RESP_CTX;
+ DEFINE_STACK_OF_CONST(EVP_MD)
+ 
+ /* Creates a response context that can be used for generating responses. */
+-TS_RESP_CTX *TS_RESP_CTX_new(void);
+-void TS_RESP_CTX_free(TS_RESP_CTX *ctx);
++TS_RESP_CTX * __cdecl TS_RESP_CTX_new(void);
++void __cdecl TS_RESP_CTX_free(TS_RESP_CTX *ctx);
+ 
+ /* This parameter must be set. */
+-int TS_RESP_CTX_set_signer_cert(TS_RESP_CTX *ctx, X509 *signer);
++int __cdecl TS_RESP_CTX_set_signer_cert(TS_RESP_CTX *ctx, X509 *signer);
+ 
+ /* This parameter must be set. */
+-int TS_RESP_CTX_set_signer_key(TS_RESP_CTX *ctx, EVP_PKEY *key);
++int __cdecl TS_RESP_CTX_set_signer_key(TS_RESP_CTX *ctx, EVP_PKEY *key);
+ 
+-int TS_RESP_CTX_set_signer_digest(TS_RESP_CTX *ctx,
++int __cdecl TS_RESP_CTX_set_signer_digest(TS_RESP_CTX *ctx,
+                                   const EVP_MD *signer_digest);
+-int TS_RESP_CTX_set_ess_cert_id_digest(TS_RESP_CTX *ctx, const EVP_MD *md);
++int __cdecl TS_RESP_CTX_set_ess_cert_id_digest(TS_RESP_CTX *ctx, const EVP_MD *md);
+ 
+ /* This parameter must be set. */
+-int TS_RESP_CTX_set_def_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *def_policy);
++int __cdecl TS_RESP_CTX_set_def_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *def_policy);
+ 
+ /* No additional certs are included in the response by default. */
+-int TS_RESP_CTX_set_certs(TS_RESP_CTX *ctx, STACK_OF(X509) *certs);
++int __cdecl TS_RESP_CTX_set_certs(TS_RESP_CTX *ctx, STACK_OF(X509) *certs);
+ 
+ /*
+  * Adds a new acceptable policy, only the default policy is accepted by
+  * default.
+  */
+-int TS_RESP_CTX_add_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *policy);
++int __cdecl TS_RESP_CTX_add_policy(TS_RESP_CTX *ctx, const ASN1_OBJECT *policy);
+ 
+ /*
+  * Adds a new acceptable message digest. Note that no message digests are
+  * accepted by default. The md argument is shared with the caller.
+  */
+-int TS_RESP_CTX_add_md(TS_RESP_CTX *ctx, const EVP_MD *md);
++int __cdecl TS_RESP_CTX_add_md(TS_RESP_CTX *ctx, const EVP_MD *md);
+ 
+ /* Accuracy is not included by default. */
+-int TS_RESP_CTX_set_accuracy(TS_RESP_CTX *ctx,
++int __cdecl TS_RESP_CTX_set_accuracy(TS_RESP_CTX *ctx,
+                              int secs, int millis, int micros);
+ 
+ /*
+  * Clock precision digits, i.e. the number of decimal digits: '0' means sec,
+  * '3' msec, '6' usec, and so on. Default is 0.
+  */
+-int TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
++int __cdecl TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
+                                            unsigned clock_precision_digits);
+ /* At most we accept usec precision. */
+ # define TS_MAX_CLOCK_PRECISION_DIGITS   6
+@@ -373,50 +373,50 @@ int TS_RESP_CTX_set_clock_precision_digits(TS_RESP_CTX *ctx,
+ # define TS_MAX_STATUS_LENGTH   (1024 * 1024)
+ 
+ /* No flags are set by default. */
+-void TS_RESP_CTX_add_flags(TS_RESP_CTX *ctx, int flags);
++void __cdecl TS_RESP_CTX_add_flags(TS_RESP_CTX *ctx, int flags);
+ 
+ /* Default callback always returns a constant. */
+-void TS_RESP_CTX_set_serial_cb(TS_RESP_CTX *ctx, TS_serial_cb cb, void *data);
++void __cdecl TS_RESP_CTX_set_serial_cb(TS_RESP_CTX *ctx, TS_serial_cb cb, void *data);
+ 
+ /* Default callback uses the gettimeofday() and gmtime() system calls. */
+-void TS_RESP_CTX_set_time_cb(TS_RESP_CTX *ctx, TS_time_cb cb, void *data);
++void __cdecl TS_RESP_CTX_set_time_cb(TS_RESP_CTX *ctx, TS_time_cb cb, void *data);
+ 
+ /*
+  * Default callback rejects all extensions. The extension callback is called
+  * when the TS_TST_INFO object is already set up and not signed yet.
+  */
+ /* FIXME: extension handling is not tested yet. */
+-void TS_RESP_CTX_set_extension_cb(TS_RESP_CTX *ctx,
++void __cdecl TS_RESP_CTX_set_extension_cb(TS_RESP_CTX *ctx,
+                                   TS_extension_cb cb, void *data);
+ 
+ /* The following methods can be used in the callbacks. */
+-int TS_RESP_CTX_set_status_info(TS_RESP_CTX *ctx,
++int __cdecl TS_RESP_CTX_set_status_info(TS_RESP_CTX *ctx,
+                                 int status, const char *text);
+ 
+ /* Sets the status info only if it is still TS_STATUS_GRANTED. */
+-int TS_RESP_CTX_set_status_info_cond(TS_RESP_CTX *ctx,
++int __cdecl TS_RESP_CTX_set_status_info_cond(TS_RESP_CTX *ctx,
+                                      int status, const char *text);
+ 
+-int TS_RESP_CTX_add_failure_info(TS_RESP_CTX *ctx, int failure);
++int __cdecl TS_RESP_CTX_add_failure_info(TS_RESP_CTX *ctx, int failure);
+ 
+ /* The get methods below can be used in the extension callback. */
+-TS_REQ *TS_RESP_CTX_get_request(TS_RESP_CTX *ctx);
++TS_REQ * __cdecl TS_RESP_CTX_get_request(TS_RESP_CTX *ctx);
+ 
+-TS_TST_INFO *TS_RESP_CTX_get_tst_info(TS_RESP_CTX *ctx);
++TS_TST_INFO * __cdecl TS_RESP_CTX_get_tst_info(TS_RESP_CTX *ctx);
+ 
+ /*
+  * Creates the signed TS_TST_INFO and puts it in TS_RESP.
+  * In case of errors it sets the status info properly.
+  * Returns NULL only in case of memory allocation/fatal error.
+  */
+-TS_RESP *TS_RESP_create_response(TS_RESP_CTX *ctx, BIO *req_bio);
++TS_RESP * __cdecl TS_RESP_create_response(TS_RESP_CTX *ctx, BIO *req_bio);
+ 
+ /*
+  * Declarations related to response verification,
+  * they are defined in ts/ts_resp_verify.c.
+  */
+ 
+-int TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
++int __cdecl TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
+                              X509_STORE *store, X509 **signer_out);
+ 
+ /* Context structure for the generic verify method. */
+@@ -463,23 +463,23 @@ int TS_RESP_verify_signature(PKCS7 *token, STACK_OF(X509) *certs,
+ 
+ typedef struct TS_verify_ctx TS_VERIFY_CTX;
+ 
+-int TS_RESP_verify_response(TS_VERIFY_CTX *ctx, TS_RESP *response);
+-int TS_RESP_verify_token(TS_VERIFY_CTX *ctx, PKCS7 *token);
++int __cdecl TS_RESP_verify_response(TS_VERIFY_CTX *ctx, TS_RESP *response);
++int __cdecl TS_RESP_verify_token(TS_VERIFY_CTX *ctx, PKCS7 *token);
+ 
+ /*
+  * Declarations related to response verification context,
+  */
+-TS_VERIFY_CTX *TS_VERIFY_CTX_new(void);
+-void TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx);
+-void TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx);
+-void TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx);
+-int TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f);
+-int TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f);
+-BIO *TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b);
+-unsigned char *TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
++TS_VERIFY_CTX * __cdecl TS_VERIFY_CTX_new(void);
++void __cdecl TS_VERIFY_CTX_init(TS_VERIFY_CTX *ctx);
++void __cdecl TS_VERIFY_CTX_free(TS_VERIFY_CTX *ctx);
++void __cdecl TS_VERIFY_CTX_cleanup(TS_VERIFY_CTX *ctx);
++int __cdecl TS_VERIFY_CTX_set_flags(TS_VERIFY_CTX *ctx, int f);
++int __cdecl TS_VERIFY_CTX_add_flags(TS_VERIFY_CTX *ctx, int f);
++BIO * __cdecl TS_VERIFY_CTX_set_data(TS_VERIFY_CTX *ctx, BIO *b);
++unsigned char * __cdecl TS_VERIFY_CTX_set_imprint(TS_VERIFY_CTX *ctx,
+                                          unsigned char *hexstr, long len);
+-X509_STORE *TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s);
+-STACK_OF(X509) *TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs);
++X509_STORE * __cdecl TS_VERIFY_CTX_set_store(TS_VERIFY_CTX *ctx, X509_STORE *s);
++STACK_OF(X509) * __cdecl TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *certs);
+ 
+ /*-
+  * If ctx is NULL, it allocates and returns a new object, otherwise
+@@ -497,59 +497,59 @@ STACK_OF(X509) *TS_VERIFY_CTS_set_certs(TS_VERIFY_CTX *ctx, STACK_OF(X509) *cert
+  * tsa_name = NULL
+  * Important: after calling this method TS_VFY_SIGNATURE should be added!
+  */
+-TS_VERIFY_CTX *TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx);
++TS_VERIFY_CTX * __cdecl TS_REQ_to_TS_VERIFY_CTX(TS_REQ *req, TS_VERIFY_CTX *ctx);
+ 
+ /* Function declarations for TS_RESP defined in ts/ts_resp_print.c */
+ 
+-int TS_RESP_print_bio(BIO *bio, TS_RESP *a);
+-int TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a);
+-int TS_TST_INFO_print_bio(BIO *bio, TS_TST_INFO *a);
++int __cdecl TS_RESP_print_bio(BIO *bio, TS_RESP *a);
++int __cdecl TS_STATUS_INFO_print_bio(BIO *bio, TS_STATUS_INFO *a);
++int __cdecl TS_TST_INFO_print_bio(BIO *bio, TS_TST_INFO *a);
+ 
+ /* Common utility functions defined in ts/ts_lib.c */
+ 
+-int TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num);
+-int TS_OBJ_print_bio(BIO *bio, const ASN1_OBJECT *obj);
+-int TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions);
+-int TS_X509_ALGOR_print_bio(BIO *bio, const X509_ALGOR *alg);
+-int TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *msg);
++int __cdecl TS_ASN1_INTEGER_print_bio(BIO *bio, const ASN1_INTEGER *num);
++int __cdecl TS_OBJ_print_bio(BIO *bio, const ASN1_OBJECT *obj);
++int __cdecl TS_ext_print_bio(BIO *bio, const STACK_OF(X509_EXTENSION) *extensions);
++int __cdecl TS_X509_ALGOR_print_bio(BIO *bio, const X509_ALGOR *alg);
++int __cdecl TS_MSG_IMPRINT_print_bio(BIO *bio, TS_MSG_IMPRINT *msg);
+ 
+ /*
+  * Function declarations for handling configuration options, defined in
+  * ts/ts_conf.c
+  */
+ 
+-X509 *TS_CONF_load_cert(const char *file);
+-STACK_OF(X509) *TS_CONF_load_certs(const char *file);
+-EVP_PKEY *TS_CONF_load_key(const char *file, const char *pass);
+-const char *TS_CONF_get_tsa_section(CONF *conf, const char *section);
+-int TS_CONF_set_serial(CONF *conf, const char *section, TS_serial_cb cb,
++X509 * __cdecl TS_CONF_load_cert(const char *file);
++STACK_OF(X509) * __cdecl TS_CONF_load_certs(const char *file);
++EVP_PKEY * __cdecl TS_CONF_load_key(const char *file, const char *pass);
++const char * __cdecl TS_CONF_get_tsa_section(CONF *conf, const char *section);
++int __cdecl TS_CONF_set_serial(CONF *conf, const char *section, TS_serial_cb cb,
+                        TS_RESP_CTX *ctx);
+ #ifndef OPENSSL_NO_ENGINE
+-int TS_CONF_set_crypto_device(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_crypto_device(CONF *conf, const char *section,
+                               const char *device);
+-int TS_CONF_set_default_engine(const char *name);
++int __cdecl TS_CONF_set_default_engine(const char *name);
+ #endif
+-int TS_CONF_set_signer_cert(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_signer_cert(CONF *conf, const char *section,
+                             const char *cert, TS_RESP_CTX *ctx);
+-int TS_CONF_set_certs(CONF *conf, const char *section, const char *certs,
++int __cdecl TS_CONF_set_certs(CONF *conf, const char *section, const char *certs,
+                       TS_RESP_CTX *ctx);
+-int TS_CONF_set_signer_key(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_signer_key(CONF *conf, const char *section,
+                            const char *key, const char *pass,
+                            TS_RESP_CTX *ctx);
+-int TS_CONF_set_signer_digest(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_signer_digest(CONF *conf, const char *section,
+                                const char *md, TS_RESP_CTX *ctx);
+-int TS_CONF_set_def_policy(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_def_policy(CONF *conf, const char *section,
+                            const char *policy, TS_RESP_CTX *ctx);
+-int TS_CONF_set_policies(CONF *conf, const char *section, TS_RESP_CTX *ctx);
+-int TS_CONF_set_digests(CONF *conf, const char *section, TS_RESP_CTX *ctx);
+-int TS_CONF_set_accuracy(CONF *conf, const char *section, TS_RESP_CTX *ctx);
+-int TS_CONF_set_clock_precision_digits(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_policies(CONF *conf, const char *section, TS_RESP_CTX *ctx);
++int __cdecl TS_CONF_set_digests(CONF *conf, const char *section, TS_RESP_CTX *ctx);
++int __cdecl TS_CONF_set_accuracy(CONF *conf, const char *section, TS_RESP_CTX *ctx);
++int __cdecl TS_CONF_set_clock_precision_digits(CONF *conf, const char *section,
+                                        TS_RESP_CTX *ctx);
+-int TS_CONF_set_ordering(CONF *conf, const char *section, TS_RESP_CTX *ctx);
+-int TS_CONF_set_tsa_name(CONF *conf, const char *section, TS_RESP_CTX *ctx);
+-int TS_CONF_set_ess_cert_id_chain(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_ordering(CONF *conf, const char *section, TS_RESP_CTX *ctx);
++int __cdecl TS_CONF_set_tsa_name(CONF *conf, const char *section, TS_RESP_CTX *ctx);
++int __cdecl TS_CONF_set_ess_cert_id_chain(CONF *conf, const char *section,
+                                   TS_RESP_CTX *ctx);
+-int TS_CONF_set_ess_cert_id_digest(CONF *conf, const char *section,
++int __cdecl TS_CONF_set_ess_cert_id_digest(CONF *conf, const char *section,
+                                       TS_RESP_CTX *ctx);
+ 
+ #  ifdef  __cplusplus
+diff --git a/include/openssl/x509.h b/include/openssl/x509.h
+index 39ca0ba575..d2b7862f63 100644
+--- a/include/openssl/x509.h
++++ b/include/openssl/x509.h
+@@ -401,19 +401,19 @@ RSA *d2i_RSAPrivateKey_fp(FILE *fp, RSA **rsa);
+ int i2d_RSAPrivateKey_fp(FILE *fp, RSA *rsa);
+ RSA *d2i_RSAPublicKey_fp(FILE *fp, RSA **rsa);
+ int i2d_RSAPublicKey_fp(FILE *fp, RSA *rsa);
+-RSA *d2i_RSA_PUBKEY_fp(FILE *fp, RSA **rsa);
++RSA * __cdecl d2i_RSA_PUBKEY_fp(FILE *fp, RSA **rsa);
+ int i2d_RSA_PUBKEY_fp(FILE *fp, RSA *rsa);
+ #  endif
+ #  ifndef OPENSSL_NO_DSA
+-DSA *d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
++DSA * __cdecl d2i_DSA_PUBKEY_fp(FILE *fp, DSA **dsa);
+ int i2d_DSA_PUBKEY_fp(FILE *fp, DSA *dsa);
+-DSA *d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa);
++DSA * __cdecl d2i_DSAPrivateKey_fp(FILE *fp, DSA **dsa);
+ int i2d_DSAPrivateKey_fp(FILE *fp, DSA *dsa);
+ #  endif
+ #  ifndef OPENSSL_NO_EC
+-EC_KEY *d2i_EC_PUBKEY_fp(FILE *fp, EC_KEY **eckey);
++EC_KEY * __cdecl d2i_EC_PUBKEY_fp(FILE *fp, EC_KEY **eckey);
+ int i2d_EC_PUBKEY_fp(FILE *fp, EC_KEY *eckey);
+-EC_KEY *d2i_ECPrivateKey_fp(FILE *fp, EC_KEY **eckey);
++EC_KEY * __cdecl d2i_ECPrivateKey_fp(FILE *fp, EC_KEY **eckey);
+ int i2d_ECPrivateKey_fp(FILE *fp, EC_KEY *eckey);
+ #  endif
+ X509_SIG *d2i_PKCS8_fp(FILE *fp, X509_SIG **p8);
+@@ -423,9 +423,9 @@ PKCS8_PRIV_KEY_INFO *d2i_PKCS8_PRIV_KEY_INFO_fp(FILE *fp,
+ int i2d_PKCS8_PRIV_KEY_INFO_fp(FILE *fp, PKCS8_PRIV_KEY_INFO *p8inf);
+ int i2d_PKCS8PrivateKeyInfo_fp(FILE *fp, EVP_PKEY *key);
+ int i2d_PrivateKey_fp(FILE *fp, EVP_PKEY *pkey);
+-EVP_PKEY *d2i_PrivateKey_fp(FILE *fp, EVP_PKEY **a);
++EVP_PKEY * __cdecl d2i_PrivateKey_fp(FILE *fp, EVP_PKEY **a);
+ int i2d_PUBKEY_fp(FILE *fp, EVP_PKEY *pkey);
+-EVP_PKEY *d2i_PUBKEY_fp(FILE *fp, EVP_PKEY **a);
++EVP_PKEY * __cdecl d2i_PUBKEY_fp(FILE *fp, EVP_PKEY **a);
+ # endif
+ 
+ X509 *d2i_X509_bio(BIO *bp, X509 **x509);
+@@ -439,19 +439,19 @@ RSA *d2i_RSAPrivateKey_bio(BIO *bp, RSA **rsa);
+ int i2d_RSAPrivateKey_bio(BIO *bp, RSA *rsa);
+ RSA *d2i_RSAPublicKey_bio(BIO *bp, RSA **rsa);
+ int i2d_RSAPublicKey_bio(BIO *bp, RSA *rsa);
+-RSA *d2i_RSA_PUBKEY_bio(BIO *bp, RSA **rsa);
++RSA * __cdecl d2i_RSA_PUBKEY_bio(BIO *bp, RSA **rsa);
+ int i2d_RSA_PUBKEY_bio(BIO *bp, RSA *rsa);
+ #  endif
+ #  ifndef OPENSSL_NO_DSA
+-DSA *d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
++DSA * __cdecl d2i_DSA_PUBKEY_bio(BIO *bp, DSA **dsa);
+ int i2d_DSA_PUBKEY_bio(BIO *bp, DSA *dsa);
+-DSA *d2i_DSAPrivateKey_bio(BIO *bp, DSA **dsa);
++DSA * __cdecl d2i_DSAPrivateKey_bio(BIO *bp, DSA **dsa);
+ int i2d_DSAPrivateKey_bio(BIO *bp, DSA *dsa);
+ #  endif
+ #  ifndef OPENSSL_NO_EC
+-EC_KEY *d2i_EC_PUBKEY_bio(BIO *bp, EC_KEY **eckey);
++EC_KEY * __cdecl d2i_EC_PUBKEY_bio(BIO *bp, EC_KEY **eckey);
+ int i2d_EC_PUBKEY_bio(BIO *bp, EC_KEY *eckey);
+-EC_KEY *d2i_ECPrivateKey_bio(BIO *bp, EC_KEY **eckey);
++EC_KEY * __cdecl d2i_ECPrivateKey_bio(BIO *bp, EC_KEY **eckey);
+ int i2d_ECPrivateKey_bio(BIO *bp, EC_KEY *eckey);
+ #  endif
+ X509_SIG *d2i_PKCS8_bio(BIO *bp, X509_SIG **p8);
+@@ -461,17 +461,17 @@ PKCS8_PRIV_KEY_INFO *d2i_PKCS8_PRIV_KEY_INFO_bio(BIO *bp,
+ int i2d_PKCS8_PRIV_KEY_INFO_bio(BIO *bp, PKCS8_PRIV_KEY_INFO *p8inf);
+ int i2d_PKCS8PrivateKeyInfo_bio(BIO *bp, EVP_PKEY *key);
+ int i2d_PrivateKey_bio(BIO *bp, EVP_PKEY *pkey);
+-EVP_PKEY *d2i_PrivateKey_bio(BIO *bp, EVP_PKEY **a);
++EVP_PKEY * __cdecl d2i_PrivateKey_bio(BIO *bp, EVP_PKEY **a);
+ int i2d_PUBKEY_bio(BIO *bp, EVP_PKEY *pkey);
+-EVP_PKEY *d2i_PUBKEY_bio(BIO *bp, EVP_PKEY **a);
+-
+-X509 *X509_dup(X509 *x509);
+-X509_ATTRIBUTE *X509_ATTRIBUTE_dup(X509_ATTRIBUTE *xa);
+-X509_EXTENSION *X509_EXTENSION_dup(X509_EXTENSION *ex);
+-X509_CRL *X509_CRL_dup(X509_CRL *crl);
+-X509_REVOKED *X509_REVOKED_dup(X509_REVOKED *rev);
+-X509_REQ *X509_REQ_dup(X509_REQ *req);
+-X509_ALGOR *X509_ALGOR_dup(X509_ALGOR *xn);
++EVP_PKEY * __cdecl d2i_PUBKEY_bio(BIO *bp, EVP_PKEY **a);
++
++X509 * __cdecl X509_dup(X509 *x509);
++X509_ATTRIBUTE * __cdecl X509_ATTRIBUTE_dup(X509_ATTRIBUTE *xa);
++X509_EXTENSION * __cdecl X509_EXTENSION_dup(X509_EXTENSION *ex);
++X509_CRL * __cdecl X509_CRL_dup(X509_CRL *crl);
++X509_REVOKED * __cdecl X509_REVOKED_dup(X509_REVOKED *rev);
++X509_REQ * __cdecl X509_REQ_dup(X509_REQ *req);
++X509_ALGOR * __cdecl X509_ALGOR_dup(X509_ALGOR *xn);
+ int X509_ALGOR_set0(X509_ALGOR *alg, ASN1_OBJECT *aobj, int ptype,
+                     void *pval);
+ void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
+@@ -479,8 +479,8 @@ void X509_ALGOR_get0(const ASN1_OBJECT **paobj, int *pptype,
+ void X509_ALGOR_set_md(X509_ALGOR *alg, const EVP_MD *md);
+ int X509_ALGOR_cmp(const X509_ALGOR *a, const X509_ALGOR *b);
+ 
+-X509_NAME *X509_NAME_dup(X509_NAME *xn);
+-X509_NAME_ENTRY *X509_NAME_ENTRY_dup(X509_NAME_ENTRY *ne);
++X509_NAME * __cdecl X509_NAME_dup(X509_NAME *xn);
++X509_NAME_ENTRY * __cdecl X509_NAME_ENTRY_dup(X509_NAME_ENTRY *ne);
+ 
+ int X509_cmp_time(const ASN1_TIME *s, time_t *t);
+ int X509_cmp_current_time(const ASN1_TIME *s);
+@@ -510,19 +510,19 @@ EVP_PKEY *X509_PUBKEY_get0(X509_PUBKEY *key);
+ EVP_PKEY *X509_PUBKEY_get(X509_PUBKEY *key);
+ int X509_get_pubkey_parameters(EVP_PKEY *pkey, STACK_OF(X509) *chain);
+ long X509_get_pathlen(X509 *x);
+-int i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
+-EVP_PKEY *d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
++int __cdecl i2d_PUBKEY(EVP_PKEY *a, unsigned char **pp);
++EVP_PKEY * __cdecl d2i_PUBKEY(EVP_PKEY **a, const unsigned char **pp, long length);
+ # ifndef OPENSSL_NO_RSA
+-int i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
+-RSA *d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
++int __cdecl i2d_RSA_PUBKEY(RSA *a, unsigned char **pp);
++RSA * __cdecl d2i_RSA_PUBKEY(RSA **a, const unsigned char **pp, long length);
+ # endif
+ # ifndef OPENSSL_NO_DSA
+-int i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
+-DSA *d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
++int __cdecl i2d_DSA_PUBKEY(DSA *a, unsigned char **pp);
++DSA * __cdecl d2i_DSA_PUBKEY(DSA **a, const unsigned char **pp, long length);
+ # endif
+ # ifndef OPENSSL_NO_EC
+-int i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
+-EC_KEY *d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
++int __cdecl i2d_EC_PUBKEY(EC_KEY *a, unsigned char **pp);
++EC_KEY * __cdecl d2i_EC_PUBKEY(EC_KEY **a, const unsigned char **pp, long length);
+ # endif
+ 
+ DECLARE_ASN1_FUNCTIONS(X509_SIG)
+@@ -555,8 +555,8 @@ DECLARE_ASN1_FUNCTIONS(X509_CERT_AUX)
+     CRYPTO_get_ex_new_index(CRYPTO_EX_INDEX_X509, l, p, newf, dupf, freef)
+ int X509_set_ex_data(X509 *r, int idx, void *arg);
+ void *X509_get_ex_data(X509 *r, int idx);
+-int i2d_X509_AUX(X509 *a, unsigned char **pp);
+-X509 *d2i_X509_AUX(X509 **a, const unsigned char **pp, long length);
++int __cdecl i2d_X509_AUX(X509 *a, unsigned char **pp);
++X509 * __cdecl d2i_X509_AUX(X509 **a, const unsigned char **pp, long length);
+ 
+ int i2d_re_X509_tbs(X509 *x, unsigned char **pp);
+ 
+@@ -605,7 +605,7 @@ DECLARE_ASN1_FUNCTIONS(NETSCAPE_SPKAC)
+ DECLARE_ASN1_FUNCTIONS(NETSCAPE_CERT_SEQUENCE)
+ 
+ X509_INFO *X509_INFO_new(void);
+-void X509_INFO_free(X509_INFO *a);
++void __cdecl X509_INFO_free(X509_INFO *a);
+ char *X509_NAME_oneline(const X509_NAME *a, char *buf, int size);
+ 
+ int ASN1_verify(i2d_of_void *i2d, X509_ALGOR *algor1,
 diff --git a/include/openssl/x509_vfy.h b/include/openssl/x509_vfy.h
-index 42f28f2ef7..7ffbd9f146 100644
+index adb8bce7cb..7ffbd9f146 100644
 --- a/include/openssl/x509_vfy.h
 +++ b/include/openssl/x509_vfy.h
 @@ -60,7 +60,7 @@ DEFINE_STACK_OF(X509_VERIFY_PARAM)
@@ -38793,6 +38074,159 @@ index 42f28f2ef7..7ffbd9f146 100644
  typedef int (*X509_STORE_CTX_verify_fn)(X509_STORE_CTX *);
  typedef int (*X509_STORE_CTX_get_issuer_fn)(X509 **issuer,
                                              X509_STORE_CTX *ctx, X509 *x);
+@@ -258,7 +258,7 @@ X509_OBJECT *X509_OBJECT_retrieve_match(STACK_OF(X509_OBJECT) *h,
+                                         X509_OBJECT *x);
+ int X509_OBJECT_up_ref_count(X509_OBJECT *a);
+ X509_OBJECT *X509_OBJECT_new(void);
+-void X509_OBJECT_free(X509_OBJECT *a);
++void __cdecl X509_OBJECT_free(X509_OBJECT *a);
+ X509_LOOKUP_TYPE X509_OBJECT_get_type(const X509_OBJECT *a);
+ X509 *X509_OBJECT_get0_X509(const X509_OBJECT *a);
+ int X509_OBJECT_set1_X509(X509_OBJECT *a, X509 *obj);
+@@ -526,7 +526,7 @@ void X509_STORE_CTX_set0_dane(X509_STORE_CTX *ctx, SSL_DANE *dane);
+ /* X509_VERIFY_PARAM functions */
+ 
+ X509_VERIFY_PARAM *X509_VERIFY_PARAM_new(void);
+-void X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
++void __cdecl X509_VERIFY_PARAM_free(X509_VERIFY_PARAM *param);
+ int X509_VERIFY_PARAM_inherit(X509_VERIFY_PARAM *to,
+                               const X509_VERIFY_PARAM *from);
+ int X509_VERIFY_PARAM_set1(X509_VERIFY_PARAM *to,
+diff --git a/include/openssl/x509v3.h b/include/openssl/x509v3.h
+index 6c6eca38a5..3713882f86 100644
+--- a/include/openssl/x509v3.h
++++ b/include/openssl/x509v3.h
+@@ -557,7 +557,7 @@ GENERAL_NAME *v2i_GENERAL_NAME_ex(GENERAL_NAME *out,
+                                   const X509V3_EXT_METHOD *method,
+                                   X509V3_CTX *ctx, CONF_VALUE *cnf,
+                                   int is_nc);
+-void X509V3_conf_free(CONF_VALUE *val);
++void __cdecl X509V3_conf_free(CONF_VALUE *val);
+ 
+ X509_EXTENSION *X509V3_EXT_nconf_nid(CONF *conf, X509V3_CTX *ctx, int ext_nid,
+                                      const char *value);
+diff --git a/ms/applink.c b/ms/applink.c
+index 238dbff35b..52cb19477b 100644
+--- a/ms/applink.c
++++ b/ms/applink.c
+@@ -38,42 +38,42 @@
+ # include <io.h>
+ # include <fcntl.h>
+ 
+-static void *app_stdin(void)
++static void * __cdecl app_stdin(void)
+ {
+     return stdin;
+ }
+ 
+-static void *app_stdout(void)
++static void * __cdecl app_stdout(void)
+ {
+     return stdout;
+ }
+ 
+-static void *app_stderr(void)
++static void * __cdecl app_stderr(void)
+ {
+     return stderr;
+ }
+ 
+-static int app_feof(FILE *fp)
++static int __cdecl app_feof(FILE *fp)
+ {
+     return feof(fp);
+ }
+ 
+-static int app_ferror(FILE *fp)
++static int __cdecl app_ferror(FILE *fp)
+ {
+     return ferror(fp);
+ }
+ 
+-static void app_clearerr(FILE *fp)
++static void __cdecl app_clearerr(FILE *fp)
+ {
+     clearerr(fp);
+ }
+ 
+-static int app_fileno(FILE *fp)
++static int __cdecl app_fileno(FILE *fp)
+ {
+     return _fileno(fp);
+ }
+ 
+-static int app_fsetmod(FILE *fp, char mod)
++static int __cdecl app_fsetmod(FILE *fp, char mod)
+ {
+     return _setmode(_fileno(fp), mod == 'b' ? _O_BINARY : _O_TEXT);
+ }
+diff --git a/ms/uplink.c b/ms/uplink.c
+index cd4e96b780..8156952d93 100644
+--- a/ms/uplink.c
++++ b/ms/uplink.c
+@@ -31,7 +31,7 @@ static void unimplemented(void)
+     TerminateProcess(GetCurrentProcess(), 1);
+ }
+ 
+-void OPENSSL_Uplink(volatile void **table, int index)
++void __cdecl OPENSSL_Uplink(volatile void **table, int index)
+ {
+     static HMODULE volatile apphandle = NULL;
+     static void **volatile applinktable = NULL;
+diff --git a/ms/uplink.h b/ms/uplink.h
+index f6cd0380ae..1f0d75cc55 100644
+--- a/ms/uplink.h
++++ b/ms/uplink.h
+@@ -12,27 +12,27 @@
+ 
+ extern void *OPENSSL_UplinkTable[];
+ 
+-#define UP_stdin  (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
+-#define UP_stdout (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
+-#define UP_stderr (*(void *(*)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
+-#define UP_fprintf (*(int (*)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
+-#define UP_fgets  (*(char *(*)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
+-#define UP_fread  (*(size_t (*)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
+-#define UP_fwrite (*(size_t (*)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
+-#define UP_fsetmod (*(int (*)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
+-#define UP_feof   (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
+-#define UP_fclose (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
++#define UP_stdin  (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDIN])()
++#define UP_stdout (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDOUT])()
++#define UP_stderr (*(void *(__cdecl *)(void))OPENSSL_UplinkTable[APPLINK_STDERR])()
++#define UP_fprintf (*(int (__cdecl *)(void *,const char *,...))OPENSSL_UplinkTable[APPLINK_FPRINTF])
++#define UP_fgets  (*(char *(__cdecl *)(char *,int,void *))OPENSSL_UplinkTable[APPLINK_FGETS])
++#define UP_fread  (*(size_t (__cdecl *)(void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FREAD])
++#define UP_fwrite (*(size_t (__cdecl *)(const void *,size_t,size_t,void *))OPENSSL_UplinkTable[APPLINK_FWRITE])
++#define UP_fsetmod (*(int (__cdecl *)(void *,char))OPENSSL_UplinkTable[APPLINK_FSETMOD])
++#define UP_feof   (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FEOF])
++#define UP_fclose (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FCLOSE])
+ 
+-#define UP_fopen  (*(void *(*)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
+-#define UP_fseek  (*(int (*)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
+-#define UP_ftell  (*(long (*)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
+-#define UP_fflush (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
+-#define UP_ferror (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
+-#define UP_clearerr (*(void (*)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
+-#define UP_fileno (*(int (*)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
++#define UP_fopen  (*(void *(__cdecl *)(const char *,const char *))OPENSSL_UplinkTable[APPLINK_FOPEN])
++#define UP_fseek  (*(int (__cdecl *)(void *,long,int))OPENSSL_UplinkTable[APPLINK_FSEEK])
++#define UP_ftell  (*(long (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FTELL])
++#define UP_fflush (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FFLUSH])
++#define UP_ferror (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FERROR])
++#define UP_clearerr (*(void (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_CLEARERR])
++#define UP_fileno (*(int (__cdecl *)(void *))OPENSSL_UplinkTable[APPLINK_FILENO])
+ 
+-#define UP_open   (*(int (*)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
+-#define UP_read   (*(ossl_ssize_t (*)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
+-#define UP_write  (*(ossl_ssize_t (*)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
+-#define UP_lseek  (*(long (*)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
+-#define UP_close  (*(int (*)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
++#define UP_open   (*(int (__cdecl *)(const char *,int,...))OPENSSL_UplinkTable[APPLINK_OPEN])
++#define UP_read   (*(ossl_ssize_t (__cdecl *)(int,void *,size_t))OPENSSL_UplinkTable[APPLINK_READ])
++#define UP_write  (*(ossl_ssize_t (__cdecl *)(int,const void *,size_t))OPENSSL_UplinkTable[APPLINK_WRITE])
++#define UP_lseek  (*(long (__cdecl *)(int,long,int))OPENSSL_UplinkTable[APPLINK_LSEEK])
++#define UP_close  (*(int (__cdecl *)(int))OPENSSL_UplinkTable[APPLINK_CLOSE])
 diff --git a/ssl/bio_ssl.c b/ssl/bio_ssl.c
 index d1876d8b8c..6002ed20a2 100644
 --- a/ssl/bio_ssl.c
@@ -39073,6 +38507,40 @@ index 6365b365e7..384b0af2ea 100644
      unsigned char buf[DTLS1_AL_HEADER_LENGTH];
      unsigned char *ptr = &buf[0];
      size_t written;
+diff --git a/ssl/d1_srtp.c b/ssl/d1_srtp.c
+index ff8f0c5712..d49168d6de 100644
+--- a/ssl/d1_srtp.c
++++ b/ssl/d1_srtp.c
+@@ -109,17 +109,17 @@ static int ssl_ctx_make_profiles(const char *profiles_string,
+     return 1;
+ }
+ 
+-int SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
++int __cdecl SSL_CTX_set_tlsext_use_srtp(SSL_CTX *ctx, const char *profiles)
+ {
+     return ssl_ctx_make_profiles(profiles, &ctx->srtp_profiles);
+ }
+ 
+-int SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
++int __cdecl SSL_set_tlsext_use_srtp(SSL *s, const char *profiles)
+ {
+     return ssl_ctx_make_profiles(profiles, &s->srtp_profiles);
+ }
+ 
+-STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
++STACK_OF(SRTP_PROTECTION_PROFILE) * __cdecl SSL_get_srtp_profiles(SSL *s)
+ {
+     if (s != NULL) {
+         if (s->srtp_profiles != NULL) {
+@@ -132,7 +132,7 @@ STACK_OF(SRTP_PROTECTION_PROFILE) *SSL_get_srtp_profiles(SSL *s)
+     return NULL;
+ }
+ 
+-SRTP_PROTECTION_PROFILE *SSL_get_selected_srtp_profile(SSL *s)
++SRTP_PROTECTION_PROFILE * __cdecl SSL_get_selected_srtp_profile(SSL *s)
+ {
+     return s->srtp_profile;
+ }
 diff --git a/ssl/pqueue.c b/ssl/pqueue.c
 index 548a7a443d..e0398d043f 100644
 --- a/ssl/pqueue.c
@@ -39546,10 +39014,19 @@ index 2e185e9fba..f0634abce9 100644
      switch (code) {
      case SSL_AD_CLOSE_NOTIFY:
 diff --git a/ssl/s3_lib.c b/ssl/s3_lib.c
-index 0162fa70af..196549589b 100644
+index 066bf47221..196549589b 100644
 --- a/ssl/s3_lib.c
 +++ b/ssl/s3_lib.c
-@@ -3208,7 +3208,7 @@ static int __cdecl cipher_compare(const void *a, const void *b)
+@@ -3198,7 +3198,7 @@ static SSL_CIPHER ssl3_scsvs[] = {
+     },
+ };
+ 
+-static int cipher_compare(const void *a, const void *b)
++static int __cdecl cipher_compare(const void *a, const void *b)
+ {
+     const SSL_CIPHER *ap = (const SSL_CIPHER *)a;
+     const SSL_CIPHER *bp = (const SSL_CIPHER *)b;
+@@ -3208,7 +3208,7 @@ static int cipher_compare(const void *a, const void *b)
      return ap->id < bp->id ? -1 : 1;
  }
  
@@ -39860,8 +39337,30 @@ index 42382547fb..d7bc1220a8 100644
      size_t written;
  
      s->s3->alert_dispatch = 0;
+diff --git a/ssl/ssl_asn1.c b/ssl/ssl_asn1.c
+index b56c5e96c5..0b1371d60b 100644
+--- a/ssl/ssl_asn1.c
++++ b/ssl/ssl_asn1.c
+@@ -101,7 +101,7 @@ static void ssl_session_sinit(ASN1_OCTET_STRING **dest, ASN1_OCTET_STRING *os,
+         *dest = NULL;
+ }
+ 
+-int i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
++int __cdecl i2d_SSL_SESSION(SSL_SESSION *in, unsigned char **pp)
+ {
+ 
+     SSL_SESSION_ASN1 as;
+@@ -236,7 +236,7 @@ static int ssl_session_memcpy(unsigned char *dst, size_t *pdstlen,
+     return 1;
+ }
+ 
+-SSL_SESSION *d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
++SSL_SESSION * __cdecl d2i_SSL_SESSION(SSL_SESSION **a, const unsigned char **pp,
+                              long length)
+ {
+     long id;
 diff --git a/ssl/ssl_cert.c b/ssl/ssl_cert.c
-index a704f5ed41..2cc218bb85 100644
+index 9df9fb9677..2cc218bb85 100644
 --- a/ssl/ssl_cert.c
 +++ b/ssl/ssl_cert.c
 @@ -24,7 +24,7 @@
@@ -40069,7 +39568,7 @@ index a704f5ed41..2cc218bb85 100644
  {
      return add_ca_name(&ctx->ca_names, x);
  }
-@@ -557,12 +557,12 @@ int SSL_CTX_add1_to_CA_list(SSL_CTX *ctx, const X509 *x)
+@@ -557,17 +557,17 @@ int SSL_CTX_add1_to_CA_list(SSL_CTX *ctx, const X509 *x)
   * The following two are older names are to be replaced with
   * SSL(_CTX)_add1_to_CA_list
   */
@@ -40084,6 +39583,21 @@ index a704f5ed41..2cc218bb85 100644
  {
      return add_ca_name(&ctx->client_ca_names, x);
  }
+ 
+-static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
++static int __cdecl xname_cmp(const X509_NAME *a, const X509_NAME *b)
+ {
+     unsigned char *abuf = NULL, *bbuf = NULL;
+     int alen, blen, ret;
+@@ -591,7 +591,7 @@ static int xname_cmp(const X509_NAME *a, const X509_NAME *b)
+     return ret;
+ }
+ 
+-static int xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++static int __cdecl xname_sk_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return xname_cmp(*a, *b);
+ }
 @@ -609,7 +609,7 @@ static unsigned long xname_hash(const X509_NAME *a)
   * \param file the file containing one or more certs.
   * \return a ::STACK containing the certs.
@@ -40093,7 +39607,7 @@ index a704f5ed41..2cc218bb85 100644
  {
      BIO *in = BIO_new(BIO_s_file());
      X509 *x = NULL;
-@@ -675,7 +675,7 @@ STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file)
+@@ -675,14 +675,14 @@ STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file)
   * certs may have been added to \c stack.
   */
  
@@ -40102,6 +39616,14 @@ index a704f5ed41..2cc218bb85 100644
                                          const char *file)
  {
      BIO *in;
+     X509 *x = NULL;
+     X509_NAME *xn = NULL;
+     int ret = 1;
+-    int (*oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
++    int (__cdecl *oldcmp) (const X509_NAME *const *a, const X509_NAME *const *b);
+ 
+     oldcmp = sk_X509_NAME_set_cmp_func(stack, xname_sk_cmp);
+ 
 @@ -736,7 +736,7 @@ int SSL_add_file_cert_subjects_to_stack(STACK_OF(X509_NAME) *stack,
   * certs may have been added to \c stack.
   */
@@ -40179,7 +39701,7 @@ index a704f5ed41..2cc218bb85 100644
      if (idx >= OSSL_NELEM(ssl_cert_info))
          return NULL;
 diff --git a/ssl/ssl_ciph.c b/ssl/ssl_ciph.c
-index 1263b04638..940e7b18ec 100644
+index 27a1b2ec68..940e7b18ec 100644
 --- a/ssl/ssl_ciph.c
 +++ b/ssl/ssl_ciph.c
 @@ -354,7 +354,7 @@ static uint32_t disabled_mac_mask;
@@ -40191,6 +39713,15 @@ index 1263b04638..940e7b18ec 100644
  {
      size_t i;
      const ssl_cipher_table *t;
+@@ -450,7 +450,7 @@ int ssl_load_ciphers(void)
+ 
+ #ifndef OPENSSL_NO_COMP
+ 
+-static int sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
++static int __cdecl sk_comp_cmp(const SSL_COMP *const *a, const SSL_COMP *const *b)
+ {
+     return ((*a)->id - (*b)->id);
+ }
 @@ -483,7 +483,7 @@ static int load_builtin_compressions(void)
  }
  #endif
@@ -40358,7 +39889,13 @@ index 1263b04638..940e7b18ec 100644
                                                        *meths)
  {
      STACK_OF(SSL_COMP) *old_meths = ssl_comp_methods;
-@@ -1951,14 +1951,14 @@ static void __cdecl cmeth_free(SSL_COMP *cm)
+@@ -1946,19 +1946,19 @@ STACK_OF(SSL_COMP) *SSL_COMP_set0_compression_methods(STACK_OF(SSL_COMP)
+     return old_meths;
+ }
+ 
+-static void cmeth_free(SSL_COMP *cm)
++static void __cdecl cmeth_free(SSL_COMP *cm)
+ {
      OPENSSL_free(cm);
  }
  
@@ -40576,6 +40113,19 @@ index 9c202708d7..31dd800728 100644
  {
      cctx->ctx = ctx;
      cctx->ssl = NULL;
+diff --git a/ssl/ssl_err.c b/ssl/ssl_err.c
+index 4b12ed1485..bfd7e78ea4 100644
+--- a/ssl/ssl_err.c
++++ b/ssl/ssl_err.c
+@@ -1265,7 +1265,7 @@ static const ERR_STRING_DATA SSL_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_SSL_strings(void)
++int __cdecl ERR_load_SSL_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(SSL_str_functs[0].error) == NULL) {
 diff --git a/ssl/ssl_init.c b/ssl/ssl_init.c
 index f0969fa9b1..3f8f1701e7 100644
 --- a/ssl/ssl_init.c
@@ -40590,7 +40140,7 @@ index f0969fa9b1..3f8f1701e7 100644
      static int stoperrset = 0;
  
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index a5d417fc31..53fe156bed 100644
+index ac820cf9fe..53fe156bed 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -25,7 +25,7 @@
@@ -40665,6 +40215,15 @@ index a5d417fc31..53fe156bed 100644
      } f;
  };
  
+@@ -179,7 +179,7 @@ static void dane_ctx_final(struct dane_ctx_st *dctx)
+     dctx->mdmax = 0;
+ }
+ 
+-static void tlsa_free(danetls_record *t)
++static void __cdecl tlsa_free(danetls_record *t)
+ {
+     if (t == NULL)
+         return;
 @@ -574,7 +574,7 @@ static void clear_ciphers(SSL *s)
      ssl_clear_hash_ctx(&s->write_hash);
  }
@@ -41402,7 +40961,25 @@ index a5d417fc31..53fe156bed 100644
  {
      switch (cmd) {
      case SSL_CTRL_SET_MSG_CALLBACK:
-@@ -2432,7 +2432,7 @@ int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+@@ -2411,7 +2411,7 @@ long SSL_CTX_callback_ctrl(SSL_CTX *ctx, int cmd, void (*fp) (void))
+     }
+ }
+ 
+-int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
++int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+ {
+     if (a->id > b->id)
+         return 1;
+@@ -2420,7 +2420,7 @@ int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b)
+     return 0;
+ }
+ 
+-int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+                           const SSL_CIPHER *const *bp)
+ {
+     if ((*ap)->id > (*bp)->id)
+@@ -2432,7 +2432,7 @@ int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
  
  /** return a STACK of the ciphers available for the SSL and in order of
   * preference */
@@ -41554,7 +41131,16 @@ index a5d417fc31..53fe156bed 100644
                              unsigned int *len)
  {
      *data = NULL;
-@@ -2904,7 +2904,7 @@ static int __cdecl ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
+@@ -2888,7 +2888,7 @@ static unsigned long ssl_session_hash(const SSL_SESSION *a)
+  * being able to construct an SSL_SESSION that will collide with any existing
+  * session with a matching session ID.
+  */
+-static int ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
++static int __cdecl ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
+ {
+     if (a->ssl_version != b->ssl_version)
+         return 1;
+@@ -2904,7 +2904,7 @@ static int ssl_session_cmp(const SSL_SESSION *a, const SSL_SESSION *b)
   * via ssl.h.
   */
  
@@ -42909,7 +42495,7 @@ index a5d417fc31..53fe156bed 100644
                                   void *arg)
  {
 diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
-index d49523aee1..f593704fbe 100644
+index 25875c9f6d..f593704fbe 100644
 --- a/ssl/ssl_locl.h
 +++ b/ssl/ssl_locl.h
 @@ -439,36 +439,36 @@ struct ssl_method_st {
@@ -43246,11 +42832,13 @@ index d49523aee1..f593704fbe 100644
                                           size_t sess_id_len);
 -__owur int ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello);
 -__owur SSL_SESSION *ssl_session_dup(SSL_SESSION *src, int ticket);
+-__owur int ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
 +__owur int __cdecl ssl_get_prev_session(SSL *s, CLIENTHELLO_MSG *hello);
 +__owur SSL_SESSION * __cdecl ssl_session_dup(SSL_SESSION *src, int ticket);
- __owur int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
++__owur int __cdecl ssl_cipher_id_cmp(const SSL_CIPHER *a, const SSL_CIPHER *b);
  DECLARE_OBJ_BSEARCH_GLOBAL_CMP_FN(SSL_CIPHER, SSL_CIPHER, ssl_cipher_id);
- __owur int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
+-__owur int ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
++__owur int __cdecl ssl_cipher_ptr_id_cmp(const SSL_CIPHER *const *ap,
                                   const SSL_CIPHER *const *bp);
 -__owur STACK_OF(SSL_CIPHER) *ssl_create_cipher_list(const SSL_METHOD *ssl_method,
 +__owur STACK_OF(SSL_CIPHER) * __cdecl ssl_create_cipher_list(const SSL_METHOD *ssl_method,
@@ -44106,7 +43694,7 @@ index 172e15f920..24d546f081 100644
  {
      return ssl_set_cert_and_key(NULL, ctx, x509, privatekey, chain, override);
 diff --git a/ssl/ssl_sess.c b/ssl/ssl_sess.c
-index 243dff6c56..c026d53283 100644
+index 52cfa7ef6d..c026d53283 100644
 --- a/ssl/ssl_sess.c
 +++ b/ssl/ssl_sess.c
 @@ -29,13 +29,13 @@ static int remove_session_lock(SSL_CTX *ctx, SSL_SESSION *c, int lck);
@@ -44125,7 +43713,7 @@ index 243dff6c56..c026d53283 100644
  /* variant of SSL_get_session: caller really gets something */
  {
      SSL_SESSION *sess;
-@@ -52,12 +52,12 @@ SSL_SESSION *SSL_get1_session(SSL *ssl)
+@@ -52,17 +52,17 @@ SSL_SESSION *SSL_get1_session(SSL *ssl)
      return sess;
  }
  
@@ -44140,7 +43728,13 @@ index 243dff6c56..c026d53283 100644
  {
      return CRYPTO_get_ex_data(&s->ex_data, idx);
  }
-@@ -94,7 +94,7 @@ SSL_SESSION * __cdecl SSL_SESSION_new(void)
+ 
+-SSL_SESSION *SSL_SESSION_new(void)
++SSL_SESSION * __cdecl SSL_SESSION_new(void)
+ {
+     SSL_SESSION *ss;
+ 
+@@ -94,7 +94,7 @@ SSL_SESSION *SSL_SESSION_new(void)
      return ss;
  }
  
@@ -45036,7 +44630,7 @@ index b016fa7cff..6329b42836 100644
      size_t msglen;
  
 diff --git a/ssl/statem/statem_lib.c b/ssl/statem/statem_lib.c
-index 1c9ed9b9cf..9b4cb7941f 100644
+index 22e9f0490e..9b4cb7941f 100644
 --- a/ssl/statem/statem_lib.c
 +++ b/ssl/statem/statem_lib.c
 @@ -38,7 +38,7 @@ const unsigned char hrrrandom[] = {
@@ -45176,6 +44770,15 @@ index 1c9ed9b9cf..9b4cb7941f 100644
  {
      int ver_min, ver_max, ret;
  
+@@ -2218,7 +2218,7 @@ int create_synthetic_message_hash(SSL *s, const unsigned char *hashval,
+     return 1;
+ }
+ 
+-static int ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
++static int __cdecl ca_dn_cmp(const X509_NAME *const *a, const X509_NAME *const *b)
+ {
+     return X509_NAME_cmp(*a, *b);
+ }
 diff --git a/ssl/statem/statem_srvr.c b/ssl/statem/statem_srvr.c
 index 8cf9c40d15..4cfa674f27 100644
 --- a/ssl/statem/statem_srvr.c
@@ -45937,6 +45540,126 @@ index f94e46b4e8..6145d9a836 100644
                                          char *(*cb) (SSL *, void *))
  {
      return tls1_ctx_callback_ctrl(ctx, SSL_CTRL_SET_SRP_GIVE_CLIENT_PWD_CB,
+diff --git a/test/aborttest.c b/test/aborttest.c
+index ba5055edff..885734d4bf 100644
+--- a/test/aborttest.c
++++ b/test/aborttest.c
+@@ -9,7 +9,7 @@
+ 
+ #include <openssl/crypto.h>
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     OPENSSL_die("Voluntary abort", __FILE__, __LINE__);
+     return 0;
+diff --git a/test/asynctest.c b/test/asynctest.c
+index 9728a37911..2061b76020 100644
+--- a/test/asynctest.c
++++ b/test/asynctest.c
+@@ -269,7 +269,7 @@ static int test_ASYNC_block_pause(void)
+     return 1;
+ }
+ 
+-int main(int argc, char **argv)
++int __cdecl main(int argc, char **argv)
+ {
+     if (!ASYNC_is_capable()) {
+         fprintf(stderr,
+diff --git a/test/bio_callback_test.c b/test/bio_callback_test.c
+index 8a17602d79..6928f40587 100644
+--- a/test/bio_callback_test.c
++++ b/test/bio_callback_test.c
+@@ -21,7 +21,7 @@ static int         my_param_argi[MAXCOUNT];
+ static long        my_param_argl[MAXCOUNT];
+ static long        my_param_ret[MAXCOUNT];
+ 
+-static long my_bio_callback(BIO *b, int oper, const char *argp, int argi,
++static long __cdecl my_bio_callback(BIO *b, int oper, const char *argp, int argi,
+                             long argl, long ret)
+ {
+     if (my_param_count >= MAXCOUNT)
+diff --git a/test/danetest.c b/test/danetest.c
+index 54a79ab51f..ba6ad6fb57 100644
+--- a/test/danetest.c
++++ b/test/danetest.c
+@@ -100,7 +100,7 @@ static STACK_OF(X509) *load_chain(BIO *fp, int nelem)
+     long len;
+     char *errtype = 0;                /* if error: cert or pkey? */
+     STACK_OF(X509) *chain;
+-    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
++    typedef X509 *(__cdecl * d2i_X509_t)(X509 **, const unsigned char **, long);
+ 
+     if (!TEST_ptr(chain = sk_X509_new_null()))
+         goto err;
+diff --git a/test/dhtest.c b/test/dhtest.c
+index 9d5609b943..35606f58a7 100644
+--- a/test/dhtest.c
++++ b/test/dhtest.c
+@@ -484,7 +484,7 @@ static const unsigned char dhtest_rfc5114_2048_224_bad_y[] = {
+ };
+ 
+ typedef struct {
+-    DH *(*get_param) (void);
++    DH *(__cdecl *get_param) (void);
+     const unsigned char *xA;
+     size_t xA_len;
+     const unsigned char *yA;
+diff --git a/test/evp_test.c b/test/evp_test.c
+index abb51384e8..7529cdd862 100644
+--- a/test/evp_test.c
++++ b/test/evp_test.c
+@@ -106,7 +106,7 @@ struct evp_test_buffer_st {
+     int count_set;
+ };
+ 
+-static void evp_test_buffer_free(EVP_TEST_BUFFER *db)
++static void __cdecl evp_test_buffer_free(EVP_TEST_BUFFER *db)
+ {
+     if (db != NULL) {
+         OPENSSL_free(db->buf);
+@@ -919,7 +919,7 @@ static int mac_test_init(EVP_TEST *t, const char *alg)
+ }
+ 
+ /* Because OPENSSL_free is a macro, it can't be passed as a function pointer */
+-static void openssl_free(char *m)
++static void __cdecl openssl_free(char *m)
+ {
+     OPENSSL_free(m);
+ }
+@@ -1077,7 +1077,7 @@ typedef struct pkey_data_st {
+     /* Context for this operation */
+     EVP_PKEY_CTX *ctx;
+     /* Key operation to perform */
+-    int (*keyop) (EVP_PKEY_CTX *ctx,
++    int (__cdecl *keyop) (EVP_PKEY_CTX *ctx,
+                   unsigned char *sig, size_t *siglen,
+                   const unsigned char *tbs, size_t tbslen);
+     /* Input to MAC */
+@@ -1094,8 +1094,8 @@ typedef struct pkey_data_st {
+  */
+ static int pkey_test_init(EVP_TEST *t, const char *name,
+                           int use_public,
+-                          int (*keyopinit) (EVP_PKEY_CTX *ctx),
+-                          int (*keyop)(EVP_PKEY_CTX *ctx,
++                          int (__cdecl *keyopinit) (EVP_PKEY_CTX *ctx),
++                          int (__cdecl *keyop)(EVP_PKEY_CTX *ctx,
+                                        unsigned char *sig, size_t *siglen,
+                                        const unsigned char *tbs,
+                                        size_t tbslen))
+diff --git a/test/generate_buildtest.pl b/test/generate_buildtest.pl
+index f9a663bea6..dff61939c1 100644
+--- a/test/generate_buildtest.pl
++++ b/test/generate_buildtest.pl
+@@ -27,7 +27,7 @@ print <<"_____";
+ # include <openssl/$name.h>
+ #endif
+ 
+-int main(void)
++int __cdecl main(void)
+ {
+     return 0;
+ }
 diff --git a/test/handshake_helper.c b/test/handshake_helper.c
 index 27ff794014..995b836835 100644
 --- a/test/handshake_helper.c
@@ -45950,6 +45673,97 @@ index 27ff794014..995b836835 100644
  {
      if (where & SSL_CB_ALERT) {
          HANDSHAKE_EX_DATA *ex_data =
+diff --git a/test/lhash_test.c b/test/lhash_test.c
+index 162286b7cd..3740062220 100644
+--- a/test/lhash_test.c
++++ b/test/lhash_test.c
+@@ -39,7 +39,7 @@ static unsigned long int int_hash(const int *p)
+     return 3 & *p;      /* To force collisions */
+ }
+ 
+-static int int_cmp(const int *p, const int *q)
++static int __cdecl int_cmp(const int *p, const int *q)
+ {
+     return *p != *q;
+ }
+diff --git a/test/memleaktest.c b/test/memleaktest.c
+index d239bd23b8..6179fa76ed 100644
+--- a/test/memleaktest.c
++++ b/test/memleaktest.c
+@@ -23,7 +23,7 @@
+  * but that is worse than avoiding the test framework's main.
+  */
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+ #ifndef OPENSSL_NO_CRYPTO_MDEBUG
+     char *p;
+diff --git a/test/modes_internal_test.c b/test/modes_internal_test.c
+index e0f1adf6af..89f7b76696 100644
+--- a/test/modes_internal_test.c
++++ b/test/modes_internal_test.c
+@@ -127,18 +127,18 @@ typedef struct {
+     const char *case_name;
+     size_t (*last_blocks_correction)(const unsigned char *in,
+                                      unsigned char *out, size_t len);
+-    size_t (*encrypt_block)(const unsigned char *in,
++    size_t (__cdecl *encrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*encrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *encrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+-    size_t (*decrypt_block)(const unsigned char *in,
++    size_t (__cdecl *decrypt_block)(const unsigned char *in,
+                             unsigned char *out, size_t len,
+                             const void *key, unsigned char ivec[16],
+                             block128_f block);
+-    size_t (*decrypt_stream)(const unsigned char *in, unsigned char *out,
++    size_t (__cdecl *decrypt_stream)(const unsigned char *in, unsigned char *out,
+                              size_t len, const void *key,
+                              unsigned char ivec[16], cbc128_f cbc);
+ } CTS128_FIXTURE;
+diff --git a/test/ossl_shim/ossl_shim.cc b/test/ossl_shim/ossl_shim.cc
+index 90d1f1ef40..a38fe0fdc9 100644
+--- a/test/ossl_shim/ossl_shim.cc
++++ b/test/ossl_shim/ossl_shim.cc
+@@ -1295,6 +1295,6 @@ static int Main(int argc, char **argv) {
+ 
+ }  // namespace bssl
+ 
+-int main(int argc, char **argv) {
++int __cdecl main(int argc, char **argv) {
+   return bssl::Main(argc, argv);
+ }
+diff --git a/test/rsa_complex.c b/test/rsa_complex.c
+index fac581254a..55564a2d0a 100644
+--- a/test/rsa_complex.c
++++ b/test/rsa_complex.c
+@@ -20,7 +20,7 @@
+ #include <openssl/rsa.h>
+ #include <stdlib.h>
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     /* There are explicitly no run time checks for this one */
+     return EXIT_SUCCESS;
+diff --git a/test/shlibloadtest.c b/test/shlibloadtest.c
+index 86bbfcd849..a4ca1ae484 100644
+--- a/test/shlibloadtest.c
++++ b/test/shlibloadtest.c
+@@ -294,7 +294,7 @@ end:
+  * it to link against libcrypto (which the framework uses). The point of the
+  * test is to check dynamic loading and unloading of libcrypto/libssl.
+  */
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     const char *p;
+ 
 diff --git a/test/sslapitest.c b/test/sslapitest.c
 index 7a142268fa..cf1b4c3da3 100644
 --- a/test/sslapitest.c
@@ -46017,7 +45831,7 @@ index 7a142268fa..cf1b4c3da3 100644
      return 1;
  }
 diff --git a/test/ssltest_old.c b/test/ssltest_old.c
-index 4d97ea7bb9..3b970c4f9b 100644
+index 36e6031f3a..3b970c4f9b 100644
 --- a/test/ssltest_old.c
 +++ b/test/ssltest_old.c
 @@ -83,7 +83,7 @@ static SSL_CTX *s_ctx2 = NULL;
@@ -46029,6 +45843,15 @@ index 4d97ea7bb9..3b970c4f9b 100644
  static int app_verify_callback(X509_STORE_CTX *ctx, void *arg);
  #define APP_CALLBACK_STRING "Test Callback Argument"
  struct app_verify_arg {
+@@ -872,7 +872,7 @@ static int set_protocol_version(const char *version, SSL *ssl, int setting)
+     return 1;
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     const char *CApath = NULL, *CAfile = NULL;
+     int badop = 0;
 @@ -2807,7 +2807,7 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
      return ret;
  }
@@ -46037,6 +45860,72 @@ index 4d97ea7bb9..3b970c4f9b 100644
 +static int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx)
  {
      char *s, buf[256];
+ 
+diff --git a/test/ssltestlib.c b/test/ssltestlib.c
+index 456afdf471..aec9b1d7f7 100644
+--- a/test/ssltestlib.c
++++ b/test/ssltestlib.c
+@@ -279,7 +279,7 @@ struct mempacket_st {
+     unsigned int type;
+ };
+ 
+-static void mempacket_free(MEMPACKET *pkt)
++static void __cdecl mempacket_free(MEMPACKET *pkt)
+ {
+     if (pkt->data != NULL)
+         OPENSSL_free(pkt->data);
+diff --git a/test/stack_test.c b/test/stack_test.c
+index 680f68d60e..3f8e4f96f5 100644
+--- a/test/stack_test.c
++++ b/test/stack_test.c
+@@ -41,7 +41,7 @@ DEFINE_SPECIAL_STACK_OF_CONST(uchar, unsigned char)
+ DEFINE_STACK_OF(SS)
+ DEFINE_STACK_OF_CONST(SU)
+ 
+-static int int_compare(const int *const *a, const int *const *b)
++static int __cdecl int_compare(const int *const *a, const int *const *b)
+ {
+     if (**a < **b)
+         return -1;
+@@ -165,7 +165,7 @@ end:
+     return testresult;
+ }
+ 
+-static int uchar_compare(const unsigned char *const *a,
++static int __cdecl uchar_compare(const unsigned char *const *a,
+                          const unsigned char *const *b)
+ {
+     return **a - (signed int)**b;
+@@ -251,7 +251,7 @@ end:
+     return testresult;
+ }
+ 
+-static SS *SS_copy(const SS *p)
++static SS * __cdecl SS_copy(const SS *p)
+ {
+     SS *q = OPENSSL_malloc(sizeof(*q));
+ 
+@@ -260,7 +260,7 @@ static SS *SS_copy(const SS *p)
+     return q;
+ }
+ 
+-static void SS_free(SS *p) {
++static void __cdecl SS_free(SS *p) {
+     OPENSSL_free(p);
+ }
+ 
+diff --git a/test/testutil/main.c b/test/testutil/main.c
+index d3ccdda391..f86bc5dbc5 100644
+--- a/test/testutil/main.c
++++ b/test/testutil/main.c
+@@ -31,7 +31,7 @@ static void check_arg_usage(void)
+         test_printf_stderr("Warning arguments %zu and later unchecked\n", i);
+ }
+ 
+-int main(int argc, char *argv[])
++int __cdecl main(int argc, char *argv[])
+ {
+     int ret = EXIT_FAILURE;
  
 diff --git a/test/tls13secretstest.c b/test/tls13secretstest.c
 index 9368b1cdc5..4d3a4908aa 100644
@@ -46087,3 +45976,280 @@ index 9368b1cdc5..4d3a4908aa 100644
  {
      return EVP_sha256();
  }
+diff --git a/test/versions.c b/test/versions.c
+index 3ab05ec35d..c9e32f6793 100644
+--- a/test/versions.c
++++ b/test/versions.c
+@@ -12,7 +12,7 @@
+ #include <openssl/crypto.h>
+ 
+ /* A simple helper for the perl function OpenSSL::Test::openssl_versions */
+-int main(void)
++int __cdecl main(void)
+ {
+     printf("Build version: 0x%08lX\n", OPENSSL_VERSION_NUMBER);
+     printf("Library version: 0x%08lX\n", OpenSSL_version_num());
+diff --git a/test/x509aux.c b/test/x509aux.c
+index e41f1f6809..7b80c58e3a 100644
+--- a/test/x509aux.c
++++ b/test/x509aux.c
+@@ -26,8 +26,8 @@ static int test_certs(int num)
+     char *header = 0;
+     unsigned char *data = 0;
+     long len;
+-    typedef X509 *(*d2i_X509_t)(X509 **, const unsigned char **, long);
+-    typedef int (*i2d_X509_t)(X509 *, unsigned char **);
++    typedef X509 *(__cdecl * d2i_X509_t)(X509 **, const unsigned char **, long);
++    typedef int (__cdecl * i2d_X509_t)(X509 *, unsigned char **);
+     int err = 0;
+     BIO *fp = BIO_new_file(test_get_argument(num), "r");
+     X509 *reuse = NULL;
+diff --git a/util/mkdef.pl b/util/mkdef.pl
+index 3ac79821b0..ed05e5584d 100755
+--- a/util/mkdef.pl
++++ b/util/mkdef.pl
+@@ -297,7 +297,7 @@ if($do_crypto == 1) {
+  * to link to all of them. This is *not* intended to be run!
+  */
+ 
+-int main()
++int __cdecl main()
+ {
+ EOF
+ 	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
+diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
+index 80248f71b0..e064cdd379 100644
+--- a/crypto/stack/stack.c
++++ b/crypto/stack/stack.c
+@@ -31,7 +31,7 @@ struct stack_st {
+     OPENSSL_sk_compfunc comp;
+ };
+ 
+-OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
++OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
+ {
+     OPENSSL_sk_compfunc old = sk->comp;
+ 
+@@ -42,7 +42,7 @@ OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfu
+     return old;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
++OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *sk)
+ {
+     OPENSSL_STACK *ret;
+ 
+@@ -70,7 +70,7 @@ OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
+     return NULL;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
++OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
+                              OPENSSL_sk_copyfunc copy_func,
+                              OPENSSL_sk_freefunc free_func)
+ {
+@@ -113,12 +113,12 @@ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
+     return ret;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new_null(void)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void)
+ {
+     return OPENSSL_sk_new_reserve(NULL, 0);
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc c)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc c)
+ {
+     return OPENSSL_sk_new_reserve(c, 0);
+ }
+@@ -204,7 +204,7 @@ static int sk_reserve(OPENSSL_STACK *st, int n, int exact)
+     return 1;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
+ {
+     OPENSSL_STACK *st = OPENSSL_zalloc(sizeof(OPENSSL_STACK));
+ 
+@@ -224,7 +224,7 @@ OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
+     return st;
+ }
+ 
+-int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
++int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
+ {
+     if (st == NULL)
+         return 0;
+@@ -234,7 +234,7 @@ int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
+     return sk_reserve(st, n, 1);
+ }
+ 
+-int OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
++int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
+ {
+     if (st == NULL || st->num == max_nodes)
+         return 0;
+@@ -266,7 +266,7 @@ static ossl_inline void *internal_delete(OPENSSL_STACK *st, int loc)
+     return (void *)ret;
+ }
+ 
+-void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
++void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+ {
+     int i;
+ 
+@@ -276,7 +276,7 @@ void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+     return NULL;
+ }
+ 
+-void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
++void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
+ {
+     if (st == NULL || loc < 0 || loc >= st->num)
+         return NULL;
+@@ -313,43 +313,43 @@ static int internal_find(OPENSSL_STACK *st, const void *data,
+     return r == NULL ? -1 : (int)((const void **)r - st->data);
+ }
+ 
+-int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
+ {
+     return internal_find(st, data, OBJ_BSEARCH_FIRST_VALUE_ON_MATCH);
+ }
+ 
+-int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
+ {
+     return internal_find(st, data, OBJ_BSEARCH_VALUE_ON_NOMATCH);
+ }
+ 
+-int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
+ {
+     if (st == NULL)
+         return -1;
+     return OPENSSL_sk_insert(st, data, st->num);
+ }
+ 
+-int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
+ {
+     return OPENSSL_sk_insert(st, data, 0);
+ }
+ 
+-void *OPENSSL_sk_shift(OPENSSL_STACK *st)
++void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return NULL;
+     return internal_delete(st, 0);
+ }
+ 
+-void *OPENSSL_sk_pop(OPENSSL_STACK *st)
++void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return NULL;
+     return internal_delete(st, st->num - 1);
+ }
+ 
+-void OPENSSL_sk_zero(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return;
+@@ -369,7 +369,7 @@ void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, OPENSSL_sk_freefunc func)
+     OPENSSL_sk_free(st);
+ }
+ 
+-void OPENSSL_sk_free(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_free(OPENSSL_STACK *st)
+ {
+     if (st == NULL)
+         return;
+@@ -389,7 +389,7 @@ void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *st, int i)
+     return (void *)st->data[i];
+ }
+ 
+-void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
++void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
+ {
+     if (st == NULL || i < 0 || i >= st->num)
+         return NULL;
+@@ -398,7 +398,7 @@ void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
+     return (void *)st->data[i];
+ }
+ 
+-void OPENSSL_sk_sort(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st)
+ {
+     if (st != NULL && !st->sorted && st->comp != NULL) {
+         if (st->num > 1)
+@@ -407,7 +407,7 @@ void OPENSSL_sk_sort(OPENSSL_STACK *st)
+     }
+ }
+ 
+-int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
++int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
+ {
+     return st == NULL ? 1 : st->sorted;
+ }
+diff --git a/include/openssl/stack.h b/include/openssl/stack.h
+index e71b68d81a..c68c8a23c7 100644
+--- a/include/openssl/stack.h
++++ b/include/openssl/stack.h
+@@ -23,32 +23,32 @@ typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
+ int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
+ void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
+ 
+-void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
++void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
+ 
+-OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
+-OPENSSL_STACK *OPENSSL_sk_new_null(void);
+-OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
+-int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
+-void OPENSSL_sk_free(OPENSSL_STACK *);
++OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void);
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
++int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
++void __cdecl OPENSSL_sk_free(OPENSSL_STACK *);
+ void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
+-OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
++OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
+                                     OPENSSL_sk_copyfunc c,
+                                     OPENSSL_sk_freefunc f);
+-int OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
+-void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
+-void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
+-int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
+-void *OPENSSL_sk_shift(OPENSSL_STACK *st);
+-void *OPENSSL_sk_pop(OPENSSL_STACK *st);
+-void OPENSSL_sk_zero(OPENSSL_STACK *st);
+-OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
++int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
++void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
++void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
++int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
++void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st);
++void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st);
++void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st);
++OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
+                                             OPENSSL_sk_compfunc cmp);
+-OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *st);
+-void OPENSSL_sk_sort(OPENSSL_STACK *st);
+-int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
++OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *st);
++void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st);
++int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define _STACK OPENSSL_STACK
