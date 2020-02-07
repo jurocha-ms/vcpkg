@@ -23101,9 +23101,147 @@ index eb279dd418..0762cdf97c 100644
                             const BIGNUM *g)
  {
 diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
-index 975515db59..80248f71b0 100644
+index 975515db59..e064cdd379 100644
 --- a/crypto/stack/stack.c
 +++ b/crypto/stack/stack.c
+@@ -31,7 +31,7 @@ struct stack_st {
+     OPENSSL_sk_compfunc comp;
+ };
+ 
+-OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
++OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
+ {
+     OPENSSL_sk_compfunc old = sk->comp;
+ 
+@@ -42,7 +42,7 @@ OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfu
+     return old;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
++OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *sk)
+ {
+     OPENSSL_STACK *ret;
+ 
+@@ -70,7 +70,7 @@ OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
+     return NULL;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
++OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
+                              OPENSSL_sk_copyfunc copy_func,
+                              OPENSSL_sk_freefunc free_func)
+ {
+@@ -113,12 +113,12 @@ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
+     return ret;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new_null(void)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void)
+ {
+     return OPENSSL_sk_new_reserve(NULL, 0);
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc c)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc c)
+ {
+     return OPENSSL_sk_new_reserve(c, 0);
+ }
+@@ -204,7 +204,7 @@ static int sk_reserve(OPENSSL_STACK *st, int n, int exact)
+     return 1;
+ }
+ 
+-OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
+ {
+     OPENSSL_STACK *st = OPENSSL_zalloc(sizeof(OPENSSL_STACK));
+ 
+@@ -224,7 +224,7 @@ OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
+     return st;
+ }
+ 
+-int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
++int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
+ {
+     if (st == NULL)
+         return 0;
+@@ -234,7 +234,7 @@ int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
+     return sk_reserve(st, n, 1);
+ }
+ 
+-int OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
++int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
+ {
+     if (st == NULL || st->num == max_nodes)
+         return 0;
+@@ -266,7 +266,7 @@ static ossl_inline void *internal_delete(OPENSSL_STACK *st, int loc)
+     return (void *)ret;
+ }
+ 
+-void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
++void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+ {
+     int i;
+ 
+@@ -276,7 +276,7 @@ void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+     return NULL;
+ }
+ 
+-void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
++void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
+ {
+     if (st == NULL || loc < 0 || loc >= st->num)
+         return NULL;
+@@ -313,43 +313,43 @@ static int internal_find(OPENSSL_STACK *st, const void *data,
+     return r == NULL ? -1 : (int)((const void **)r - st->data);
+ }
+ 
+-int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
+ {
+     return internal_find(st, data, OBJ_BSEARCH_FIRST_VALUE_ON_MATCH);
+ }
+ 
+-int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
+ {
+     return internal_find(st, data, OBJ_BSEARCH_VALUE_ON_NOMATCH);
+ }
+ 
+-int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
+ {
+     if (st == NULL)
+         return -1;
+     return OPENSSL_sk_insert(st, data, st->num);
+ }
+ 
+-int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
++int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
+ {
+     return OPENSSL_sk_insert(st, data, 0);
+ }
+ 
+-void *OPENSSL_sk_shift(OPENSSL_STACK *st)
++void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return NULL;
+     return internal_delete(st, 0);
+ }
+ 
+-void *OPENSSL_sk_pop(OPENSSL_STACK *st)
++void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return NULL;
+     return internal_delete(st, st->num - 1);
+ }
+ 
+-void OPENSSL_sk_zero(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st)
+ {
+     if (st == NULL || st->num == 0)
+         return;
 @@ -357,7 +357,7 @@ void OPENSSL_sk_zero(OPENSSL_STACK *st)
      st->num = 0;
  }
@@ -23113,7 +23251,16 @@ index 975515db59..80248f71b0 100644
  {
      int i;
  
-@@ -377,12 +377,12 @@ void OPENSSL_sk_free(OPENSSL_STACK *st)
+@@ -369,7 +369,7 @@ void OPENSSL_sk_pop_free(OPENSSL_STACK *st, OPENSSL_sk_freefunc func)
+     OPENSSL_sk_free(st);
+ }
+ 
+-void OPENSSL_sk_free(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_free(OPENSSL_STACK *st)
+ {
+     if (st == NULL)
+         return;
+@@ -377,19 +377,19 @@ void OPENSSL_sk_free(OPENSSL_STACK *st)
      OPENSSL_free(st);
  }
  
@@ -23128,6 +23275,32 @@ index 975515db59..80248f71b0 100644
  {
      if (st == NULL || i < 0 || i >= st->num)
          return NULL;
+     return (void *)st->data[i];
+ }
+ 
+-void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
++void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
+ {
+     if (st == NULL || i < 0 || i >= st->num)
+         return NULL;
+@@ -398,7 +398,7 @@ void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
+     return (void *)st->data[i];
+ }
+ 
+-void OPENSSL_sk_sort(OPENSSL_STACK *st)
++void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st)
+ {
+     if (st != NULL && !st->sorted && st->comp != NULL) {
+         if (st->num > 1)
+@@ -407,7 +407,7 @@ void OPENSSL_sk_sort(OPENSSL_STACK *st)
+     }
+ }
+ 
+-int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
++int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
+ {
+     return st == NULL ? 1 : st->sorted;
+ }
 diff --git a/crypto/store/store_lib.c b/crypto/store/store_lib.c
 index 7de2e31f55..dcd8211221 100644
 --- a/crypto/store/store_lib.c
@@ -37258,10 +37431,10 @@ index 3d6850dea3..2b90e60a38 100644
  /*
   * SSL function codes.
 diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index cfc075057a..e71b68d81a 100644
+index cfc075057a..c68c8a23c7 100644
 --- a/include/openssl/stack.h
 +++ b/include/openssl/stack.h
-@@ -16,12 +16,12 @@ extern "C" {
+@@ -16,39 +16,39 @@ extern "C" {
  
  typedef struct stack_st OPENSSL_STACK; /* Use STACK_OF(...) instead */
  
@@ -37277,17 +37450,57 @@ index cfc075057a..e71b68d81a 100644
 +int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
 +void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
  
- void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
+-void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
++void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
  
-@@ -30,7 +30,7 @@ OPENSSL_STACK *OPENSSL_sk_new_null(void);
- OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
- int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
- void OPENSSL_sk_free(OPENSSL_STACK *);
+-OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
+-OPENSSL_STACK *OPENSSL_sk_new_null(void);
+-OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
+-int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
+-void OPENSSL_sk_free(OPENSSL_STACK *);
 -void OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (*func) (void *));
+-OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
++OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void);
++OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
++int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
++void __cdecl OPENSSL_sk_free(OPENSSL_STACK *);
 +void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
- OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
++OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
                                      OPENSSL_sk_copyfunc c,
                                      OPENSSL_sk_freefunc f);
+-int OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
+-void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
+-void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
+-int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
+-int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
+-void *OPENSSL_sk_shift(OPENSSL_STACK *st);
+-void *OPENSSL_sk_pop(OPENSSL_STACK *st);
+-void OPENSSL_sk_zero(OPENSSL_STACK *st);
+-OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
++int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
++void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
++void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
++int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
++int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
++void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st);
++void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st);
++void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st);
++OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
+                                             OPENSSL_sk_compfunc cmp);
+-OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *st);
+-void OPENSSL_sk_sort(OPENSSL_STACK *st);
+-int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
++OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *st);
++void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st);
++int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
+ 
+ # if OPENSSL_API_COMPAT < 0x10100000L
+ #  define _STACK OPENSSL_STACK
 diff --git a/include/openssl/store.h b/include/openssl/store.h
 index a40a7339e6..00b9ad2a3a 100644
 --- a/include/openssl/store.h
@@ -46017,239 +46230,741 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/stack/stack.c b/crypto/stack/stack.c
-index 80248f71b0..e064cdd379 100644
---- a/crypto/stack/stack.c
-+++ b/crypto/stack/stack.c
-@@ -31,7 +31,7 @@ struct stack_st {
-     OPENSSL_sk_compfunc comp;
+diff --git a/crypto/store/store_err.c b/crypto/store/store_err.c
+index 5a8a8404dd..0394642586 100644
+--- a/crypto/store/store_err.c
++++ b/crypto/store/store_err.c
+@@ -134,7 +134,7 @@ static const ERR_STRING_DATA OSSL_STORE_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_OSSL_STORE_strings(void)
++int __cdecl ERR_load_OSSL_STORE_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(OSSL_STORE_str_functs[0].error) == NULL) {
+diff --git a/crypto/store/store_lib.c b/crypto/store/store_lib.c
+index dcd8211221..2cba9b5aa5 100644
+--- a/crypto/store/store_lib.c
++++ b/crypto/store/store_lib.c
+@@ -34,7 +34,7 @@ struct ossl_store_ctx_st {
+     int loading;
  };
  
--OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
-+OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfunc c)
- {
-     OPENSSL_sk_compfunc old = sk->comp;
- 
-@@ -42,7 +42,7 @@ OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk, OPENSSL_sk_compfu
-     return old;
- }
- 
--OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
-+OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *sk)
- {
-     OPENSSL_STACK *ret;
- 
-@@ -70,7 +70,7 @@ OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *sk)
+-OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
++OSSL_STORE_CTX * __cdecl OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
+                                 void *ui_data,
+                                 OSSL_STORE_post_process_info_fn post_process,
+                                 void *post_process_data)
+@@ -114,7 +114,7 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
      return NULL;
  }
  
--OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
-+OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
-                              OPENSSL_sk_copyfunc copy_func,
-                              OPENSSL_sk_freefunc free_func)
+-int OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ...)
++int __cdecl OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ...)
  {
-@@ -113,12 +113,12 @@ OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *sk,
+     va_list args;
+     int ret;
+@@ -126,14 +126,14 @@ int OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ...)
      return ret;
  }
  
--OPENSSL_STACK *OPENSSL_sk_new_null(void)
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void)
+-int OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args)
++int __cdecl OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args)
  {
-     return OPENSSL_sk_new_reserve(NULL, 0);
+     if (ctx->loader->ctrl != NULL)
+         return ctx->loader->ctrl(ctx->loader_ctx, cmd, args);
+     return 0;
  }
  
--OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc c)
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc c)
+-int OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
++int __cdecl OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
  {
-     return OPENSSL_sk_new_reserve(c, 0);
- }
-@@ -204,7 +204,7 @@ static int sk_reserve(OPENSSL_STACK *st, int n, int exact)
+     if (ctx->loading) {
+         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_EXPECT,
+@@ -147,7 +147,7 @@ int OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type)
      return 1;
  }
  
--OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
+-int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
++int __cdecl OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
  {
-     OPENSSL_STACK *st = OPENSSL_zalloc(sizeof(OPENSSL_STACK));
- 
-@@ -224,7 +224,7 @@ OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n)
-     return st;
+     if (ctx->loading) {
+         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_FIND,
+@@ -163,7 +163,7 @@ int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search)
+     return ctx->loader->find(ctx->loader_ctx, search);
  }
  
--int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
-+int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
+-OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_load(OSSL_STORE_CTX *ctx)
  {
-     if (st == NULL)
-         return 0;
-@@ -234,7 +234,7 @@ int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n)
-     return sk_reserve(st, n, 1);
+     OSSL_STORE_INFO *v = NULL;
+ 
+@@ -206,17 +206,17 @@ OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx)
+     return v;
  }
  
--int OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
-+int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *st, const void *data, int loc)
+-int OSSL_STORE_error(OSSL_STORE_CTX *ctx)
++int __cdecl OSSL_STORE_error(OSSL_STORE_CTX *ctx)
  {
-     if (st == NULL || st->num == max_nodes)
-         return 0;
-@@ -266,7 +266,7 @@ static ossl_inline void *internal_delete(OPENSSL_STACK *st, int loc)
-     return (void *)ret;
+     return ctx->loader->error(ctx->loader_ctx);
  }
  
--void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
-+void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+-int OSSL_STORE_eof(OSSL_STORE_CTX *ctx)
++int __cdecl OSSL_STORE_eof(OSSL_STORE_CTX *ctx)
  {
-     int i;
+     return ctx->loader->eof(ctx->loader_ctx);
+ }
  
-@@ -276,7 +276,7 @@ void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p)
+-int OSSL_STORE_close(OSSL_STORE_CTX *ctx)
++int __cdecl OSSL_STORE_close(OSSL_STORE_CTX *ctx)
+ {
+     int loader_ret = ctx->loader->close(ctx->loader_ctx);
+ 
+@@ -243,7 +243,7 @@ static OSSL_STORE_INFO *store_info_new(int type, void *data)
+     return info;
+ }
+ 
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_NAME(char *name)
+ {
+     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_NAME, NULL);
+ 
+@@ -259,7 +259,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name)
+     return info;
+ }
+ 
+-int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
++int __cdecl OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
+ {
+     if (info->type != OSSL_STORE_INFO_NAME) {
+         OSSL_STOREerr(OSSL_STORE_F_OSSL_STORE_INFO_SET0_NAME_DESCRIPTION,
+@@ -271,7 +271,7 @@ int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc)
+ 
+     return 1;
+ }
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
+ {
+     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_PARAMS, params);
+ 
+@@ -281,7 +281,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params)
+     return info;
+ }
+ 
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
+ {
+     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_PKEY, pkey);
+ 
+@@ -291,7 +291,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey)
+     return info;
+ }
+ 
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_CERT(X509 *x509)
+ {
+     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_CERT, x509);
+ 
+@@ -301,7 +301,7 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509)
+     return info;
+ }
+ 
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
+ {
+     OSSL_STORE_INFO *info = store_info_new(OSSL_STORE_INFO_CRL, crl);
+ 
+@@ -314,19 +314,19 @@ OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl)
+ /*
+  * Functions to try to extract data from a OSSL_STORE_INFO.
+  */
+-int OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info)
++int __cdecl OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info)
+ {
+     return info->type;
+ }
+ 
+-const char *OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info)
++const char * __cdecl OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info)
+ {
+     if (info->type == OSSL_STORE_INFO_NAME)
+         return info->_.name.name;
      return NULL;
  }
  
--void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
-+void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc)
+-char *OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
++char * __cdecl OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL || loc < 0 || loc >= st->num)
-         return NULL;
-@@ -313,43 +313,43 @@ static int internal_find(OPENSSL_STACK *st, const void *data,
-     return r == NULL ? -1 : (int)((const void **)r - st->data);
+     if (info->type == OSSL_STORE_INFO_NAME) {
+         char *ret = OPENSSL_strdup(info->_.name.name);
+@@ -341,14 +341,14 @@ char *OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info)
+     return NULL;
  }
  
--int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
-+int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data)
+-const char *OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info)
++const char * __cdecl OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info)
  {
-     return internal_find(st, data, OBJ_BSEARCH_FIRST_VALUE_ON_MATCH);
+     if (info->type == OSSL_STORE_INFO_NAME)
+         return info->_.name.desc;
+     return NULL;
  }
  
--int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
-+int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data)
+-char *OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
++char * __cdecl OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
  {
-     return internal_find(st, data, OBJ_BSEARCH_VALUE_ON_NOMATCH);
+     if (info->type == OSSL_STORE_INFO_NAME) {
+         char *ret = OPENSSL_strdup(info->_.name.desc
+@@ -364,14 +364,14 @@ char *OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info)
+     return NULL;
  }
  
--int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
-+int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data)
+-EVP_PKEY *OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info)
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL)
-         return -1;
-     return OPENSSL_sk_insert(st, data, st->num);
+     if (info->type == OSSL_STORE_INFO_PARAMS)
+         return info->_.params;
+     return NULL;
  }
  
--int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
-+int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data)
+-EVP_PKEY *OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
  {
-     return OPENSSL_sk_insert(st, data, 0);
+     if (info->type == OSSL_STORE_INFO_PARAMS) {
+         EVP_PKEY_up_ref(info->_.params);
+@@ -382,14 +382,14 @@ EVP_PKEY *OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info)
+     return NULL;
  }
  
--void *OPENSSL_sk_shift(OPENSSL_STACK *st)
-+void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st)
+-EVP_PKEY *OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info)
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL || st->num == 0)
-         return NULL;
-     return internal_delete(st, 0);
+     if (info->type == OSSL_STORE_INFO_PKEY)
+         return info->_.pkey;
+     return NULL;
  }
  
--void *OPENSSL_sk_pop(OPENSSL_STACK *st)
-+void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st)
+-EVP_PKEY *OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL || st->num == 0)
-         return NULL;
-     return internal_delete(st, st->num - 1);
+     if (info->type == OSSL_STORE_INFO_PKEY) {
+         EVP_PKEY_up_ref(info->_.pkey);
+@@ -400,14 +400,14 @@ EVP_PKEY *OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info)
+     return NULL;
  }
  
--void OPENSSL_sk_zero(OPENSSL_STACK *st)
-+void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st)
+-X509 *OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info)
++X509 * __cdecl OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL || st->num == 0)
-         return;
-@@ -369,7 +369,7 @@ void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, OPENSSL_sk_freefunc func)
-     OPENSSL_sk_free(st);
+     if (info->type == OSSL_STORE_INFO_CERT)
+         return info->_.x509;
+     return NULL;
  }
  
--void OPENSSL_sk_free(OPENSSL_STACK *st)
-+void __cdecl OPENSSL_sk_free(OPENSSL_STACK *st)
+-X509 *OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
++X509 * __cdecl OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL)
-         return;
-@@ -389,7 +389,7 @@ void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *st, int i)
-     return (void *)st->data[i];
+     if (info->type == OSSL_STORE_INFO_CERT) {
+         X509_up_ref(info->_.x509);
+@@ -418,14 +418,14 @@ X509 *OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info)
+     return NULL;
  }
  
--void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
-+void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
+-X509_CRL *OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info)
++X509_CRL * __cdecl OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info)
  {
-     if (st == NULL || i < 0 || i >= st->num)
-         return NULL;
-@@ -398,7 +398,7 @@ void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data)
-     return (void *)st->data[i];
+     if (info->type == OSSL_STORE_INFO_CRL)
+         return info->_.crl;
+     return NULL;
  }
  
--void OPENSSL_sk_sort(OPENSSL_STACK *st)
-+void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st)
+-X509_CRL *OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
++X509_CRL * __cdecl OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info)
  {
-     if (st != NULL && !st->sorted && st->comp != NULL) {
-         if (st->num > 1)
-@@ -407,7 +407,7 @@ void OPENSSL_sk_sort(OPENSSL_STACK *st)
+     if (info->type == OSSL_STORE_INFO_CRL) {
+         X509_CRL_up_ref(info->_.crl);
+@@ -468,7 +468,7 @@ void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info)
      }
  }
  
--int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
-+int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st)
+-int OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
++int __cdecl OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
  {
-     return st == NULL ? 1 : st->sorted;
+     OSSL_STORE_SEARCH tmp_search;
+ 
+@@ -479,7 +479,7 @@ int OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type)
  }
-diff --git a/include/openssl/stack.h b/include/openssl/stack.h
-index e71b68d81a..c68c8a23c7 100644
---- a/include/openssl/stack.h
-+++ b/include/openssl/stack.h
-@@ -23,32 +23,32 @@ typedef void *(__cdecl *OPENSSL_sk_copyfunc)(const void *);
- int __cdecl OPENSSL_sk_num(const OPENSSL_STACK *);
- void * __cdecl OPENSSL_sk_value(const OPENSSL_STACK *, int);
  
--void *OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
-+void * __cdecl OPENSSL_sk_set(OPENSSL_STACK *st, int i, const void *data);
+ /* Search term constructors */
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_name(X509_NAME *name)
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_name(X509_NAME *name)
+ {
+     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
  
--OPENSSL_STACK *OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
--OPENSSL_STACK *OPENSSL_sk_new_null(void);
--OPENSSL_STACK *OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
--int OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
--void OPENSSL_sk_free(OPENSSL_STACK *);
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new(OPENSSL_sk_compfunc cmp);
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new_null(void);
-+OPENSSL_STACK * __cdecl OPENSSL_sk_new_reserve(OPENSSL_sk_compfunc c, int n);
-+int __cdecl OPENSSL_sk_reserve(OPENSSL_STACK *st, int n);
-+void __cdecl OPENSSL_sk_free(OPENSSL_STACK *);
- void __cdecl OPENSSL_sk_pop_free(OPENSSL_STACK *st, void (__cdecl *func) (void *));
--OPENSSL_STACK *OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
-+OPENSSL_STACK * __cdecl OPENSSL_sk_deep_copy(const OPENSSL_STACK *,
-                                     OPENSSL_sk_copyfunc c,
-                                     OPENSSL_sk_freefunc f);
--int OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
--void *OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
--void *OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
--int OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
--int OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
--int OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
--int OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
--void *OPENSSL_sk_shift(OPENSSL_STACK *st);
--void *OPENSSL_sk_pop(OPENSSL_STACK *st);
--void OPENSSL_sk_zero(OPENSSL_STACK *st);
--OPENSSL_sk_compfunc OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
-+int __cdecl OPENSSL_sk_insert(OPENSSL_STACK *sk, const void *data, int where);
-+void * __cdecl OPENSSL_sk_delete(OPENSSL_STACK *st, int loc);
-+void * __cdecl OPENSSL_sk_delete_ptr(OPENSSL_STACK *st, const void *p);
-+int __cdecl OPENSSL_sk_find(OPENSSL_STACK *st, const void *data);
-+int __cdecl OPENSSL_sk_find_ex(OPENSSL_STACK *st, const void *data);
-+int __cdecl OPENSSL_sk_push(OPENSSL_STACK *st, const void *data);
-+int __cdecl OPENSSL_sk_unshift(OPENSSL_STACK *st, const void *data);
-+void * __cdecl OPENSSL_sk_shift(OPENSSL_STACK *st);
-+void * __cdecl OPENSSL_sk_pop(OPENSSL_STACK *st);
-+void __cdecl OPENSSL_sk_zero(OPENSSL_STACK *st);
-+OPENSSL_sk_compfunc __cdecl OPENSSL_sk_set_cmp_func(OPENSSL_STACK *sk,
-                                             OPENSSL_sk_compfunc cmp);
--OPENSSL_STACK *OPENSSL_sk_dup(const OPENSSL_STACK *st);
--void OPENSSL_sk_sort(OPENSSL_STACK *st);
--int OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
-+OPENSSL_STACK * __cdecl OPENSSL_sk_dup(const OPENSSL_STACK *st);
-+void __cdecl OPENSSL_sk_sort(OPENSSL_STACK *st);
-+int __cdecl OPENSSL_sk_is_sorted(const OPENSSL_STACK *st);
+@@ -494,7 +494,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_name(X509_NAME *name)
+     return search;
+ }
  
- # if OPENSSL_API_COMPAT < 0x10100000L
- #  define _STACK OPENSSL_STACK
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
+                                                     const ASN1_INTEGER *serial)
+ {
+     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
+@@ -511,7 +511,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
+     return search;
+ }
+ 
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
+                                                         const unsigned char
+                                                         *bytes, size_t len)
+ {
+@@ -541,7 +541,7 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
+     return search;
+ }
+ 
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_alias(const char *alias)
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_alias(const char *alias)
+ {
+     OSSL_STORE_SEARCH *search = OPENSSL_zalloc(sizeof(*search));
+ 
+@@ -558,41 +558,41 @@ OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_alias(const char *alias)
+ }
+ 
+ /* Search term destructor */
+-void OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search)
++void __cdecl OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search)
+ {
+     OPENSSL_free(search);
+ }
+ 
+ /* Search term accessors */
+-int OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion)
++int __cdecl OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion)
+ {
+     return criterion->search_type;
+ }
+ 
+-X509_NAME *OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion)
++X509_NAME * __cdecl OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion)
+ {
+     return criterion->name;
+ }
+ 
+-const ASN1_INTEGER *OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
++const ASN1_INTEGER * __cdecl OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
+                                                  *criterion)
+ {
+     return criterion->serial;
+ }
+ 
+-const unsigned char *OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
++const unsigned char * __cdecl OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
+                                                   *criterion, size_t *length)
+ {
+     *length = criterion->stringlength;
+     return criterion->string;
+ }
+ 
+-const char *OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion)
++const char * __cdecl OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion)
+ {
+     return (const char *)criterion->string;
+ }
+ 
+-const EVP_MD *OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion)
++const EVP_MD * __cdecl OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion)
+ {
+     return criterion->digest;
+ }
+diff --git a/crypto/store/store_register.c b/crypto/store/store_register.c
+index e141dc8bd6..2a908fb0e9 100644
+--- a/crypto/store/store_register.c
++++ b/crypto/store/store_register.c
+@@ -28,7 +28,7 @@ DEFINE_RUN_ONCE_STATIC(do_registry_init)
+  *  Functions for manipulating OSSL_STORE_LOADERs
+  */
+ 
+-OSSL_STORE_LOADER *OSSL_STORE_LOADER_new(ENGINE *e, const char *scheme)
++OSSL_STORE_LOADER * __cdecl OSSL_STORE_LOADER_new(ENGINE *e, const char *scheme)
+ {
+     OSSL_STORE_LOADER *res = NULL;
+ 
+@@ -54,73 +54,73 @@ OSSL_STORE_LOADER *OSSL_STORE_LOADER_new(ENGINE *e, const char *scheme)
+     return res;
+ }
+ 
+-const ENGINE *OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader)
++const ENGINE * __cdecl OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader)
+ {
+     return loader->engine;
+ }
+ 
+-const char *OSSL_STORE_LOADER_get0_scheme(const OSSL_STORE_LOADER *loader)
++const char * __cdecl OSSL_STORE_LOADER_get0_scheme(const OSSL_STORE_LOADER *loader)
+ {
+     return loader->scheme;
+ }
+ 
+-int OSSL_STORE_LOADER_set_open(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_open(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_open_fn open_function)
+ {
+     loader->open = open_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_ctrl(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_ctrl(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_ctrl_fn ctrl_function)
+ {
+     loader->ctrl = ctrl_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_expect(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_expect(OSSL_STORE_LOADER *loader,
+                                  OSSL_STORE_expect_fn expect_function)
+ {
+     loader->expect = expect_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_find(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_find(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_find_fn find_function)
+ {
+     loader->find = find_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_load(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_load(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_load_fn load_function)
+ {
+     loader->load = load_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_eof(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_eof(OSSL_STORE_LOADER *loader,
+                               OSSL_STORE_eof_fn eof_function)
+ {
+     loader->eof = eof_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_error(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_error(OSSL_STORE_LOADER *loader,
+                                 OSSL_STORE_error_fn error_function)
+ {
+     loader->error = error_function;
+     return 1;
+ }
+ 
+-int OSSL_STORE_LOADER_set_close(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_close(OSSL_STORE_LOADER *loader,
+                                 OSSL_STORE_close_fn close_function)
+ {
+     loader->close = close_function;
+     return 1;
+ }
+ 
+-void OSSL_STORE_LOADER_free(OSSL_STORE_LOADER *loader)
++void __cdecl OSSL_STORE_LOADER_free(OSSL_STORE_LOADER *loader)
+ {
+     OPENSSL_free(loader);
+ }
+@@ -196,7 +196,7 @@ int ossl_store_register_loader_int(OSSL_STORE_LOADER *loader)
+ 
+     return ok;
+ }
+-int OSSL_STORE_register_loader(OSSL_STORE_LOADER *loader)
++int __cdecl OSSL_STORE_register_loader(OSSL_STORE_LOADER *loader)
+ {
+     if (!ossl_store_init_once())
+         return 0;
+@@ -267,7 +267,7 @@ OSSL_STORE_LOADER *ossl_store_unregister_loader_int(const char *scheme)
+ 
+     return loader;
+ }
+-OSSL_STORE_LOADER *OSSL_STORE_unregister_loader(const char *scheme)
++OSSL_STORE_LOADER * __cdecl OSSL_STORE_unregister_loader(const char *scheme)
+ {
+     if (!ossl_store_init_once())
+         return 0;
+@@ -288,7 +288,7 @@ void ossl_store_destroy_loaders_int(void)
+  */
+ 
+ IMPLEMENT_LHASH_DOALL_ARG_CONST(OSSL_STORE_LOADER, void);
+-int OSSL_STORE_do_all_loaders(void (*do_function) (const OSSL_STORE_LOADER
++int __cdecl OSSL_STORE_do_all_loaders(void (*do_function) (const OSSL_STORE_LOADER
+                                                    *loader, void *do_arg),
+                               void *do_arg)
+ {
+diff --git a/crypto/store/store_strings.c b/crypto/store/store_strings.c
+index 76cf316483..02064b35d2 100644
+--- a/crypto/store/store_strings.c
++++ b/crypto/store/store_strings.c
+@@ -17,7 +17,7 @@ static char *type_strings[] = {
+     "CRL"                        /* OSSL_STORE_INFO_CRL */
+ };
+ 
+-const char *OSSL_STORE_INFO_type_string(int type)
++const char * __cdecl OSSL_STORE_INFO_type_string(int type)
+ {
+     int types = sizeof(type_strings) / sizeof(type_strings[0]);
+ 
+diff --git a/include/openssl/store.h b/include/openssl/store.h
+index 00b9ad2a3a..f03247c2cd 100644
+--- a/include/openssl/store.h
++++ b/include/openssl/store.h
+@@ -46,7 +46,7 @@ typedef OSSL_STORE_INFO *(*OSSL_STORE_post_process_info_fn)(OSSL_STORE_INFO *,
+  * Returns a context reference which represents the channel to communicate
+  * through.
+  */
+-OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
++OSSL_STORE_CTX * __cdecl OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
+                                 void *ui_data,
+                                 OSSL_STORE_post_process_info_fn post_process,
+                                 void *post_process_data);
+@@ -57,8 +57,8 @@ OSSL_STORE_CTX *OSSL_STORE_open(const char *uri, const UI_METHOD *ui_method,
+  * determine which loader is used), except for common commands (see below).
+  * Each command takes different arguments.
+  */
+-int OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ... /* args */);
+-int OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args);
++int __cdecl OSSL_STORE_ctrl(OSSL_STORE_CTX *ctx, int cmd, ... /* args */);
++int __cdecl OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args);
+ 
+ /*
+  * Common ctrl commands that different loaders may choose to support.
+@@ -76,25 +76,25 @@ int OSSL_STORE_vctrl(OSSL_STORE_CTX *ctx, int cmd, va_list args);
+  * NULL is returned on error, which may include that the data found at the URI
+  * can't be figured out for certain or is ambiguous.
+  */
+-OSSL_STORE_INFO *OSSL_STORE_load(OSSL_STORE_CTX *ctx);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_load(OSSL_STORE_CTX *ctx);
+ 
+ /*
+  * Check if end of data (end of file) is reached
+  * Returns 1 on end, 0 otherwise.
+  */
+-int OSSL_STORE_eof(OSSL_STORE_CTX *ctx);
++int __cdecl OSSL_STORE_eof(OSSL_STORE_CTX *ctx);
+ 
+ /*
+  * Check if an error occurred
+  * Returns 1 if it did, 0 otherwise.
+  */
+-int OSSL_STORE_error(OSSL_STORE_CTX *ctx);
++int __cdecl OSSL_STORE_error(OSSL_STORE_CTX *ctx);
+ 
+ /*
+  * Close the channel
+  * Returns 1 on success, 0 on error.
+  */
+-int OSSL_STORE_close(OSSL_STORE_CTX *ctx);
++int __cdecl OSSL_STORE_close(OSSL_STORE_CTX *ctx);
+ 
+ 
+ /*-
+@@ -120,31 +120,31 @@ int OSSL_STORE_close(OSSL_STORE_CTX *ctx);
+  * In all cases, ownership of the object is transferred to the OSSL_STORE_INFO
+  * and will therefore be freed when the OSSL_STORE_INFO is freed.
+  */
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_NAME(char *name);
+-int OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc);
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params);
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey);
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CERT(X509 *x509);
+-OSSL_STORE_INFO *OSSL_STORE_INFO_new_CRL(X509_CRL *crl);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_NAME(char *name);
++int __cdecl OSSL_STORE_INFO_set0_NAME_description(OSSL_STORE_INFO *info, char *desc);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_PARAMS(EVP_PKEY *params);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_PKEY(EVP_PKEY *pkey);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_CERT(X509 *x509);
++OSSL_STORE_INFO * __cdecl OSSL_STORE_INFO_new_CRL(X509_CRL *crl);
+ 
+ /*
+  * Functions to try to extract data from a OSSL_STORE_INFO.
+  */
+-int OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info);
+-const char *OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info);
+-char *OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info);
+-const char *OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info);
+-char *OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info);
+-EVP_PKEY *OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info);
+-EVP_PKEY *OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info);
+-EVP_PKEY *OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info);
+-EVP_PKEY *OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info);
+-X509 *OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info);
+-X509 *OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info);
+-X509_CRL *OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info);
+-X509_CRL *OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info);
+-
+-const char *OSSL_STORE_INFO_type_string(int type);
++int __cdecl OSSL_STORE_INFO_get_type(const OSSL_STORE_INFO *info);
++const char * __cdecl OSSL_STORE_INFO_get0_NAME(const OSSL_STORE_INFO *info);
++char * __cdecl OSSL_STORE_INFO_get1_NAME(const OSSL_STORE_INFO *info);
++const char * __cdecl OSSL_STORE_INFO_get0_NAME_description(const OSSL_STORE_INFO *info);
++char * __cdecl OSSL_STORE_INFO_get1_NAME_description(const OSSL_STORE_INFO *info);
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get0_PARAMS(const OSSL_STORE_INFO *info);
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get1_PARAMS(const OSSL_STORE_INFO *info);
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get0_PKEY(const OSSL_STORE_INFO *info);
++EVP_PKEY * __cdecl OSSL_STORE_INFO_get1_PKEY(const OSSL_STORE_INFO *info);
++X509 * __cdecl OSSL_STORE_INFO_get0_CERT(const OSSL_STORE_INFO *info);
++X509 * __cdecl OSSL_STORE_INFO_get1_CERT(const OSSL_STORE_INFO *info);
++X509_CRL * __cdecl OSSL_STORE_INFO_get0_CRL(const OSSL_STORE_INFO *info);
++X509_CRL * __cdecl OSSL_STORE_INFO_get1_CRL(const OSSL_STORE_INFO *info);
++
++const char * __cdecl OSSL_STORE_INFO_type_string(int type);
+ 
+ /*
+  * Free the OSSL_STORE_INFO
+@@ -164,41 +164,41 @@ void __cdecl OSSL_STORE_INFO_free(OSSL_STORE_INFO *info);
+ # define OSSL_STORE_SEARCH_BY_ALIAS             4
+ 
+ /* To check what search types the scheme handler supports */
+-int OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type);
++int __cdecl OSSL_STORE_supports_search(OSSL_STORE_CTX *ctx, int search_type);
+ 
+ /* Search term constructors */
+ /*
+  * The input is considered to be owned by the caller, and must therefore
+  * remain present throughout the lifetime of the returned OSSL_STORE_SEARCH
+  */
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_name(X509_NAME *name);
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_name(X509_NAME *name);
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_issuer_serial(X509_NAME *name,
+                                                       const ASN1_INTEGER
+                                                       *serial);
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_key_fingerprint(const EVP_MD *digest,
+                                                         const unsigned char
+                                                         *bytes, size_t len);
+-OSSL_STORE_SEARCH *OSSL_STORE_SEARCH_by_alias(const char *alias);
++OSSL_STORE_SEARCH * __cdecl OSSL_STORE_SEARCH_by_alias(const char *alias);
+ 
+ /* Search term destructor */
+-void OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search);
++void __cdecl OSSL_STORE_SEARCH_free(OSSL_STORE_SEARCH *search);
+ 
+ /* Search term accessors */
+-int OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion);
+-X509_NAME *OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion);
+-const ASN1_INTEGER *OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
++int __cdecl OSSL_STORE_SEARCH_get_type(const OSSL_STORE_SEARCH *criterion);
++X509_NAME * __cdecl OSSL_STORE_SEARCH_get0_name(OSSL_STORE_SEARCH *criterion);
++const ASN1_INTEGER * __cdecl OSSL_STORE_SEARCH_get0_serial(const OSSL_STORE_SEARCH
+                                                   *criterion);
+-const unsigned char *OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
++const unsigned char * __cdecl OSSL_STORE_SEARCH_get0_bytes(const OSSL_STORE_SEARCH
+                                                   *criterion, size_t *length);
+-const char *OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion);
+-const EVP_MD *OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion);
++const char * __cdecl OSSL_STORE_SEARCH_get0_string(const OSSL_STORE_SEARCH *criterion);
++const EVP_MD * __cdecl OSSL_STORE_SEARCH_get0_digest(const OSSL_STORE_SEARCH *criterion);
+ 
+ /*
+  * Add search criterion and expected return type (which can be unspecified)
+  * to the loading channel.  This MUST happen before the first OSSL_STORE_load().
+  */
+-int OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type);
+-int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search);
++int __cdecl OSSL_STORE_expect(OSSL_STORE_CTX *ctx, int expected_type);
++int __cdecl OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search);
+ 
+ 
+ /*-
+@@ -210,53 +210,53 @@ int OSSL_STORE_find(OSSL_STORE_CTX *ctx, OSSL_STORE_SEARCH *search);
+  */
+ 
+ typedef struct ossl_store_loader_st OSSL_STORE_LOADER;
+-OSSL_STORE_LOADER *OSSL_STORE_LOADER_new(ENGINE *e, const char *scheme);
+-const ENGINE *OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader);
+-const char *OSSL_STORE_LOADER_get0_scheme(const OSSL_STORE_LOADER *loader);
++OSSL_STORE_LOADER * __cdecl OSSL_STORE_LOADER_new(ENGINE *e, const char *scheme);
++const ENGINE * __cdecl OSSL_STORE_LOADER_get0_engine(const OSSL_STORE_LOADER *loader);
++const char * __cdecl OSSL_STORE_LOADER_get0_scheme(const OSSL_STORE_LOADER *loader);
+ /* struct ossl_store_loader_ctx_st is defined differently by each loader */
+ typedef struct ossl_store_loader_ctx_st OSSL_STORE_LOADER_CTX;
+-typedef OSSL_STORE_LOADER_CTX *(*OSSL_STORE_open_fn)(const OSSL_STORE_LOADER
++typedef OSSL_STORE_LOADER_CTX *(__cdecl *OSSL_STORE_open_fn)(const OSSL_STORE_LOADER
+                                                      *loader,
+                                                      const char *uri,
+                                                      const UI_METHOD *ui_method,
+                                                      void *ui_data);
+-int OSSL_STORE_LOADER_set_open(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_open(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_open_fn open_function);
+-typedef int (*OSSL_STORE_ctrl_fn)(OSSL_STORE_LOADER_CTX *ctx, int cmd,
++typedef int (__cdecl *OSSL_STORE_ctrl_fn)(OSSL_STORE_LOADER_CTX *ctx, int cmd,
+                                   va_list args);
+-int OSSL_STORE_LOADER_set_ctrl(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_ctrl(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_ctrl_fn ctrl_function);
+-typedef int (*OSSL_STORE_expect_fn)(OSSL_STORE_LOADER_CTX *ctx, int expected);
+-int OSSL_STORE_LOADER_set_expect(OSSL_STORE_LOADER *loader,
++typedef int (__cdecl *OSSL_STORE_expect_fn)(OSSL_STORE_LOADER_CTX *ctx, int expected);
++int __cdecl OSSL_STORE_LOADER_set_expect(OSSL_STORE_LOADER *loader,
+                                  OSSL_STORE_expect_fn expect_function);
+-typedef int (*OSSL_STORE_find_fn)(OSSL_STORE_LOADER_CTX *ctx,
++typedef int (__cdecl *OSSL_STORE_find_fn)(OSSL_STORE_LOADER_CTX *ctx,
+                                   OSSL_STORE_SEARCH *criteria);
+-int OSSL_STORE_LOADER_set_find(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_find(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_find_fn find_function);
+-typedef OSSL_STORE_INFO *(*OSSL_STORE_load_fn)(OSSL_STORE_LOADER_CTX *ctx,
++typedef OSSL_STORE_INFO *(__cdecl *OSSL_STORE_load_fn)(OSSL_STORE_LOADER_CTX *ctx,
+                                                const UI_METHOD *ui_method,
+                                                void *ui_data);
+-int OSSL_STORE_LOADER_set_load(OSSL_STORE_LOADER *loader,
++int __cdecl OSSL_STORE_LOADER_set_load(OSSL_STORE_LOADER *loader,
+                                OSSL_STORE_load_fn load_function);
+-typedef int (*OSSL_STORE_eof_fn)(OSSL_STORE_LOADER_CTX *ctx);
+-int OSSL_STORE_LOADER_set_eof(OSSL_STORE_LOADER *loader,
++typedef int (__cdecl *OSSL_STORE_eof_fn)(OSSL_STORE_LOADER_CTX *ctx);
++int __cdecl OSSL_STORE_LOADER_set_eof(OSSL_STORE_LOADER *loader,
+                               OSSL_STORE_eof_fn eof_function);
+-typedef int (*OSSL_STORE_error_fn)(OSSL_STORE_LOADER_CTX *ctx);
+-int OSSL_STORE_LOADER_set_error(OSSL_STORE_LOADER *loader,
++typedef int (__cdecl *OSSL_STORE_error_fn)(OSSL_STORE_LOADER_CTX *ctx);
++int __cdecl OSSL_STORE_LOADER_set_error(OSSL_STORE_LOADER *loader,
+                                 OSSL_STORE_error_fn error_function);
+-typedef int (*OSSL_STORE_close_fn)(OSSL_STORE_LOADER_CTX *ctx);
+-int OSSL_STORE_LOADER_set_close(OSSL_STORE_LOADER *loader,
++typedef int (__cdecl *OSSL_STORE_close_fn)(OSSL_STORE_LOADER_CTX *ctx);
++int __cdecl OSSL_STORE_LOADER_set_close(OSSL_STORE_LOADER *loader,
+                                 OSSL_STORE_close_fn close_function);
+-void OSSL_STORE_LOADER_free(OSSL_STORE_LOADER *loader);
++void __cdecl OSSL_STORE_LOADER_free(OSSL_STORE_LOADER *loader);
+ 
+-int OSSL_STORE_register_loader(OSSL_STORE_LOADER *loader);
+-OSSL_STORE_LOADER *OSSL_STORE_unregister_loader(const char *scheme);
++int __cdecl OSSL_STORE_register_loader(OSSL_STORE_LOADER *loader);
++OSSL_STORE_LOADER * __cdecl OSSL_STORE_unregister_loader(const char *scheme);
+ 
+ /*-
+  *  Functions to list STORE loaders
+  *  -------------------------------
+  */
+-int OSSL_STORE_do_all_loaders(void (*do_function) (const OSSL_STORE_LOADER
++int __cdecl OSSL_STORE_do_all_loaders(void (*do_function) (const OSSL_STORE_LOADER
+                                                    *loader, void *do_arg),
+                               void *do_arg);
+ 
+diff --git a/include/openssl/storeerr.h b/include/openssl/storeerr.h
+index 190eab07fb..26c17f7997 100644
+--- a/include/openssl/storeerr.h
++++ b/include/openssl/storeerr.h
+@@ -18,7 +18,7 @@
+ # ifdef  __cplusplus
+ extern "C"
+ # endif
+-int ERR_load_OSSL_STORE_strings(void);
++int __cdecl ERR_load_OSSL_STORE_strings(void);
+ 
+ /*
+  * OSSL_STORE function codes.
