@@ -23301,6 +23301,81 @@ index 975515db59..e064cdd379 100644
  {
      return st == NULL ? 1 : st->sorted;
  }
+diff --git a/crypto/store/loader_file.c b/crypto/store/loader_file.c
+index 6f569ee62d..5e3f01cf93 100644
+--- a/crypto/store/loader_file.c
++++ b/crypto/store/loader_file.c
+@@ -752,7 +752,7 @@ static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
+     OPENSSL_free(ctx);
+ }
+ 
+-static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
++static OSSL_STORE_LOADER_CTX * __cdecl file_open(const OSSL_STORE_LOADER *loader,
+                                         const char *uri,
+                                         const UI_METHOD *ui_method,
+                                         void *ui_data)
+@@ -892,7 +892,7 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
+     return NULL;
+ }
+ 
+-static int file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
++static int __cdecl file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
+ {
+     int ret = 1;
+ 
+@@ -923,13 +923,13 @@ static int file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
+     return ret;
+ }
+ 
+-static int file_expect(OSSL_STORE_LOADER_CTX *ctx, int expected)
++static int __cdecl file_expect(OSSL_STORE_LOADER_CTX *ctx, int expected)
+ {
+     ctx->expected_type = expected;
+     return 1;
+ }
+ 
+-static int file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
++static int __cdecl file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
+ {
+     /*
+      * If ctx == NULL, the library is looking to know if this loader supports
+@@ -1242,9 +1242,9 @@ static int file_name_check(OSSL_STORE_LOADER_CTX *ctx, const char *name)
+     return *p == '\0';
+ }
+ 
+-static int file_eof(OSSL_STORE_LOADER_CTX *ctx);
+-static int file_error(OSSL_STORE_LOADER_CTX *ctx);
+-static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
++static int __cdecl file_eof(OSSL_STORE_LOADER_CTX *ctx);
++static int __cdecl file_error(OSSL_STORE_LOADER_CTX *ctx);
++static OSSL_STORE_INFO * __cdecl file_load(OSSL_STORE_LOADER_CTX *ctx,
+                                   const UI_METHOD *ui_method, void *ui_data)
+ {
+     OSSL_STORE_INFO *result = NULL;
+@@ -1379,12 +1379,12 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
+     return result;
+ }
+ 
+-static int file_error(OSSL_STORE_LOADER_CTX *ctx)
++static int __cdecl file_error(OSSL_STORE_LOADER_CTX *ctx)
+ {
+     return ctx->errcnt > 0;
+ }
+ 
+-static int file_eof(OSSL_STORE_LOADER_CTX *ctx)
++static int __cdecl file_eof(OSSL_STORE_LOADER_CTX *ctx)
+ {
+     if (ctx->type == is_dir)
+         return ctx->_.dir.end_reached;
+@@ -1395,7 +1395,7 @@ static int file_eof(OSSL_STORE_LOADER_CTX *ctx)
+     return BIO_eof(ctx->_.file.file);
+ }
+ 
+-static int file_close(OSSL_STORE_LOADER_CTX *ctx)
++static int __cdecl file_close(OSSL_STORE_LOADER_CTX *ctx)
+ {
+     if (ctx->type == is_dir) {
+         OPENSSL_DIR_end(&ctx->_.dir.ctx);
 diff --git a/crypto/store/store_err.c b/crypto/store/store_err.c
 index 5a8a8404dd..0394642586 100644
 --- a/crypto/store/store_err.c
@@ -24392,6 +24467,19 @@ index 625089a59b..d315780109 100644
                                     TS_RESP_CTX *ctx)
  {
      int ret = 0;
+diff --git a/crypto/ts/ts_err.c b/crypto/ts/ts_err.c
+index 1f3854d849..a2c67ebcf6 100644
+--- a/crypto/ts/ts_err.c
++++ b/crypto/ts/ts_err.c
+@@ -172,7 +172,7 @@ static const ERR_STRING_DATA TS_str_reasons[] = {
+ 
+ #endif
+ 
+-int ERR_load_TS_strings(void)
++int __cdecl ERR_load_TS_strings(void)
+ {
+ #ifndef OPENSSL_NO_ERR
+     if (ERR_func_error_string(TS_str_functs[0].error) == NULL) {
 diff --git a/crypto/ts/ts_lib.c b/crypto/ts/ts_lib.c
 index ce2e12c593..e01b8284a8 100644
 --- a/crypto/ts/ts_lib.c
@@ -38237,6 +38325,68 @@ index 190eab07fb..26c17f7997 100644
  
  /*
   * OSSL_STORE function codes.
+diff --git a/include/openssl/tls1.h b/include/openssl/tls1.h
+index 76d9fda46e..d4f83420f9 100644
+--- a/include/openssl/tls1.h
++++ b/include/openssl/tls1.h
+@@ -208,13 +208,13 @@ extern "C" {
+ # define TLSEXT_max_fragment_length_2048        3
+ # define TLSEXT_max_fragment_length_4096        4
+ 
+-int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode);
+-int SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode);
++int __cdecl SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode);
++int __cdecl SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode);
+ 
+ # define TLSEXT_MAXLEN_host_name 255
+ 
+-__owur const char *SSL_get_servername(const SSL *s, const int type);
+-__owur int SSL_get_servername_type(const SSL *s);
++__owur const char * __cdecl SSL_get_servername(const SSL *s, const int type);
++__owur int __cdecl SSL_get_servername_type(const SSL *s);
+ /*
+  * SSL_export_keying_material exports a value derived from the master secret,
+  * as specified in RFC 5705. It writes |olen| bytes to |out| given a label and
+@@ -222,7 +222,7 @@ __owur int SSL_get_servername_type(const SSL *s);
+  * flag controls whether a context is included.) It returns 1 on success and
+  * 0 or -1 otherwise.
+  */
+-__owur int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
++__owur int __cdecl SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
+                                       const char *label, size_t llen,
+                                       const unsigned char *context,
+                                       size_t contextlen, int use_context);
+@@ -234,24 +234,24 @@ __owur int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
+  * |olen| bytes to |out| given a label and optional context. It
+  * returns 1 on success and 0 otherwise.
+  */
+-__owur int SSL_export_keying_material_early(SSL *s, unsigned char *out,
++__owur int __cdecl SSL_export_keying_material_early(SSL *s, unsigned char *out,
+                                             size_t olen, const char *label,
+                                             size_t llen,
+                                             const unsigned char *context,
+                                             size_t contextlen);
+ 
+-int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid);
+-int SSL_get_signature_type_nid(const SSL *s, int *pnid);
++int __cdecl SSL_get_peer_signature_type_nid(const SSL *s, int *pnid);
++int __cdecl SSL_get_signature_type_nid(const SSL *s, int *pnid);
+ 
+-int SSL_get_sigalgs(SSL *s, int idx,
++int __cdecl SSL_get_sigalgs(SSL *s, int idx,
+                     int *psign, int *phash, int *psignandhash,
+                     unsigned char *rsig, unsigned char *rhash);
+ 
+-int SSL_get_shared_sigalgs(SSL *s, int idx,
++int __cdecl SSL_get_shared_sigalgs(SSL *s, int idx,
+                            int *psign, int *phash, int *psignandhash,
+                            unsigned char *rsig, unsigned char *rhash);
+ 
+-__owur int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
++__owur int __cdecl SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
+ 
+ # define SSL_set_tlsext_host_name(s,name) \
+         SSL_ctrl(s,SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,\
 diff --git a/include/openssl/ts.h b/include/openssl/ts.h
 index 3b58aa527e..2fa90dbfea 100644
 --- a/include/openssl/ts.h
@@ -38844,6 +38994,19 @@ index 3b58aa527e..2fa90dbfea 100644
                                        TS_RESP_CTX *ctx);
  
  #  ifdef  __cplusplus
+diff --git a/include/openssl/tserr.h b/include/openssl/tserr.h
+index 07f23339c8..5ccecabd5f 100644
+--- a/include/openssl/tserr.h
++++ b/include/openssl/tserr.h
+@@ -22,7 +22,7 @@
+ #  ifdef  __cplusplus
+ extern "C"
+ #  endif
+-int ERR_load_TS_strings(void);
++int __cdecl ERR_load_TS_strings(void);
+ 
+ /*
+  * TS function codes.
 diff --git a/include/openssl/x509.h b/include/openssl/x509.h
 index 39ca0ba575..d2b7862f63 100644
 --- a/include/openssl/x509.h
@@ -41076,7 +41239,7 @@ index f0969fa9b1..3f8f1701e7 100644
      static int stoperrset = 0;
  
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index ac820cf9fe..53fe156bed 100644
+index ac820cf9fe..6df092c098 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -25,7 +25,7 @@
@@ -41995,6 +42158,24 @@ index ac820cf9fe..53fe156bed 100644
  {
      char *p;
      STACK_OF(SSL_CIPHER) *clntsk, *srvrsk;
+@@ -2627,7 +2627,7 @@ char *SSL_get_shared_ciphers(const SSL *s, char *buf, int size)
+  * So far, only host_name types are defined (RFC 3546).
+  */
+ 
+-const char *SSL_get_servername(const SSL *s, const int type)
++const char * __cdecl SSL_get_servername(const SSL *s, const int type)
+ {
+     if (type != TLSEXT_NAMETYPE_host_name)
+         return NULL;
+@@ -2643,7 +2643,7 @@ const char *SSL_get_servername(const SSL *s, const int type)
+     return s->ext.hostname;
+ }
+ 
+-int SSL_get_servername_type(const SSL *s)
++int __cdecl SSL_get_servername_type(const SSL *s)
+ {
+     if (s->session
+         && (!s->ext.hostname ? s->session->
 @@ -2672,7 +2672,7 @@ int SSL_get_servername_type(const SSL *s)
   * case 2. It returns either OPENSSL_NPN_NEGOTIATED if a common protocol was
   * found, or OPENSSL_NPN_NO_OVERLAP if the fallback case was reached.
@@ -42067,6 +42248,24 @@ index ac820cf9fe..53fe156bed 100644
                              unsigned int *len)
  {
      *data = NULL;
+@@ -2836,7 +2836,7 @@ void SSL_get0_alpn_selected(const SSL *ssl, const unsigned char **data,
+         *len = (unsigned int)ssl->s3->alpn_selected_len;
+ }
+ 
+-int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
++int __cdecl SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
+                                const char *label, size_t llen,
+                                const unsigned char *context, size_t contextlen,
+                                int use_context)
+@@ -2849,7 +2849,7 @@ int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
+                                                        contextlen, use_context);
+ }
+ 
+-int SSL_export_keying_material_early(SSL *s, unsigned char *out, size_t olen,
++int __cdecl SSL_export_keying_material_early(SSL *s, unsigned char *out, size_t olen,
+                                      const char *label, size_t llen,
+                                      const unsigned char *context,
+                                      size_t contextlen)
 @@ -2888,7 +2888,7 @@ static unsigned long ssl_session_hash(const SSL_SESSION *a)
   * being able to construct an SSL_SESSION that will collide with any existing
   * session with a matching session ID.
@@ -45796,7 +45995,7 @@ index 57fb17a660..ae29b304fb 100644
      switch (code) {
      case SSL_AD_CLOSE_NOTIFY:
 diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
-index b482019c4c..a2ac5a0694 100644
+index b482019c4c..8c33bce9c9 100644
 --- a/ssl/t1_lib.c
 +++ b/ssl/t1_lib.c
 @@ -92,7 +92,7 @@ SSL3_ENC_METHOD const TLSv1_3_enc_data = {
@@ -45959,6 +46158,24 @@ index b482019c4c..a2ac5a0694 100644
  {
      const uint16_t *sent_sigs;
      const EVP_MD *md = NULL;
+@@ -1117,7 +1117,7 @@ int tls12_check_peer_sigalg(SSL *s, uint16_t sig, EVP_PKEY *pkey)
+     return 1;
+ }
+ 
+-int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
++int __cdecl SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
+ {
+     if (s->s3->tmp.peer_sigalg == NULL)
+         return 0;
+@@ -1125,7 +1125,7 @@ int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
+     return 1;
+ }
+ 
+-int SSL_get_signature_type_nid(const SSL *s, int *pnid)
++int __cdecl SSL_get_signature_type_nid(const SSL *s, int *pnid)
+ {
+     if (s->s3->tmp.sigalg == NULL)
+         return 0;
 @@ -1143,7 +1143,7 @@ int SSL_get_signature_type_nid(const SSL *s, int *pnid)
   *
   * Call ssl_cipher_disabled() to check that it's enabled or not.
@@ -46057,6 +46274,24 @@ index b482019c4c..a2ac5a0694 100644
  {
      size_t i;
      uint32_t *pvalid = s->s3->tmp.valid_flags;
+@@ -1841,7 +1841,7 @@ int tls1_process_sigalgs(SSL *s)
+     return 1;
+ }
+ 
+-int SSL_get_sigalgs(SSL *s, int idx,
++int __cdecl SSL_get_sigalgs(SSL *s, int idx,
+                     int *psign, int *phash, int *psignhash,
+                     unsigned char *rsig, unsigned char *rhash)
+ {
+@@ -1870,7 +1870,7 @@ int SSL_get_sigalgs(SSL *s, int idx,
+     return (int)numsigalgs;
+ }
+ 
+-int SSL_get_shared_sigalgs(SSL *s, int idx,
++int __cdecl SSL_get_shared_sigalgs(SSL *s, int idx,
+                            int *psign, int *phash, int *psignhash,
+                            unsigned char *rsig, unsigned char *rhash)
+ {
 @@ -1991,7 +1991,7 @@ static int sig_cb(const char *elem, int len, void *arg)
   * Set supported signature algorithms based on a colon separated list of the
   * form sig+hash e.g. RSA+SHA512:DSA+SHA512
@@ -46102,7 +46337,14 @@ index b482019c4c..a2ac5a0694 100644
  {
      tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_RSA);
      tls1_check_chain(s, NULL, NULL, NULL, SSL_PKEY_RSA_PSS_SIGN);
-@@ -2406,7 +2406,7 @@ int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)
+@@ -2400,13 +2400,13 @@ void tls1_set_cert_validity(SSL *s)
+ }
+ 
+ /* User level utility function to check a chain is suitable */
+-int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)
++int __cdecl SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)
+ {
+     return tls1_check_chain(s, x, pk, chain, -1);
  }
  
  #ifndef OPENSSL_NO_DH
@@ -46138,6 +46380,24 @@ index b482019c4c..a2ac5a0694 100644
  {
      const SIGALG_LOOKUP *lu = NULL;
      int sig_idx = -1;
+@@ -2831,7 +2831,7 @@ int tls_choose_sigalg(SSL *s, int fatalerrs)
+     return 1;
+ }
+ 
+-int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
++int __cdecl SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
+ {
+     if (mode != TLSEXT_max_fragment_length_DISABLED
+             && !IS_MAX_FRAGMENT_LENGTH_EXT_VALID(mode)) {
+@@ -2844,7 +2844,7 @@ int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
+     return 1;
+ }
+ 
+-int SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode)
++int __cdecl SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode)
+ {
+     if (mode != TLSEXT_max_fragment_length_DISABLED
+             && !IS_MAX_FRAGMENT_LENGTH_EXT_VALID(mode)) {
 @@ -2857,7 +2857,7 @@ int SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode)
      return 1;
  }
@@ -46953,247 +47213,3 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/store/loader_file.c b/crypto/store/loader_file.c
-index 6f569ee62d..5e3f01cf93 100644
---- a/crypto/store/loader_file.c
-+++ b/crypto/store/loader_file.c
-@@ -752,7 +752,7 @@ static void OSSL_STORE_LOADER_CTX_free(OSSL_STORE_LOADER_CTX *ctx)
-     OPENSSL_free(ctx);
- }
- 
--static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
-+static OSSL_STORE_LOADER_CTX * __cdecl file_open(const OSSL_STORE_LOADER *loader,
-                                         const char *uri,
-                                         const UI_METHOD *ui_method,
-                                         void *ui_data)
-@@ -892,7 +892,7 @@ static OSSL_STORE_LOADER_CTX *file_open(const OSSL_STORE_LOADER *loader,
-     return NULL;
- }
- 
--static int file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
-+static int __cdecl file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
- {
-     int ret = 1;
- 
-@@ -923,13 +923,13 @@ static int file_ctrl(OSSL_STORE_LOADER_CTX *ctx, int cmd, va_list args)
-     return ret;
- }
- 
--static int file_expect(OSSL_STORE_LOADER_CTX *ctx, int expected)
-+static int __cdecl file_expect(OSSL_STORE_LOADER_CTX *ctx, int expected)
- {
-     ctx->expected_type = expected;
-     return 1;
- }
- 
--static int file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
-+static int __cdecl file_find(OSSL_STORE_LOADER_CTX *ctx, OSSL_STORE_SEARCH *search)
- {
-     /*
-      * If ctx == NULL, the library is looking to know if this loader supports
-@@ -1242,9 +1242,9 @@ static int file_name_check(OSSL_STORE_LOADER_CTX *ctx, const char *name)
-     return *p == '\0';
- }
- 
--static int file_eof(OSSL_STORE_LOADER_CTX *ctx);
--static int file_error(OSSL_STORE_LOADER_CTX *ctx);
--static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
-+static int __cdecl file_eof(OSSL_STORE_LOADER_CTX *ctx);
-+static int __cdecl file_error(OSSL_STORE_LOADER_CTX *ctx);
-+static OSSL_STORE_INFO * __cdecl file_load(OSSL_STORE_LOADER_CTX *ctx,
-                                   const UI_METHOD *ui_method, void *ui_data)
- {
-     OSSL_STORE_INFO *result = NULL;
-@@ -1379,12 +1379,12 @@ static OSSL_STORE_INFO *file_load(OSSL_STORE_LOADER_CTX *ctx,
-     return result;
- }
- 
--static int file_error(OSSL_STORE_LOADER_CTX *ctx)
-+static int __cdecl file_error(OSSL_STORE_LOADER_CTX *ctx)
- {
-     return ctx->errcnt > 0;
- }
- 
--static int file_eof(OSSL_STORE_LOADER_CTX *ctx)
-+static int __cdecl file_eof(OSSL_STORE_LOADER_CTX *ctx)
- {
-     if (ctx->type == is_dir)
-         return ctx->_.dir.end_reached;
-@@ -1395,7 +1395,7 @@ static int file_eof(OSSL_STORE_LOADER_CTX *ctx)
-     return BIO_eof(ctx->_.file.file);
- }
- 
--static int file_close(OSSL_STORE_LOADER_CTX *ctx)
-+static int __cdecl file_close(OSSL_STORE_LOADER_CTX *ctx)
- {
-     if (ctx->type == is_dir) {
-         OPENSSL_DIR_end(&ctx->_.dir.ctx);
-diff --git a/include/openssl/tls1.h b/include/openssl/tls1.h
-index 76d9fda46e..d4f83420f9 100644
---- a/include/openssl/tls1.h
-+++ b/include/openssl/tls1.h
-@@ -208,13 +208,13 @@ extern "C" {
- # define TLSEXT_max_fragment_length_2048        3
- # define TLSEXT_max_fragment_length_4096        4
- 
--int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode);
--int SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode);
-+int __cdecl SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode);
-+int __cdecl SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode);
- 
- # define TLSEXT_MAXLEN_host_name 255
- 
--__owur const char *SSL_get_servername(const SSL *s, const int type);
--__owur int SSL_get_servername_type(const SSL *s);
-+__owur const char * __cdecl SSL_get_servername(const SSL *s, const int type);
-+__owur int __cdecl SSL_get_servername_type(const SSL *s);
- /*
-  * SSL_export_keying_material exports a value derived from the master secret,
-  * as specified in RFC 5705. It writes |olen| bytes to |out| given a label and
-@@ -222,7 +222,7 @@ __owur int SSL_get_servername_type(const SSL *s);
-  * flag controls whether a context is included.) It returns 1 on success and
-  * 0 or -1 otherwise.
-  */
--__owur int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-+__owur int __cdecl SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-                                       const char *label, size_t llen,
-                                       const unsigned char *context,
-                                       size_t contextlen, int use_context);
-@@ -234,24 +234,24 @@ __owur int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-  * |olen| bytes to |out| given a label and optional context. It
-  * returns 1 on success and 0 otherwise.
-  */
--__owur int SSL_export_keying_material_early(SSL *s, unsigned char *out,
-+__owur int __cdecl SSL_export_keying_material_early(SSL *s, unsigned char *out,
-                                             size_t olen, const char *label,
-                                             size_t llen,
-                                             const unsigned char *context,
-                                             size_t contextlen);
- 
--int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid);
--int SSL_get_signature_type_nid(const SSL *s, int *pnid);
-+int __cdecl SSL_get_peer_signature_type_nid(const SSL *s, int *pnid);
-+int __cdecl SSL_get_signature_type_nid(const SSL *s, int *pnid);
- 
--int SSL_get_sigalgs(SSL *s, int idx,
-+int __cdecl SSL_get_sigalgs(SSL *s, int idx,
-                     int *psign, int *phash, int *psignandhash,
-                     unsigned char *rsig, unsigned char *rhash);
- 
--int SSL_get_shared_sigalgs(SSL *s, int idx,
-+int __cdecl SSL_get_shared_sigalgs(SSL *s, int idx,
-                            int *psign, int *phash, int *psignandhash,
-                            unsigned char *rsig, unsigned char *rhash);
- 
--__owur int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
-+__owur int __cdecl SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain);
- 
- # define SSL_set_tlsext_host_name(s,name) \
-         SSL_ctrl(s,SSL_CTRL_SET_TLSEXT_HOSTNAME,TLSEXT_NAMETYPE_host_name,\
-diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index 53fe156bed..6df092c098 100644
---- a/ssl/ssl_lib.c
-+++ b/ssl/ssl_lib.c
-@@ -2627,7 +2627,7 @@ char * __cdecl SSL_get_shared_ciphers(const SSL *s, char *buf, int size)
-  * So far, only host_name types are defined (RFC 3546).
-  */
- 
--const char *SSL_get_servername(const SSL *s, const int type)
-+const char * __cdecl SSL_get_servername(const SSL *s, const int type)
- {
-     if (type != TLSEXT_NAMETYPE_host_name)
-         return NULL;
-@@ -2643,7 +2643,7 @@ const char *SSL_get_servername(const SSL *s, const int type)
-     return s->ext.hostname;
- }
- 
--int SSL_get_servername_type(const SSL *s)
-+int __cdecl SSL_get_servername_type(const SSL *s)
- {
-     if (s->session
-         && (!s->ext.hostname ? s->session->
-@@ -2836,7 +2836,7 @@ void __cdecl SSL_get0_alpn_selected(const SSL *ssl, const unsigned char **data,
-         *len = (unsigned int)ssl->s3->alpn_selected_len;
- }
- 
--int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-+int __cdecl SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-                                const char *label, size_t llen,
-                                const unsigned char *context, size_t contextlen,
-                                int use_context)
-@@ -2849,7 +2849,7 @@ int SSL_export_keying_material(SSL *s, unsigned char *out, size_t olen,
-                                                        contextlen, use_context);
- }
- 
--int SSL_export_keying_material_early(SSL *s, unsigned char *out, size_t olen,
-+int __cdecl SSL_export_keying_material_early(SSL *s, unsigned char *out, size_t olen,
-                                      const char *label, size_t llen,
-                                      const unsigned char *context,
-                                      size_t contextlen)
-diff --git a/ssl/t1_lib.c b/ssl/t1_lib.c
-index a2ac5a0694..8c33bce9c9 100644
---- a/ssl/t1_lib.c
-+++ b/ssl/t1_lib.c
-@@ -1117,7 +1117,7 @@ int __cdecl tls12_check_peer_sigalg(SSL *s, uint16_t sig, EVP_PKEY *pkey)
-     return 1;
- }
- 
--int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
-+int __cdecl SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
- {
-     if (s->s3->tmp.peer_sigalg == NULL)
-         return 0;
-@@ -1125,7 +1125,7 @@ int SSL_get_peer_signature_type_nid(const SSL *s, int *pnid)
-     return 1;
- }
- 
--int SSL_get_signature_type_nid(const SSL *s, int *pnid)
-+int __cdecl SSL_get_signature_type_nid(const SSL *s, int *pnid)
- {
-     if (s->s3->tmp.sigalg == NULL)
-         return 0;
-@@ -1841,7 +1841,7 @@ int __cdecl tls1_process_sigalgs(SSL *s)
-     return 1;
- }
- 
--int SSL_get_sigalgs(SSL *s, int idx,
-+int __cdecl SSL_get_sigalgs(SSL *s, int idx,
-                     int *psign, int *phash, int *psignhash,
-                     unsigned char *rsig, unsigned char *rhash)
- {
-@@ -1870,7 +1870,7 @@ int SSL_get_sigalgs(SSL *s, int idx,
-     return (int)numsigalgs;
- }
- 
--int SSL_get_shared_sigalgs(SSL *s, int idx,
-+int __cdecl SSL_get_shared_sigalgs(SSL *s, int idx,
-                            int *psign, int *phash, int *psignhash,
-                            unsigned char *rsig, unsigned char *rhash)
- {
-@@ -2400,7 +2400,7 @@ void __cdecl tls1_set_cert_validity(SSL *s)
- }
- 
- /* User level utility function to check a chain is suitable */
--int SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)
-+int __cdecl SSL_check_chain(SSL *s, X509 *x, EVP_PKEY *pk, STACK_OF(X509) *chain)
- {
-     return tls1_check_chain(s, x, pk, chain, -1);
- }
-@@ -2831,7 +2831,7 @@ int __cdecl tls_choose_sigalg(SSL *s, int fatalerrs)
-     return 1;
- }
- 
--int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
-+int __cdecl SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
- {
-     if (mode != TLSEXT_max_fragment_length_DISABLED
-             && !IS_MAX_FRAGMENT_LENGTH_EXT_VALID(mode)) {
-@@ -2844,7 +2844,7 @@ int SSL_CTX_set_tlsext_max_fragment_length(SSL_CTX *ctx, uint8_t mode)
-     return 1;
- }
- 
--int SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode)
-+int __cdecl SSL_set_tlsext_max_fragment_length(SSL *ssl, uint8_t mode)
- {
-     if (mode != TLSEXT_max_fragment_length_DISABLED
-             && !IS_MAX_FRAGMENT_LENGTH_EXT_VALID(mode)) {
