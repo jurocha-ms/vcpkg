@@ -185,28 +185,6 @@ index 0bb33a4aca..4b7ba869b0 100644
  {
      return "";
  }
-diff --git a/apps/cms.c b/apps/cms.c
-index 15edd67dbe..fc22cedc30 100644
---- a/apps/cms.c
-+++ b/apps/cms.c
-@@ -24,7 +24,7 @@
- # include <openssl/cms.h>
- 
- static int save_certs(char *signerfile, STACK_OF(X509) *signers);
--static int cms_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx);
- static void receipt_request_print(CMS_ContentInfo *cms);
- static CMS_ReceiptRequest *make_receipt_request(STACK_OF(OPENSSL_STRING)
-                                                 *rr_to, int rr_allorfirst, STACK_OF(OPENSSL_STRING)
-@@ -1129,7 +1129,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
- 
- /* Minimal callback just to output policy info (if any) */
- 
--static int cms_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl cms_cb(int ok, X509_STORE_CTX *ctx)
- {
-     int error;
- 
 diff --git a/apps/dhparam.c b/apps/dhparam.c
 index 13f76754d2..4a52a5fda6 100644
 --- a/apps/dhparam.c
@@ -451,10 +429,10 @@ index f9d6fba109..2b515672d0 100644
      return strcmp((const char *)a, (const char *)b);
  }
 diff --git a/apps/s_apps.h b/apps/s_apps.h
-index f94e659e71..3e613f5fe5 100644
+index f94e659e71..15888d13e5 100644
 --- a/apps/s_apps.h
 +++ b/apps/s_apps.h
-@@ -14,12 +14,12 @@
+@@ -14,7 +14,7 @@
  #define PORT            "4433"
  #define PROTOCOL        "tcp"
  
@@ -463,12 +441,6 @@ index f94e659e71..3e613f5fe5 100644
  int do_server(int *accept_sock, const char *host, const char *port,
                int family, int type, int protocol, do_server_cb cb,
                unsigned char *context, int naccept, BIO *bio_s_out);
- 
--int verify_callback(int ok, X509_STORE_CTX *ctx);
-+int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx);
- 
- int set_cert_stuff(SSL_CTX *ctx, char *cert_file, char *key_file);
- int set_cert_key_stuff(SSL_CTX *ctx, X509 *cert, EVP_PKEY *key,
 @@ -33,18 +33,18 @@ int init_client(int *sock, const char *host, const char *port,
                  int family, int type, int protocol);
  int should_retry(int i);
@@ -507,18 +479,9 @@ index f94e659e71..3e613f5fe5 100644
  
  typedef struct ssl_excert_st SSL_EXCERT;
 diff --git a/apps/s_cb.c b/apps/s_cb.c
-index 5dc1d03f28..e0cdc9ef3a 100644
+index 5dc1d03f28..c90566e39a 100644
 --- a/apps/s_cb.c
 +++ b/apps/s_cb.c
-@@ -40,7 +40,7 @@ static const char *lookup(int val, const STRINT_PAIR* list, const char* def)
-     return def;
- }
- 
--int verify_callback(int ok, X509_STORE_CTX *ctx)
-+int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx)
- {
-     X509 *err_cert;
-     int err, depth;
 @@ -429,7 +429,7 @@ int ssl_print_tmp_key(BIO *out, SSL *s)
      return 1;
  }
@@ -1117,28 +1080,6 @@ index 929a08bd85..4927f5b31a 100644
  {
      simple_ssl_session *sess, *tsess;
      for (sess = first; sess;) {
-diff --git a/apps/smime.c b/apps/smime.c
-index 6fd473775f..394951814f 100644
---- a/apps/smime.c
-+++ b/apps/smime.c
-@@ -20,7 +20,7 @@
- #include <openssl/x509v3.h>
- 
- static int save_certs(char *signerfile, STACK_OF(X509) *signers);
--static int smime_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx);
- 
- #define SMIME_OP        0x10
- #define SMIME_IP        0x20
-@@ -631,7 +631,7 @@ static int save_certs(char *signerfile, STACK_OF(X509) *signers)
- 
- /* Minimal callback just to output policy info (if any) */
- 
--static int smime_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl smime_cb(int ok, X509_STORE_CTX *ctx)
- {
-     int error;
- 
 diff --git a/apps/speed.c b/apps/speed.c
 index 20149506cc..883df205ee 100644
 --- a/apps/speed.c
@@ -1600,50 +1541,6 @@ index 20149506cc..883df205ee 100644
  {
      int n;
      int fd[2];
-diff --git a/apps/ts.c b/apps/ts.c
-index 930c1daaab..5c3bcc4879 100644
---- a/apps/ts.c
-+++ b/apps/ts.c
-@@ -75,7 +75,7 @@ static TS_VERIFY_CTX *create_verify_ctx(const char *data, const char *digest,
-                                         X509_VERIFY_PARAM *vpm);
- static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
-                                      X509_VERIFY_PARAM *vpm);
--static int verify_cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx);
- 
- typedef enum OPTION_choice {
-     OPT_ERR = -1, OPT_EOF = 0, OPT_HELP,
-@@ -979,7 +979,7 @@ static X509_STORE *create_cert_store(const char *CApath, const char *CAfile,
-     return NULL;
- }
- 
--static int verify_cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl verify_cb(int ok, X509_STORE_CTX *ctx)
- {
-     return ok;
- }
-diff --git a/apps/verify.c b/apps/verify.c
-index 1f93856060..e3f3703343 100644
---- a/apps/verify.c
-+++ b/apps/verify.c
-@@ -18,7 +18,7 @@
- #include <openssl/x509v3.h>
- #include <openssl/pem.h>
- 
--static int cb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl cb(int ok, X509_STORE_CTX *ctx);
- static int check(X509_STORE *ctx, const char *file,
-                  STACK_OF(X509) *uchain, STACK_OF(X509) *tchain,
-                  STACK_OF(X509_CRL) *crls, int show_chain);
-@@ -269,7 +269,7 @@ static int check(X509_STORE *ctx, const char *file,
-     return ret;
- }
- 
--static int cb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl cb(int ok, X509_STORE_CTX *ctx)
- {
-     int cert_error = X509_STORE_CTX_get_error(ctx);
-     X509 *current_cert = X509_STORE_CTX_get_current_cert(ctx);
 diff --git a/apps/win32_init.c b/apps/win32_init.c
 index df4bff41a2..b8436cc54f 100644
 --- a/apps/win32_init.c
@@ -1657,28 +1554,6 @@ index df4bff41a2..b8436cc54f 100644
  {
      int i;
  
-diff --git a/apps/x509.c b/apps/x509.c
-index 81291a9a4f..be15a68f04 100644
---- a/apps/x509.c
-+++ b/apps/x509.c
-@@ -32,7 +32,7 @@
- #define POSTFIX ".srl"
- #define DEF_DAYS        30
- 
--static int callb(int ok, X509_STORE_CTX *ctx);
-+static int __cdecl callb(int ok, X509_STORE_CTX *ctx);
- static int sign(X509 *x, EVP_PKEY *pkey, int days, int clrext,
-                 const EVP_MD *digest, CONF *conf, const char *section,
-                 int preserve_dates);
-@@ -1021,7 +1021,7 @@ static int x509_certify(X509_STORE *ctx, const char *CAfile, const EVP_MD *diges
-     return ret;
- }
- 
--static int callb(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl callb(int ok, X509_STORE_CTX *ctx)
- {
-     int err;
-     X509 *err_cert;
 diff --git a/crypto/LPdir_win.c b/crypto/LPdir_win.c
 index 1dc1ef122c..820e44a580 100644
 --- a/crypto/LPdir_win.c
@@ -21335,7 +21210,7 @@ index 8df2c06e1f..c0a6f69cbb 100644
      CONF_module_add("alg_section", alg_module_init, 0);
  }
 diff --git a/crypto/evp/evp_enc.c b/crypto/evp/evp_enc.c
-index 05dd791b6c..f34ad4ad40 100644
+index 05dd791b6c..5e63a0d28f 100644
 --- a/crypto/evp/evp_enc.c
 +++ b/crypto/evp/evp_enc.c
 @@ -18,7 +18,7 @@
@@ -21445,6 +21320,15 @@ index 05dd791b6c..f34ad4ad40 100644
  {
      PTRDIFF_T diff = (PTRDIFF_T)ptr1-(PTRDIFF_T)ptr2;
      /*
+@@ -294,7 +294,7 @@ int is_partially_overlapping(const void *ptr1, const void *ptr2, int len)
+     return overlapped;
+ }
+ 
+-static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
++static int __cdecl evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
+                                     unsigned char *out, int *outl,
+                                     const unsigned char *in, int inl)
+ {
 @@ -373,7 +373,7 @@ static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
  }
  
@@ -25283,7 +25167,7 @@ index 27eb471c28..f9fda6966d 100644
  void sm3_block_data_order(SM3_CTX *c, const void *p, size_t num);
  
 diff --git a/crypto/include/internal/x509_int.h b/crypto/include/internal/x509_int.h
-index b53c2b03c3..0b8b49517d 100644
+index b53c2b03c3..a3c0de14de 100644
 --- a/crypto/include/internal/x509_int.h
 +++ b/crypto/include/internal/x509_int.h
 @@ -204,26 +204,26 @@ struct x509_store_ctx_st {      /* X509_STORE_CTX */
@@ -25293,8 +25177,7 @@ index b53c2b03c3..0b8b49517d 100644
 -    int (*verify) (X509_STORE_CTX *ctx);
 +    int (__cdecl *verify) (X509_STORE_CTX *ctx);
      /* error callback */
--    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
+     int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
      /* get issuers cert from ctx */
 -    int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
 +    int (__cdecl *get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
@@ -33469,7 +33352,7 @@ index 975515db59..e064cdd379 100644
      return st == NULL ? 1 : st->sorted;
  }
 diff --git a/crypto/store/loader_file.c b/crypto/store/loader_file.c
-index 6f569ee62d..84b52b76e7 100644
+index 6f569ee62d..56d9c82e1e 100644
 --- a/crypto/store/loader_file.c
 +++ b/crypto/store/loader_file.c
 @@ -94,7 +94,7 @@ struct pem_pass_data {
@@ -33481,15 +33364,6 @@ index 6f569ee62d..84b52b76e7 100644
                                     const char *prompt_info,
                                     const UI_METHOD *ui_method, void *ui_data)
  {
-@@ -107,7 +107,7 @@ static int file_fill_pem_pass_data(struct pem_pass_data *pass_data,
- }
- 
- /* This is used anywhere a pem_password_cb is needed */
--static int file_get_pem_pass(char *buf, int num, int w, void *data)
-+static int __cdecl file_get_pem_pass(char *buf, int num, int w, void *data)
- {
-     struct pem_pass_data *pass_data = data;
-     char *pass = file_get_pass(pass_data->ui_method, buf, num,
 @@ -157,7 +157,7 @@ static int file_get_pem_pass(char *buf, int num, int w, void *data)
   * Output:
   *    a OSSL_STORE_INFO
@@ -37622,7 +37496,7 @@ index 2db843760c..60fdbb3a5f 100644
  {
      return X509V3_add1_i2d(&x->extensions, nid, value, crit, flags);
 diff --git a/crypto/x509/x509_lcl.h b/crypto/x509/x509_lcl.h
-index c517a77456..45e4a88401 100644
+index c517a77456..9c29570caa 100644
 --- a/crypto/x509/x509_lcl.h
 +++ b/crypto/x509/x509_lcl.h
 @@ -70,21 +70,21 @@ struct x509_crl_method_st {
@@ -37663,8 +37537,7 @@ index c517a77456..45e4a88401 100644
 -    int (*verify) (X509_STORE_CTX *ctx);
 +    int (__cdecl *verify) (X509_STORE_CTX *ctx);
      /* error callback */
--    int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *verify_cb) (int ok, X509_STORE_CTX *ctx);
+     int (*verify_cb) (int ok, X509_STORE_CTX *ctx);
      /* get issuers cert from ctx */
 -    int (*get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
 +    int (__cdecl *get_issuer) (X509 **issuer, X509_STORE_CTX *ctx, X509 *x);
@@ -38971,16 +38844,14 @@ index 75ae767d60..e84a6ae8ca 100644
      if (ex == NULL)
          return 0;
 diff --git a/crypto/x509/x509_vfy.c b/crypto/x509/x509_vfy.c
-index 6be2c71e86..3bfb276aa1 100644
+index 6be2c71e86..fe14e68dd5 100644
 --- a/crypto/x509/x509_vfy.c
 +++ b/crypto/x509/x509_vfy.c
-@@ -66,17 +66,17 @@
- static int build_chain(X509_STORE_CTX *ctx);
+@@ -67,16 +67,16 @@ static int build_chain(X509_STORE_CTX *ctx);
  static int verify_chain(X509_STORE_CTX *ctx);
  static int dane_verify(X509_STORE_CTX *ctx);
--static int null_callback(int ok, X509_STORE_CTX *e);
+ static int null_callback(int ok, X509_STORE_CTX *e);
 -static int check_issued(X509_STORE_CTX *ctx, X509 *x, X509 *issuer);
-+static int __cdecl null_callback(int ok, X509_STORE_CTX *e);
 +static int __cdecl check_issued(X509_STORE_CTX *ctx, X509 *x, X509 *issuer);
  static X509 *find_issuer(X509_STORE_CTX *ctx, STACK_OF(X509) *sk, X509 *x);
  static int check_chain_extensions(X509_STORE_CTX *ctx);
@@ -38997,18 +38868,15 @@ index 6be2c71e86..3bfb276aa1 100644
  static int check_dane_issuer(X509_STORE_CTX *ctx, int depth);
  static int check_key_level(X509_STORE_CTX *ctx, X509 *cert);
  static int check_sig_level(X509_STORE_CTX *ctx, X509 *cert);
-@@ -97,9 +97,9 @@ static int check_crl_chain(X509_STORE_CTX *ctx,
+@@ -97,7 +97,7 @@ static int check_crl_chain(X509_STORE_CTX *ctx,
                             STACK_OF(X509) *cert_path,
                             STACK_OF(X509) *crl_path);
  
 -static int internal_verify(X509_STORE_CTX *ctx);
 +static int __cdecl internal_verify(X509_STORE_CTX *ctx);
  
--static int null_callback(int ok, X509_STORE_CTX *e)
-+static int __cdecl null_callback(int ok, X509_STORE_CTX *e)
+ static int null_callback(int ok, X509_STORE_CTX *e)
  {
-     return ok;
- }
 @@ -250,7 +250,7 @@ static int verify_chain(X509_STORE_CTX *ctx)
      return ok;
  }
@@ -53520,7 +53388,7 @@ index 8dd9e01a17..bb512da35d 100644
  /*
   * OCSP function codes.
 diff --git a/include/openssl/pem.h b/include/openssl/pem.h
-index 2ef5b5d04c..cec21cfec6 100644
+index 2ef5b5d04c..21deaa960f 100644
 --- a/include/openssl/pem.h
 +++ b/include/openssl/pem.h
 @@ -70,25 +70,25 @@ extern "C" {
@@ -53640,12 +53508,9 @@ index 2ef5b5d04c..cec21cfec6 100644
               unsigned char *kstr, int klen, pem_password_cb *cb, void *u);
  
  # define DECLARE_PEM_write(name, type) \
-@@ -228,62 +228,62 @@ int PEM_write_bio_##name(BIO *bp, type *x, const EVP_CIPHER *enc, \
- # define DECLARE_PEM_rw_cb(name, type) \
-         DECLARE_PEM_read(name, type) \
+@@ -230,60 +230,60 @@ int PEM_write_bio_##name(BIO *bp, type *x, const EVP_CIPHER *enc, \
          DECLARE_PEM_write_cb(name, type)
--typedef int pem_password_cb (char *buf, int size, int rwflag, void *userdata);
-+typedef int __cdecl pem_password_cb (char *buf, int size, int rwflag, void *userdata);
+ typedef int pem_password_cb (char *buf, int size, int rwflag, void *userdata);
  
 -int PEM_get_EVP_CIPHER_INFO(char *header, EVP_CIPHER_INFO *cipher);
 -int PEM_do_header(EVP_CIPHER_INFO *cipher, unsigned char *data, long *len,
@@ -55133,7 +54998,7 @@ index 0b57c2356c..6bad149e05 100644
  # endif
  
 diff --git a/include/openssl/ssl.h b/include/openssl/ssl.h
-index 6724ccf2d2..866ecd6da6 100644
+index 6724ccf2d2..c897ffebb0 100644
 --- a/include/openssl/ssl.h
 +++ b/include/openssl/ssl.h
 @@ -226,9 +226,9 @@ typedef struct srtp_protection_profile_st {
@@ -55186,15 +55051,6 @@ index 6724ccf2d2..866ecd6da6 100644
                                            unsigned int context,
                                            const unsigned char *in,
                                            size_t inlen, X509 *x,
-@@ -291,7 +291,7 @@ typedef int (*SSL_custom_ext_parse_cb_ex)(SSL *s, unsigned int ext_type,
-                                           int *al, void *parse_arg);
- 
- /* Typedef for verification callback */
--typedef int (*SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *x509_ctx);
-+typedef int (__cdecl *SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *x509_ctx);
- 
- /*
-  * Some values are reserved until OpenSSL 1.2.0 because they were previously
 @@ -580,12 +580,12 @@ typedef int (*SSL_verify_cb)(int preverify_ok, X509_STORE_CTX *x509_ctx);
   * cannot be used to clear bits.
   */
@@ -59232,7 +59088,7 @@ index 39ca0ba575..817dc340f9 100644
  # ifdef  __cplusplus
  }
 diff --git a/include/openssl/x509_vfy.h b/include/openssl/x509_vfy.h
-index adb8bce7cb..9da43a96d7 100644
+index adb8bce7cb..8837d90d38 100644
 --- a/include/openssl/x509_vfy.h
 +++ b/include/openssl/x509_vfy.h
 @@ -58,29 +58,29 @@ DEFINE_STACK_OF(X509_LOOKUP)
@@ -59242,10 +59098,9 @@ index adb8bce7cb..9da43a96d7 100644
 -int X509_STORE_set_depth(X509_STORE *store, int depth);
 +int __cdecl X509_STORE_set_depth(X509_STORE *store, int depth);
  
--typedef int (*X509_STORE_CTX_verify_cb)(int, X509_STORE_CTX *);
+ typedef int (*X509_STORE_CTX_verify_cb)(int, X509_STORE_CTX *);
 -typedef int (*X509_STORE_CTX_verify_fn)(X509_STORE_CTX *);
 -typedef int (*X509_STORE_CTX_get_issuer_fn)(X509 **issuer,
-+typedef int (__cdecl *X509_STORE_CTX_verify_cb)(int, X509_STORE_CTX *);
 +typedef int (__cdecl *X509_STORE_CTX_verify_fn)(X509_STORE_CTX *);
 +typedef int (__cdecl *X509_STORE_CTX_get_issuer_fn)(X509 **issuer,
                                              X509_STORE_CTX *ctx, X509 *x);
@@ -62621,7 +62476,7 @@ index f0969fa9b1..75b442528e 100644
      static int stoperrset = 0;
  
 diff --git a/ssl/ssl_lib.c b/ssl/ssl_lib.c
-index ac820cf9fe..e8d8fc1fde 100644
+index ac820cf9fe..2ccc51cc69 100644
 --- a/ssl/ssl_lib.c
 +++ b/ssl/ssl_lib.c
 @@ -25,7 +25,7 @@
@@ -63077,7 +62932,7 @@ index ac820cf9fe..e8d8fc1fde 100644
  {
      size_t ret = 0;
  
-@@ -1430,58 +1430,58 @@ size_t SSL_get_peer_finished(const SSL *s, void *buf, size_t count)
+@@ -1430,12 +1430,12 @@ size_t SSL_get_peer_finished(const SSL *s, void *buf, size_t count)
      return ret;
  }
  
@@ -63092,9 +62947,7 @@ index ac820cf9fe..e8d8fc1fde 100644
  {
      return X509_VERIFY_PARAM_get_depth(s->param);
  }
- 
--int (*SSL_get_verify_callback(const SSL *s)) (int, X509_STORE_CTX *) {
-+int (__cdecl *SSL_get_verify_callback(const SSL *s)) (int, X509_STORE_CTX *) {
+@@ -1444,12 +1444,12 @@ int (*SSL_get_verify_callback(const SSL *s)) (int, X509_STORE_CTX *) {
      return s->verify_callback;
  }
  
@@ -63109,19 +62962,16 @@ index ac820cf9fe..e8d8fc1fde 100644
  {
      return X509_VERIFY_PARAM_get_depth(ctx->param);
  }
- 
--int (*SSL_CTX_get_verify_callback(const SSL_CTX *ctx)) (int, X509_STORE_CTX *) {
-+int (__cdecl *SSL_CTX_get_verify_callback(const SSL_CTX *ctx)) (int, X509_STORE_CTX *) {
+@@ -1458,7 +1458,7 @@ int (*SSL_CTX_get_verify_callback(const SSL_CTX *ctx)) (int, X509_STORE_CTX *) {
      return ctx->default_verify_callback;
  }
  
 -void SSL_set_verify(SSL *s, int mode,
--                    int (*callback) (int ok, X509_STORE_CTX *ctx))
 +void __cdecl SSL_set_verify(SSL *s, int mode,
-+                    int (__cdecl *callback) (int ok, X509_STORE_CTX *ctx))
+                     int (*callback) (int ok, X509_STORE_CTX *ctx))
  {
      s->verify_mode = mode;
-     if (callback != NULL)
+@@ -1466,22 +1466,22 @@ void SSL_set_verify(SSL *s, int mode,
          s->verify_callback = callback;
  }
  
@@ -63782,9 +63632,8 @@ index ac820cf9fe..e8d8fc1fde 100644
  }
  
 -void SSL_CTX_set_verify(SSL_CTX *ctx, int mode,
--                        int (*cb) (int, X509_STORE_CTX *))
 +void __cdecl SSL_CTX_set_verify(SSL_CTX *ctx, int mode,
-+                        int (__cdecl *cb) (int, X509_STORE_CTX *))
+                         int (*cb) (int, X509_STORE_CTX *))
  {
      ctx->verify_mode = mode;
      ctx->default_verify_callback = cb;
@@ -65087,7 +64936,7 @@ index ac820cf9fe..e8d8fc1fde 100644
                                   void *arg)
  {
 diff --git a/ssl/ssl_locl.h b/ssl/ssl_locl.h
-index 25875c9f6d..b580fc9492 100644
+index 25875c9f6d..269b75c36a 100644
 --- a/ssl/ssl_locl.h
 +++ b/ssl/ssl_locl.h
 @@ -439,36 +439,36 @@ struct ssl_method_st {
@@ -65235,15 +65084,6 @@ index 25875c9f6d..b580fc9492 100644
                            const void *buf, size_t len, SSL *ssl, void *arg);
      void *msg_callback_arg;
  
-@@ -875,7 +875,7 @@ struct ssl_ctx_st {
-     size_t sid_ctx_length;
-     unsigned char sid_ctx[SSL_MAX_SID_CTX_LENGTH];
-     /* called 'verify_callback' in the SSL */
--    int (*default_verify_callback) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *default_verify_callback) (int ok, X509_STORE_CTX *ctx);
- 
-     /* Default generate session ID callback. */
-     GEN_SESSION_CB generate_session_id;
 @@ -925,19 +925,19 @@ struct ssl_ctx_st {
      /* TLS extensions. */
      struct {
@@ -65312,12 +65152,9 @@ index 25875c9f6d..b580fc9492 100644
                            const void *buf, size_t len, SSL *ssl, void *arg);
      void *msg_callback_arg;
      int hit;                    /* reusing a previous session */
-@@ -1206,9 +1206,9 @@ struct ssl_st {
-      */
-     uint32_t verify_mode;
+@@ -1208,7 +1208,7 @@ struct ssl_st {
      /* fail if callback returns 0 */
--    int (*verify_callback) (int ok, X509_STORE_CTX *ctx);
-+    int (__cdecl *verify_callback) (int ok, X509_STORE_CTX *ctx);
+     int (*verify_callback) (int ok, X509_STORE_CTX *ctx);
      /* optional informational callback */
 -    void (*info_callback) (const SSL *ssl, int type, int val);
 +    void (__cdecl *info_callback) (const SSL *ssl, int type, int val);
@@ -74315,7 +74152,7 @@ index ffbbfbc12b..726b973ad5 100644
      SSL_TEST_CTX *ctx;
  
 diff --git a/test/sslapitest.c b/test/sslapitest.c
-index 7a142268fa..464c156734 100644
+index 7a142268fa..e1ce2db059 100644
 --- a/test/sslapitest.c
 +++ b/test/sslapitest.c
 @@ -31,9 +31,9 @@ static SSL_SESSION *serverpsk = NULL;
@@ -75216,13 +75053,7 @@ index 7a142268fa..464c156734 100644
  {
      X509 *xcert, *peer;
      EVP_PKEY *privpkey;
-@@ -6017,12 +6017,12 @@ static int client_cert_cb(SSL *ssl, X509 **x509, EVP_PKEY **pkey)
-     return 1;
- }
- 
--static int verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
-+static int __cdecl verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
- {
+@@ -6022,7 +6022,7 @@ static int verify_cb(int preverify_ok, X509_STORE_CTX *x509_ctx)
      return 1;
  }
  
@@ -75361,16 +75192,14 @@ index d06c8c729b..669219e009 100644
      static unsigned char junk[16000] = { 0 };
      SSL_CTX *sctx = NULL, *cctx = NULL;
 diff --git a/test/ssltest_old.c b/test/ssltest_old.c
-index 36e6031f3a..640d9465bd 100644
+index 36e6031f3a..9edc964294 100644
 --- a/test/ssltest_old.c
 +++ b/test/ssltest_old.c
-@@ -83,8 +83,8 @@ static SSL_CTX *s_ctx2 = NULL;
-  */
+@@ -84,7 +84,7 @@ static SSL_CTX *s_ctx2 = NULL;
  #define COMP_ZLIB       1
  
--static int verify_callback(int ok, X509_STORE_CTX *ctx);
+ static int verify_callback(int ok, X509_STORE_CTX *ctx);
 -static int app_verify_callback(X509_STORE_CTX *ctx, void *arg);
-+static int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx);
 +static unsigned int __cdecl app_verify_callback(X509_STORE_CTX *ctx, void *arg);
  #define APP_CALLBACK_STRING "Test Callback Argument"
  struct app_verify_arg {
@@ -75655,15 +75484,6 @@ index 36e6031f3a..640d9465bd 100644
  {
      const char *CApath = NULL, *CAfile = NULL;
      int badop = 0;
-@@ -2807,7 +2807,7 @@ int doit(SSL *s_ssl, SSL *c_ssl, long count)
-     return ret;
- }
- 
--static int verify_callback(int ok, X509_STORE_CTX *ctx)
-+static int __cdecl verify_callback(int ok, X509_STORE_CTX *ctx)
- {
-     char *s, buf[256];
- 
 @@ -2842,7 +2842,7 @@ static int verify_callback(int ok, X509_STORE_CTX *ctx)
      return ok;
  }
@@ -76697,18 +76517,9 @@ index 9368b1cdc5..c9261f8413 100644
      SSL_CTX *ctx = NULL;
      SSL *s = NULL;
 diff --git a/test/uitest.c b/test/uitest.c
-index 03db008c71..b06074d65a 100644
+index 03db008c71..6beef626da 100644
 --- a/test/uitest.c
 +++ b/test/uitest.c
-@@ -20,7 +20,7 @@ char *default_config_file = NULL;
- #include <openssl/ui.h>
- 
- /* Old style PEM password callback */
--static int test_pem_password_cb(char *buf, int size, int rwflag, void *userdata)
-+static int __cdecl test_pem_password_cb(char *buf, int size, int rwflag, void *userdata)
- {
-     OPENSSL_strlcpy(buf, (char *)userdata, (size_t)size);
-     return strlen(buf);
 @@ -30,7 +30,7 @@ static int test_pem_password_cb(char *buf, int size, int rwflag, void *userdata)
   * Test wrapping old style PEM password callback in a UI method through the
   * use of UI utility functions
@@ -77098,16 +76909,3 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/evp/evp_enc.c b/crypto/evp/evp_enc.c
-index f34ad4ad40..5e63a0d28f 100644
---- a/crypto/evp/evp_enc.c
-+++ b/crypto/evp/evp_enc.c
-@@ -294,7 +294,7 @@ int __cdecl is_partially_overlapping(const void *ptr1, const void *ptr2, int len
-     return overlapped;
- }
- 
--static int evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
-+static int __cdecl evp_EncryptDecryptUpdate(EVP_CIPHER_CTX *ctx,
-                                     unsigned char *out, int *outl,
-                                     const unsigned char *in, int inl)
- {
