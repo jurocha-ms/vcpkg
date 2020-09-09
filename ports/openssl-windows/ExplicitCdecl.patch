@@ -17214,7 +17214,7 @@ index 45c339c541..e1eef752c8 100644
      int i;
      if (e == NULL) {
 diff --git a/crypto/engine/eng_openssl.c b/crypto/engine/eng_openssl.c
-index d9b3067a13..3d5683e65d 100644
+index d9b3067a13..1a45cb5ff7 100644
 --- a/crypto/engine/eng_openssl.c
 +++ b/crypto/engine/eng_openssl.c
 @@ -52,26 +52,26 @@
@@ -17286,15 +17286,6 @@ index d9b3067a13..3d5683e65d 100644
                               const unsigned char *iv, int enc)
  {
  # ifdef TEST_ENG_OPENSSL_RC4_P_INIT
-@@ -200,7 +200,7 @@ static int test_rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int test_rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl test_rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
- # ifdef TEST_ENG_OPENSSL_RC4_P_CIPHER
 @@ -229,7 +229,7 @@ static const EVP_CIPHER *test_r4_cipher(void)
      }
      return r4_cipher;
@@ -19063,7 +19054,7 @@ index 300db6cd32..bd11081718 100644
      long ret = 1;
      BIO *next;
 diff --git a/crypto/evp/cmeth_lib.c b/crypto/evp/cmeth_lib.c
-index e2295c4dc5..30537007ee 100644
+index e2295c4dc5..a7f081cfb7 100644
 --- a/crypto/evp/cmeth_lib.c
 +++ b/crypto/evp/cmeth_lib.c
 @@ -13,7 +13,7 @@
@@ -19122,17 +19113,15 @@ index e2295c4dc5..30537007ee 100644
                                            const unsigned char *key,
                                            const unsigned char *iv,
                                            int enc))
-@@ -68,8 +68,8 @@ int EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
+@@ -68,7 +68,7 @@ int EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
      return 1;
  }
  
 -int EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
--                                  int (*do_cipher) (EVP_CIPHER_CTX *ctx,
 +int __cdecl EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
-+                                  int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx,
+                                   int (*do_cipher) (EVP_CIPHER_CTX *ctx,
                                                      unsigned char *out,
                                                      const unsigned char *in,
-                                                     size_t inl))
 @@ -78,31 +78,31 @@ int EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
      return 1;
  }
@@ -19173,7 +19162,7 @@ index e2295c4dc5..30537007ee 100644
                                            int arg, void *ptr))
  {
      cipher->ctrl = ctrl;
-@@ -110,14 +110,14 @@ int EVP_CIPHER_meth_set_ctrl(EVP_CIPHER *cipher,
+@@ -110,7 +110,7 @@ int EVP_CIPHER_meth_set_ctrl(EVP_CIPHER *cipher,
  }
  
  
@@ -19182,14 +19171,6 @@ index e2295c4dc5..30537007ee 100644
                                                            const unsigned char *key,
                                                            const unsigned char *iv,
                                                            int enc)
- {
-     return cipher->init;
- }
--int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+int (__cdecl *EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-                                                                unsigned char *out,
-                                                                const unsigned char *in,
-                                                                size_t inl)
 @@ -125,24 +125,24 @@ int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *c
      return cipher->do_cipher;
  }
@@ -19332,7 +19313,7 @@ index 6693f270b6..e13a6b99af 100644
      if (ctx->digest && ctx->digest->md_ctrl) {
          int ret = ctx->digest->md_ctrl(ctx, cmd, p1, p2);
 diff --git a/crypto/evp/e_aes.c b/crypto/evp/e_aes.c
-index 1db346fc86..9e6ee2a4c3 100644
+index 1db346fc86..8288d5b6c4 100644
 --- a/crypto/evp/e_aes.c
 +++ b/crypto/evp/e_aes.c
 @@ -264,7 +264,7 @@ void gcm_ghash_avx(u64 Xi[2], const u128 Htable[16], const u8 *in,
@@ -19344,50 +19325,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                            const unsigned char *iv, int enc)
  {
      int ret, mode;
-@@ -298,7 +298,7 @@ static int aesni_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len)
- {
-     aesni_cbc_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
-@@ -308,7 +308,7 @@ static int aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -323,26 +323,26 @@ static int aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
- }
- 
- # define aesni_ofb_cipher aes_ofb_cipher
--static int aesni_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # define aesni_cfb_cipher aes_cfb_cipher
--static int aesni_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # define aesni_cfb8_cipher aes_cfb8_cipher
--static int aesni_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aesni_cfb1_cipher aes_cfb1_cipher
--static int aesni_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aesni_ctr_cipher aes_ctr_cipher
--static int aesni_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -342,7 +342,7 @@ static int aesni_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+ static int aesni_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                              const unsigned char *in, size_t len);
  
 -static int aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19395,12 +19334,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                                const unsigned char *iv, int enc)
  {
      EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -376,10 +376,10 @@ static int aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aesni_gcm_cipher aes_gcm_cipher
--static int aesni_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -379,7 +379,7 @@ static int aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+ static int aesni_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                              const unsigned char *in, size_t len);
  
 -static int aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19408,12 +19343,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                                const unsigned char *iv, int enc)
  {
      EVP_AES_XTS_CTX *xctx = EVP_C_DATA(EVP_AES_XTS_CTX,ctx);
-@@ -432,10 +432,10 @@ static int aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aesni_xts_cipher aes_xts_cipher
--static int aesni_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -435,7 +435,7 @@ static int aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+ static int aesni_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                              const unsigned char *in, size_t len);
  
 -static int aesni_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19421,15 +19352,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                                const unsigned char *iv, int enc)
  {
      EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -458,7 +458,7 @@ static int aesni_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aesni_ccm_cipher aes_ccm_cipher
--static int aesni_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # ifndef OPENSSL_NO_OCB
 @@ -475,7 +475,7 @@ void aesni_ocb_decrypt(const unsigned char *in, unsigned char *out,
                         const unsigned char L_[][16],
                         unsigned char checksum[16]);
@@ -19439,15 +19361,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                                const unsigned char *iv, int enc)
  {
      EVP_AES_OCB_CTX *octx = EVP_C_DATA(EVP_AES_OCB_CTX,ctx);
-@@ -526,7 +526,7 @@ static int aesni_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- #  define aesni_ocb_cipher aes_ocb_cipher
--static int aesni_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aesni_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- # endif                        /* OPENSSL_NO_OCB */
- 
 @@ -548,7 +548,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
          NULL,                           \
          sizeof(EVP_AES_KEY),            \
@@ -19475,42 +19388,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                             const unsigned char *iv, int enc)
  {
      int ret, mode, bits;
-@@ -721,34 +721,34 @@ static int aes_t4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aes_t4_cbc_cipher aes_cbc_cipher
--static int aes_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_ecb_cipher aes_ecb_cipher
--static int aes_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_ofb_cipher aes_ofb_cipher
--static int aes_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb_cipher aes_cfb_cipher
--static int aes_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb8_cipher aes_cfb8_cipher
--static int aes_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb1_cipher aes_cfb1_cipher
--static int aes_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- # define aes_t4_ctr_cipher aes_ctr_cipher
--static int aes_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -748,7 +748,7 @@ static int aes_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+ static int aes_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                               const unsigned char *in, size_t len);
  
 -static int aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19518,12 +19397,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                                 const unsigned char *iv, int enc)
  {
      EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -795,10 +795,10 @@ static int aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aes_t4_gcm_cipher aes_gcm_cipher
--static int aes_t4_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -798,7 +798,7 @@ static int aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+ static int aes_t4_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                               const unsigned char *in, size_t len);
  
 -static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19531,12 +19406,8 @@ index 1db346fc86..9e6ee2a4c3 100644
                                 const unsigned char *iv, int enc)
  {
      EVP_AES_XTS_CTX *xctx = EVP_C_DATA(EVP_AES_XTS_CTX,ctx);
-@@ -870,10 +870,10 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aes_t4_xts_cipher aes_xts_cipher
--static int aes_t4_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -873,7 +873,7 @@ static int aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
+ static int aes_t4_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                               const unsigned char *in, size_t len);
  
 -static int aes_t4_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
@@ -19544,12 +19415,7 @@ index 1db346fc86..9e6ee2a4c3 100644
                                 const unsigned char *iv, int enc)
  {
      EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -895,11 +895,11 @@ static int aes_t4_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- # define aes_t4_ccm_cipher aes_ccm_cipher
--static int aes_t4_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+@@ -899,7 +899,7 @@ static int aes_t4_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                               const unsigned char *in, size_t len);
  
  # ifndef OPENSSL_NO_OCB
@@ -19558,15 +19424,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                                 const unsigned char *iv, int enc)
  {
      EVP_AES_OCB_CTX *octx = EVP_C_DATA(EVP_AES_OCB_CTX,ctx);
-@@ -949,7 +949,7 @@ static int aes_t4_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- #  define aes_t4_ocb_cipher aes_ocb_cipher
--static int aes_t4_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_t4_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- # endif                        /* OPENSSL_NO_OCB */
- 
 @@ -971,7 +971,7 @@ static const EVP_CIPHER aes_##keylen##_##mode = { \
          NULL,                           \
          sizeof(EVP_AES_KEY),            \
@@ -19756,69 +19613,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                          const unsigned char *iv, int enc)
  {
      int ret, mode;
-@@ -2705,7 +2705,7 @@ static int aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2724,7 +2724,7 @@ static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -2740,7 +2740,7 @@ static int aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2752,7 +2752,7 @@ static int aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2765,7 +2765,7 @@ static int aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2778,7 +2778,7 @@ static int aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2813,7 +2813,7 @@ static int aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
 @@ -2837,7 +2837,7 @@ BLOCK_CIPHER_generic_pack(NID_aes, 128, 0)
      BLOCK_CIPHER_generic_pack(NID_aes, 192, 0)
      BLOCK_CIPHER_generic_pack(NID_aes, 256, 0)
@@ -19846,24 +19640,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                              const unsigned char *iv, int enc)
  {
      EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -3069,7 +3069,7 @@ static int aes_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-  * and verify tag.
-  */
- 
--static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -3187,7 +3187,7 @@ static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return rv;
- }
- 
--static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
 @@ -3324,7 +3324,7 @@ BLOCK_CIPHER_custom(NID_aes, 128, 1, 12, gcm, GCM,
      BLOCK_CIPHER_custom(NID_aes, 256, 1, 12, gcm, GCM,
                      EVP_CIPH_FLAG_AEAD_CIPHER | CUSTOM_FLAGS)
@@ -19880,15 +19656,6 @@ index 1db346fc86..9e6ee2a4c3 100644
 -static int aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +static int __cdecl aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                              const unsigned char *iv, int enc)
- {
-     EVP_AES_XTS_CTX *xctx = EVP_C_DATA(EVP_AES_XTS_CTX,ctx);
-@@ -3476,7 +3476,7 @@ static int aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
  {
      EVP_AES_XTS_CTX *xctx = EVP_C_DATA(EVP_AES_XTS_CTX,ctx);
 @@ -3504,7 +3504,7 @@ static int aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
@@ -19909,24 +19676,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                              const unsigned char *iv, int enc)
  {
      EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -3648,7 +3648,7 @@ static int aes_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -3696,7 +3696,7 @@ static int aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     }
- }
- 
--static int aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
 @@ -3787,7 +3787,7 @@ typedef struct {
      unsigned char *iv;
  } EVP_AES_WRAP_CTX;
@@ -19934,15 +19683,6 @@ index 1db346fc86..9e6ee2a4c3 100644
 -static int aes_wrap_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +static int __cdecl aes_wrap_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                               const unsigned char *iv, int enc)
- {
-     EVP_AES_WRAP_CTX *wctx = EVP_C_DATA(EVP_AES_WRAP_CTX,ctx);
-@@ -3810,7 +3810,7 @@ static int aes_wrap_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inlen)
  {
      EVP_AES_WRAP_CTX *wctx = EVP_C_DATA(EVP_AES_WRAP_CTX,ctx);
 @@ -3882,7 +3882,7 @@ static const EVP_CIPHER aes_128_wrap = {
@@ -20015,15 +19755,6 @@ index 1db346fc86..9e6ee2a4c3 100644
                              const unsigned char *iv, int enc)
  {
      EVP_AES_OCB_CTX *octx = EVP_C_DATA(EVP_AES_OCB_CTX,ctx);
-@@ -4124,7 +4124,7 @@ static int aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned char *buf;
 @@ -4273,7 +4273,7 @@ static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      }
  }
@@ -20102,7 +19833,7 @@ index caac0c9d3d..9d6c1faa08 100644
      return NULL;
  }
 diff --git a/crypto/evp/e_aria.c b/crypto/evp/e_aria.c
-index fcaceb3bca..6effa90458 100644
+index fcaceb3bca..cb22e47d2c 100644
 --- a/crypto/evp/e_aria.c
 +++ b/crypto/evp/e_aria.c
 @@ -57,7 +57,7 @@ typedef struct {
@@ -20114,7 +19845,7 @@ index fcaceb3bca..6effa90458 100644
                              const unsigned char *iv, int enc)
  {
      int ret;
-@@ -165,10 +165,10 @@ static const EVP_CIPHER aria_##keylen##_##mode = { \
+@@ -165,7 +165,7 @@ static const EVP_CIPHER aria_##keylen##_##mode = { \
          NULL,                           \
          sizeof(EVP_ARIA_KEY),           \
          NULL,NULL,NULL,NULL };          \
@@ -20122,11 +19853,7 @@ index fcaceb3bca..6effa90458 100644
 +const EVP_CIPHER * __cdecl EVP_aria_##keylen##_##mode(void) \
  { return &aria_##keylen##_##mode; }
  
--static int aria_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aria_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
+ static int aria_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
 @@ -204,7 +204,7 @@ static void ctr64_inc(unsigned char *counter)
      } while (n);
  }
@@ -20145,24 +19872,6 @@ index fcaceb3bca..6effa90458 100644
  {
      EVP_ARIA_GCM_CTX *gctx = EVP_C_DATA(EVP_ARIA_GCM_CTX,c);
  
-@@ -390,7 +390,7 @@ static int aria_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
-     }
- }
- 
--static int aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_ARIA_GCM_CTX *gctx = EVP_C_DATA(EVP_ARIA_GCM_CTX,ctx);
-@@ -446,7 +446,7 @@ static int aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return rv;
- }
- 
--static int aria_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aria_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_ARIA_GCM_CTX *gctx = EVP_C_DATA(EVP_ARIA_GCM_CTX,ctx);
 @@ -490,7 +490,7 @@ static int aria_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      return 0;
  }
@@ -20190,24 +19899,6 @@ index fcaceb3bca..6effa90458 100644
  {
      EVP_ARIA_CCM_CTX *cctx = EVP_C_DATA(EVP_ARIA_CCM_CTX,c);
  
-@@ -628,7 +628,7 @@ static int aria_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr)
-     }
- }
- 
--static int aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_ARIA_CCM_CTX *cctx = EVP_C_DATA(EVP_ARIA_CCM_CTX,ctx);
-@@ -675,7 +675,7 @@ static int aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     }
- }
- 
--static int aria_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl aria_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_ARIA_CCM_CTX *cctx = EVP_C_DATA(EVP_ARIA_CCM_CTX,ctx);
 @@ -763,7 +763,7 @@ static const EVP_CIPHER aria_##keylen##_##mode = { \
          aria_##mode##_cleanup,                     \
          sizeof(EVP_ARIA_##MODE##_CTX),             \
@@ -20240,7 +19931,7 @@ index dc386905c5..3f25a66130 100644
  {
      BF_set_key(&data(ctx)->ks, EVP_CIPHER_CTX_key_length(ctx), key);
 diff --git a/crypto/evp/e_camellia.c b/crypto/evp/e_camellia.c
-index 2df4a6e3e0..36b1b83481 100644
+index 2df4a6e3e0..55223cf301 100644
 --- a/crypto/evp/e_camellia.c
 +++ b/crypto/evp/e_camellia.c
 @@ -20,7 +20,7 @@ NON_EMPTY_TRANSLATION_UNIT
@@ -20261,45 +19952,6 @@ index 2df4a6e3e0..36b1b83481 100644
                              const unsigned char *iv, int enc)
  {
      int ret, mode, bits;
-@@ -136,31 +136,31 @@ static int cmll_t4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
- }
- 
- #  define cmll_t4_cbc_cipher camellia_cbc_cipher
--static int cmll_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ecb_cipher camellia_ecb_cipher
--static int cmll_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ofb_cipher camellia_ofb_cipher
--static int cmll_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb_cipher camellia_cfb_cipher
--static int cmll_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb8_cipher camellia_cfb8_cipher
--static int cmll_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb1_cipher camellia_cfb1_cipher
--static int cmll_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ctr_cipher camellia_ctr_cipher
--static int cmll_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl cmll_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define BLOCK_CIPHER_generic(nid,keylen,blocksize,ivlen,nmode,mode,MODE,flags) \
 @@ -195,7 +195,7 @@ static const EVP_CIPHER camellia_##keylen##_##mode = { \
          NULL,                           \
          sizeof(EVP_CAMELLIA_KEY),       \
@@ -20318,69 +19970,6 @@ index 2df4a6e3e0..36b1b83481 100644
                               const unsigned char *iv, int enc)
  {
      int ret, mode;
-@@ -237,7 +237,7 @@ static int camellia_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -256,7 +256,7 @@ static int camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -272,7 +272,7 @@ static int camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -284,7 +284,7 @@ static int camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -296,7 +296,7 @@ static int camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -308,7 +308,7 @@ static int camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -340,7 +340,7 @@ static int camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int camellia_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl camellia_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
 diff --git a/crypto/evp/e_cast.c b/crypto/evp/e_cast.c
 index 259d44059b..91b5e712d8 100644
 --- a/crypto/evp/e_cast.c
@@ -20404,7 +19993,7 @@ index 259d44059b..91b5e712d8 100644
  {
      CAST_set_key(&data(ctx)->ks, EVP_CIPHER_CTX_key_length(ctx), key);
 diff --git a/crypto/evp/e_chacha20_poly1305.c b/crypto/evp/e_chacha20_poly1305.c
-index 435a38d365..a6ca0d3b96 100644
+index 435a38d365..2270883814 100644
 --- a/crypto/evp/e_chacha20_poly1305.c
 +++ b/crypto/evp/e_chacha20_poly1305.c
 @@ -32,7 +32,7 @@ typedef struct {
@@ -20416,15 +20005,6 @@ index 435a38d365..a6ca0d3b96 100644
                             const unsigned char user_key[CHACHA_KEY_SIZE],
                             const unsigned char iv[CHACHA_CTR_SIZE], int enc)
  {
-@@ -54,7 +54,7 @@ static int chacha_init_key(EVP_CIPHER_CTX *ctx,
-     return 1;
- }
- 
--static int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
-+static int __cdecl chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
-                          const unsigned char *inp, size_t len)
- {
-     EVP_CHACHA_KEY *key = data(ctx);
 @@ -140,7 +140,7 @@ static const EVP_CIPHER chacha20 = {
      NULL
  };
@@ -20443,15 +20023,6 @@ index 435a38d365..a6ca0d3b96 100644
                                        const unsigned char *inkey,
                                        const unsigned char *iv, int enc)
  {
-@@ -362,7 +362,7 @@ static int chacha20_poly1305_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
- static const unsigned char zero[CHACHA_BLK_SIZE] = { 0 };
- #  endif
- 
--static int chacha20_poly1305_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl chacha20_poly1305_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                     const unsigned char *in, size_t len)
- {
-     EVP_CHACHA_AEAD_CTX *actx = aead_data(ctx);
 @@ -489,7 +489,7 @@ static int chacha20_poly1305_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      return len;
  }
@@ -20480,10 +20051,10 @@ index 435a38d365..a6ca0d3b96 100644
      return(&chacha20_poly1305);
  }
 diff --git a/crypto/evp/e_des.c b/crypto/evp/e_des.c
-index c13fb3e25a..51b9a49bbc 100644
+index c13fb3e25a..f80ec158d8 100644
 --- a/crypto/evp/e_des.c
 +++ b/crypto/evp/e_des.c
-@@ -43,16 +43,16 @@ void des_t4_cbc_decrypt(const void *inp, void *out, size_t len,
+@@ -43,9 +43,9 @@ void des_t4_cbc_decrypt(const void *inp, void *out, size_t len,
                          const DES_key_schedule *ks, unsigned char iv[8]);
  # endif
  
@@ -20495,59 +20066,6 @@ index c13fb3e25a..51b9a49bbc 100644
  
  /*
   * Because of various casts and different names can't use
-  * IMPLEMENT_BLOCK_CIPHER
-  */
- 
--static int des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
-@@ -62,7 +62,7 @@ static int des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -85,7 +85,7 @@ static int des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     EVP_DES_KEY *dat = (EVP_DES_KEY *) EVP_CIPHER_CTX_get_cipher_data(ctx);
-@@ -112,7 +112,7 @@ static int des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -141,7 +141,7 @@ static int des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-  * Although we have a CFB-r implementation for DES, it doesn't pack the right
-  * way, so wrap it here
-  */
--static int des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     size_t n, chunk = EVP_MAXCHUNK / 8;
-@@ -170,7 +170,7 @@ static int des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
 @@ -202,7 +202,7 @@ BLOCK_CIPHER_defs(des, EVP_DES_KEY, NID_des, 8, 8, 8, 64,
                       EVP_CIPH_RAND_KEY, des_init_key, NULL,
                       EVP_CIPHER_set_asn1_iv, EVP_CIPHER_get_asn1_iv, des_ctrl)
@@ -20567,7 +20085,7 @@ index c13fb3e25a..51b9a49bbc 100644
  
      switch (type) {
 diff --git a/crypto/evp/e_des3.c b/crypto/evp/e_des3.c
-index 6b492ce470..0487b2c7b7 100644
+index 6b492ce470..f28d373df5 100644
 --- a/crypto/evp/e_des3.c
 +++ b/crypto/evp/e_des3.c
 @@ -47,13 +47,13 @@ void des_t4_ede3_cbc_decrypt(const void *inp, void *out, size_t len,
@@ -20587,60 +20105,6 @@ index 6b492ce470..0487b2c7b7 100644
  
  # define data(ctx) EVP_C_DATA(DES_EDE_KEY,ctx)
  
-@@ -62,7 +62,7 @@ static int des3_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr);
-  * IMPLEMENT_BLOCK_CIPHER
-  */
- 
--static int des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
-@@ -73,7 +73,7 @@ static int des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -100,7 +100,7 @@ static int des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     DES_EDE_KEY *dat = data(ctx);
-@@ -128,7 +128,7 @@ static int des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -159,7 +159,7 @@ static int des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-  * Although we have a CFB-r implementation for 3-DES, it doesn't pack the
-  * right way, so wrap it here
-  */
--static int des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     size_t n;
-@@ -181,7 +181,7 @@ static int des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int des_ede3_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede3_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
 @@ -222,7 +222,7 @@ BLOCK_CIPHER_defs(des_ede, DES_EDE_KEY, NID_des_ede, 8, 16, 8, 64,
                       EVP_CIPH_RAND_KEY | EVP_CIPH_FLAG_DEFAULT_ASN1,
                       des_ede3_init_key, NULL, NULL, NULL, des3_ctrl)
@@ -20701,15 +20165,6 @@ index 6b492ce470..0487b2c7b7 100644
                           const unsigned char *in, size_t inl)
  {
      unsigned char sha1tmp[SHA_DIGEST_LENGTH];
-@@ -383,7 +383,7 @@ static int des_ede3_wrap(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return inl + 16;
- }
- 
--static int des_ede3_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl des_ede3_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     /*
 @@ -416,7 +416,7 @@ static const EVP_CIPHER des3_wrap = {
      NULL, NULL, NULL, NULL
  };
@@ -20720,7 +20175,7 @@ index 6b492ce470..0487b2c7b7 100644
      return &des3_wrap;
  }
 diff --git a/crypto/evp/e_idea.c b/crypto/evp/e_idea.c
-index 93f6a4131f..299889e25f 100644
+index 93f6a4131f..b7a7c4f73a 100644
 --- a/crypto/evp/e_idea.c
 +++ b/crypto/evp/e_idea.c
 @@ -22,7 +22,7 @@ typedef struct {
@@ -20732,15 +20187,6 @@ index 93f6a4131f..299889e25f 100644
                           const unsigned char *iv, int enc);
  
  /*
-@@ -30,7 +30,7 @@ static int idea_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-  * special case
-  */
- 
--static int idea_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl idea_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
 @@ -46,7 +46,7 @@ BLOCK_CIPHER_defs(idea, IDEA_KEY_SCHEDULE, NID_idea, 8, 16, 8, 64,
                    0, idea_init_key, NULL,
                    EVP_CIPHER_set_asn1_iv, EVP_CIPHER_get_asn1_iv, NULL)
@@ -20751,22 +20197,19 @@ index 93f6a4131f..299889e25f 100644
  {
      if (!enc) {
 diff --git a/crypto/evp/e_null.c b/crypto/evp/e_null.c
-index 18a8468216..dbe92abcaf 100644
+index 18a8468216..e6b4d25421 100644
 --- a/crypto/evp/e_null.c
 +++ b/crypto/evp/e_null.c
-@@ -13,9 +13,9 @@
+@@ -13,7 +13,7 @@
  #include <openssl/objects.h>
  #include "internal/evp_int.h"
  
 -static int null_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +static int __cdecl null_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                           const unsigned char *iv, int enc);
--static int null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+ static int null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                         const unsigned char *in, size_t inl);
- static const EVP_CIPHER n_cipher = {
-     NID_undef,
-@@ -30,18 +30,18 @@ static const EVP_CIPHER n_cipher = {
+@@ -30,12 +30,12 @@ static const EVP_CIPHER n_cipher = {
      NULL
  };
  
@@ -20781,13 +20224,6 @@ index 18a8468216..dbe92abcaf 100644
                           const unsigned char *iv, int enc)
  {
      return 1;
- }
- 
--static int null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                        const unsigned char *in, size_t inl)
- {
-     if (in != out)
 diff --git a/crypto/evp/e_rc2.c b/crypto/evp/e_rc2.c
 index aa0d140186..53010a4dd6 100644
 --- a/crypto/evp/e_rc2.c
@@ -20879,22 +20315,19 @@ index aa0d140186..53010a4dd6 100644
      switch (type) {
      case EVP_CTRL_INIT:
 diff --git a/crypto/evp/e_rc4.c b/crypto/evp/e_rc4.c
-index d16abdd0d2..7a7d46e01c 100644
+index d16abdd0d2..c788aea3fb 100644
 --- a/crypto/evp/e_rc4.c
 +++ b/crypto/evp/e_rc4.c
-@@ -24,9 +24,9 @@ typedef struct {
+@@ -24,7 +24,7 @@ typedef struct {
  
  # define data(ctx) ((EVP_RC4_KEY *)EVP_CIPHER_CTX_get_cipher_data(ctx))
  
 -static int rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +static int __cdecl rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                          const unsigned char *iv, int enc);
--static int rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+ static int rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                        const unsigned char *in, size_t inl);
- static const EVP_CIPHER r4_cipher = {
-     NID_rc4,
-@@ -56,24 +56,24 @@ static const EVP_CIPHER r4_40_cipher = {
+@@ -56,17 +56,17 @@ static const EVP_CIPHER r4_40_cipher = {
      NULL
  };
  
@@ -20915,16 +20348,8 @@ index d16abdd0d2..7a7d46e01c 100644
                          const unsigned char *iv, int enc)
  {
      RC4_set_key(&data(ctx)->ks, EVP_CIPHER_CTX_key_length(ctx), key);
-     return 1;
- }
- 
--static int rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                       const unsigned char *in, size_t inl)
- {
-     RC4(&data(ctx)->ks, inl, in, out);
 diff --git a/crypto/evp/e_rc4_hmac_md5.c b/crypto/evp/e_rc4_hmac_md5.c
-index b1e8ccd6dd..9375a8a47f 100644
+index b1e8ccd6dd..dae198cd16 100644
 --- a/crypto/evp/e_rc4_hmac_md5.c
 +++ b/crypto/evp/e_rc4_hmac_md5.c
 @@ -29,12 +29,12 @@ typedef struct {
@@ -20942,15 +20367,6 @@ index b1e8ccd6dd..9375a8a47f 100644
                                   const unsigned char *inkey,
                                   const unsigned char *iv, int enc)
  {
-@@ -62,7 +62,7 @@ static int rc4_hmac_md5_init_key(EVP_CIPHER_CTX *ctx,
- #  define md5_off 0
- # endif
- 
--static int rc4_hmac_md5_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl rc4_hmac_md5_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_RC4_HMAC_MD5 *key = data(ctx);
 @@ -173,7 +173,7 @@ static int rc4_hmac_md5_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      return 1;
  }
@@ -20992,7 +20408,7 @@ index 40aec5fc6a..24a40ded58 100644
  {
      SEED_set_key(key, &EVP_C_DATA(EVP_SEED_KEY,ctx)->ks);
 diff --git a/crypto/evp/e_sm4.c b/crypto/evp/e_sm4.c
-index 79deb65636..4a5412716f 100644
+index 79deb65636..d34fb029fd 100644
 --- a/crypto/evp/e_sm4.c
 +++ b/crypto/evp/e_sm4.c
 @@ -20,14 +20,14 @@ typedef struct {
@@ -21039,15 +20455,6 @@ index 79deb65636..4a5412716f 100644
                                 size_t length, const SM4_KEY *key,
                                 unsigned char *ivec, int *num)
  {
-@@ -68,7 +68,7 @@ IMPLEMENT_BLOCK_CIPHER(sm4, ks, sm4, EVP_SM4_KEY, NID_sm4,
-                        16, 16, 16, 128, EVP_CIPH_FLAG_DEFAULT_ASN1,
-                        sm4_init_key, 0, 0, 0, 0)
- 
--static int sm4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl sm4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
 @@ -92,7 +92,7 @@ static const EVP_CIPHER sm4_ctr_mode = {
      NULL, NULL, NULL, NULL
  };
@@ -21058,21 +20465,18 @@ index 79deb65636..4a5412716f 100644
      return &sm4_ctr_mode;
  }
 diff --git a/crypto/evp/e_xcbc_d.c b/crypto/evp/e_xcbc_d.c
-index 57ce813da8..c347c6d10f 100644
+index 57ce813da8..e2730bfc2f 100644
 --- a/crypto/evp/e_xcbc_d.c
 +++ b/crypto/evp/e_xcbc_d.c
-@@ -17,9 +17,9 @@
+@@ -17,7 +17,7 @@
  # include "internal/evp_int.h"
  # include <openssl/des.h>
  
 -static int desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
 +static int __cdecl desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
                               const unsigned char *iv, int enc);
--static int desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
+ static int desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                             const unsigned char *in, size_t inl);
- 
- typedef struct {
 @@ -44,12 +44,12 @@ static const EVP_CIPHER d_xcbc_cipher = {
      NULL
  };
@@ -21088,15 +20492,6 @@ index 57ce813da8..c347c6d10f 100644
                               const unsigned char *iv, int enc)
  {
      DES_cblock *deskey = (DES_cblock *)key;
-@@ -61,7 +61,7 @@ static int desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int __cdecl desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
 diff --git a/crypto/evp/encode.c b/crypto/evp/encode.c
 index da32d4fd19..33c88b5878 100644
 --- a/crypto/evp/encode.c
@@ -21486,7 +20881,7 @@ index e5ac107c38..b82216458b 100644
                     int datal, int count, unsigned char *key,
                     unsigned char *iv)
 diff --git a/crypto/evp/evp_lib.c b/crypto/evp/evp_lib.c
-index 4935c2a94a..ac9896c0be 100644
+index 4935c2a94a..3963007a63 100644
 --- a/crypto/evp/evp_lib.c
 +++ b/crypto/evp/evp_lib.c
 @@ -14,7 +14,7 @@
@@ -21534,7 +20929,7 @@ index 4935c2a94a..ac9896c0be 100644
  {
      int nid;
      ASN1_OBJECT *otmp;
-@@ -174,58 +174,58 @@ int EVP_CIPHER_type(const EVP_CIPHER *ctx)
+@@ -174,17 +174,17 @@ int EVP_CIPHER_type(const EVP_CIPHER *ctx)
      }
  }
  
@@ -21555,11 +20950,7 @@ index 4935c2a94a..ac9896c0be 100644
  {
      return e->ctx_size;
  }
- 
--int EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+int __cdecl EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                const unsigned char *in, unsigned int inl)
- {
+@@ -195,37 +195,37 @@ int EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
      return ctx->cipher->do_cipher(ctx, out, in, inl);
  }
  
@@ -24935,7 +24326,7 @@ index 44ac944627..7ae6f77c1a 100644
  
  #endif
 diff --git a/crypto/include/internal/evp_int.h b/crypto/include/internal/evp_int.h
-index d86aed36f0..ffba70e3de 100644
+index d86aed36f0..5a982f7b40 100644
 --- a/crypto/include/internal/evp_int.h
 +++ b/crypto/include/internal/evp_int.h
 @@ -43,55 +43,55 @@ struct evp_pkey_ctx_st {
@@ -25056,8 +24447,7 @@ index d86aed36f0..ffba70e3de 100644
 +    int (__cdecl *init) (EVP_CIPHER_CTX *ctx, const unsigned char *key,
                   const unsigned char *iv, int enc);
      /* encrypt/decrypt data */
--    int (*do_cipher) (EVP_CIPHER_CTX *ctx, unsigned char *out,
-+    int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx, unsigned char *out,
+     int (*do_cipher) (EVP_CIPHER_CTX *ctx, unsigned char *out,
                        const unsigned char *in, size_t inl);
      /* cleanup ctx */
 -    int (*cleanup) (EVP_CIPHER_CTX *);
@@ -25076,42 +24466,6 @@ index d86aed36f0..ffba70e3de 100644
      /* Application data */
      void *app_data;
  } /* EVP_CIPHER */ ;
-@@ -171,7 +171,7 @@ struct evp_cipher_st {
-         for (i=0; i <= inl; i+=bl)
- 
- #define BLOCK_CIPHER_func_ecb(cname, cprefix, kstruct, ksched) \
--static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int __cdecl cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         BLOCK_CIPHER_ecb_loop() \
-             cprefix##_ecb_encrypt(in + i, out + i, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_encrypting(ctx)); \
-@@ -181,7 +181,7 @@ static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const uns
- #define EVP_MAXCHUNK ((size_t)1<<(sizeof(long)*8-2))
- 
- #define BLOCK_CIPHER_func_ofb(cname, cprefix, cbits, kstruct, ksched) \
--    static int cname##_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+    static int __cdecl cname##_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         while(inl>=EVP_MAXCHUNK) {\
-             int num = EVP_CIPHER_CTX_num(ctx);\
-@@ -200,7 +200,7 @@ static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const uns
- }
- 
- #define BLOCK_CIPHER_func_cbc(cname, cprefix, kstruct, ksched) \
--static int cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int __cdecl cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         while(inl>=EVP_MAXCHUNK) \
-             {\
-@@ -215,7 +215,7 @@ static int cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const uns
- }
- 
- #define BLOCK_CIPHER_func_cfb(cname, cprefix, cbits, kstruct, ksched)  \
--static int cname##_cfb##cbits##_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int __cdecl cname##_cfb##cbits##_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-     size_t chunk = EVP_MAXCHUNK;\
-     if (cbits == 1)  chunk >>= 3;\
 @@ -258,7 +258,7 @@ static const EVP_CIPHER cname##_##mode = { \
          ctrl, \
          NULL \
@@ -50562,7 +49916,7 @@ index b49f88129e..2a38ee5779 100644
  #ifdef  __cplusplus
  }
 diff --git a/include/openssl/evp.h b/include/openssl/evp.h
-index 545654a98b..a5a314d56b 100644
+index 545654a98b..759172279c 100644
 --- a/include/openssl/evp.h
 +++ b/include/openssl/evp.h
 @@ -73,40 +73,40 @@ extern "C" {
@@ -50630,7 +49984,7 @@ index 545654a98b..a5a314d56b 100644
                                                int p1, void *p2);
  
  /* digest can only handle a single block */
-@@ -182,49 +182,49 @@ int (*EVP_MD_meth_get_ctrl(const EVP_MD *md))(EVP_MD_CTX *ctx, int cmd,
+@@ -182,36 +182,36 @@ int (*EVP_MD_meth_get_ctrl(const EVP_MD *md))(EVP_MD_CTX *ctx, int cmd,
  # define EVP_MD_CTX_FLAG_FINALISE        0x0200
  /* NOTE: 0x0400 is reserved for internal usage in evp_int.h */
  
@@ -50655,9 +50009,8 @@ index 545654a98b..a5a314d56b 100644
                                            const unsigned char *iv,
                                            int enc));
 -int EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
--                                  int (*do_cipher) (EVP_CIPHER_CTX *ctx,
 +int __cdecl EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
-+                                  int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx,
+                                   int (*do_cipher) (EVP_CIPHER_CTX *ctx,
                                                      unsigned char *out,
                                                      const unsigned char *in,
                                                      size_t inl));
@@ -50686,8 +50039,7 @@ index 545654a98b..a5a314d56b 100644
                                                            const unsigned char *key,
                                                            const unsigned char *iv,
                                                            int enc);
--int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+int (__cdecl *EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
+@@ -219,12 +219,12 @@ int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *c
                                                                 unsigned char *out,
                                                                 const unsigned char *in,
                                                                 size_t inl);
@@ -50802,15 +50154,6 @@ index 545654a98b..a5a314d56b 100644
  # define EVP_CIPHER_CTX_type(c)         EVP_CIPHER_type(EVP_CIPHER_CTX_cipher(c))
  # if OPENSSL_API_COMPAT < 0x10100000L
  #  define EVP_CIPHER_CTX_flags(c)       EVP_CIPHER_flags(EVP_CIPHER_CTX_cipher(c))
-@@ -521,7 +521,7 @@ void BIO_set_md(BIO *, const EVP_MD *md);
- # define BIO_get_cipher_ctx(b,c_pp) BIO_ctrl(b,BIO_C_GET_CIPHER_CTX,0, \
-                                              (char *)(c_pp))
- 
--/*__owur*/ int EVP_Cipher(EVP_CIPHER_CTX *c,
-+/*__owur*/ int __cdecl EVP_Cipher(EVP_CIPHER_CTX *c,
-                           unsigned char *out,
-                           const unsigned char *in, unsigned int inl);
- 
 @@ -534,228 +534,228 @@ void BIO_set_md(BIO *, const EVP_MD *md);
  # define EVP_delete_digest_alias(alias) \
          OBJ_NAME_remove(alias,OBJ_NAME_TYPE_MD_METH|OBJ_NAME_ALIAS);
@@ -76909,826 +76252,3 @@ index 3ac79821b0..ed05e5584d 100755
  {
  EOF
  	&print_test_file(*STDOUT,"LIBSSL",*ssl_list,$do_ctestall,@ssl_symbols)
-diff --git a/crypto/engine/eng_openssl.c b/crypto/engine/eng_openssl.c
-index 3d5683e65d..1a45cb5ff7 100644
---- a/crypto/engine/eng_openssl.c
-+++ b/crypto/engine/eng_openssl.c
-@@ -200,7 +200,7 @@ static int __cdecl test_rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *k
-     return 1;
- }
- 
--static int __cdecl test_rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int test_rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
- # ifdef TEST_ENG_OPENSSL_RC4_P_CIPHER
-diff --git a/crypto/evp/cmeth_lib.c b/crypto/evp/cmeth_lib.c
-index 30537007ee..a7f081cfb7 100644
---- a/crypto/evp/cmeth_lib.c
-+++ b/crypto/evp/cmeth_lib.c
-@@ -69,7 +69,7 @@ int __cdecl EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
- }
- 
- int __cdecl EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
--                                  int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx,
-+                                  int (*do_cipher) (EVP_CIPHER_CTX *ctx,
-                                                     unsigned char *out,
-                                                     const unsigned char *in,
-                                                     size_t inl))
-@@ -117,7 +117,7 @@ int (__cdecl *EVP_CIPHER_meth_get_init(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX
- {
-     return cipher->init;
- }
--int (__cdecl *EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-                                                                unsigned char *out,
-                                                                const unsigned char *in,
-                                                                size_t inl)
-diff --git a/crypto/evp/e_aes.c b/crypto/evp/e_aes.c
-index 9e6ee2a4c3..8288d5b6c4 100644
---- a/crypto/evp/e_aes.c
-+++ b/crypto/evp/e_aes.c
-@@ -298,7 +298,7 @@ static int __cdecl aesni_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int __cdecl aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len)
- {
-     aesni_cbc_encrypt(in, out, len, &EVP_C_DATA(EVP_AES_KEY,ctx)->ks.ks,
-@@ -308,7 +308,7 @@ static int __cdecl aesni_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -323,23 +323,23 @@ static int __cdecl aesni_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
- }
- 
- # define aesni_ofb_cipher aes_ofb_cipher
--static int __cdecl aesni_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # define aesni_cfb_cipher aes_cfb_cipher
--static int __cdecl aesni_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # define aesni_cfb8_cipher aes_cfb8_cipher
--static int __cdecl aesni_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aesni_cfb1_cipher aes_cfb1_cipher
--static int __cdecl aesni_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aesni_ctr_cipher aes_ctr_cipher
--static int __cdecl aesni_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- static int __cdecl aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -376,7 +376,7 @@ static int __cdecl aesni_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *
- }
- 
- # define aesni_gcm_cipher aes_gcm_cipher
--static int __cdecl aesni_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- static int __cdecl aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -432,7 +432,7 @@ static int __cdecl aesni_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *
- }
- 
- # define aesni_xts_cipher aes_xts_cipher
--static int __cdecl aesni_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- static int __cdecl aesni_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -458,7 +458,7 @@ static int __cdecl aesni_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *
- }
- 
- # define aesni_ccm_cipher aes_ccm_cipher
--static int __cdecl aesni_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- 
- # ifndef OPENSSL_NO_OCB
-@@ -526,7 +526,7 @@ static int __cdecl aesni_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *
- }
- 
- #  define aesni_ocb_cipher aes_ocb_cipher
--static int __cdecl aesni_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aesni_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t len);
- # endif                        /* OPENSSL_NO_OCB */
- 
-@@ -721,31 +721,31 @@ static int __cdecl aes_t4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key
- }
- 
- # define aes_t4_cbc_cipher aes_cbc_cipher
--static int __cdecl aes_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_ecb_cipher aes_ecb_cipher
--static int __cdecl aes_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_ofb_cipher aes_ofb_cipher
--static int __cdecl aes_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb_cipher aes_cfb_cipher
--static int __cdecl aes_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb8_cipher aes_cfb8_cipher
--static int __cdecl aes_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- # define aes_t4_cfb1_cipher aes_cfb1_cipher
--static int __cdecl aes_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- # define aes_t4_ctr_cipher aes_ctr_cipher
--static int __cdecl aes_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- static int __cdecl aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -795,7 +795,7 @@ static int __cdecl aes_t4_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char
- }
- 
- # define aes_t4_gcm_cipher aes_gcm_cipher
--static int __cdecl aes_t4_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- static int __cdecl aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -870,7 +870,7 @@ static int __cdecl aes_t4_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char
- }
- 
- # define aes_t4_xts_cipher aes_xts_cipher
--static int __cdecl aes_t4_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- static int __cdecl aes_t4_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-@@ -895,7 +895,7 @@ static int __cdecl aes_t4_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char
- }
- 
- # define aes_t4_ccm_cipher aes_ccm_cipher
--static int __cdecl aes_t4_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- 
- # ifndef OPENSSL_NO_OCB
-@@ -949,7 +949,7 @@ static int __cdecl aes_t4_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char
- }
- 
- #  define aes_t4_ocb_cipher aes_ocb_cipher
--static int __cdecl aes_t4_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_t4_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                              const unsigned char *in, size_t len);
- # endif                        /* OPENSSL_NO_OCB */
- 
-@@ -2705,7 +2705,7 @@ static int __cdecl aes_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int __cdecl aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2724,7 +2724,7 @@ static int __cdecl aes_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -2740,7 +2740,7 @@ static int __cdecl aes_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2752,7 +2752,7 @@ static int __cdecl aes_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2765,7 +2765,7 @@ static int __cdecl aes_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2778,7 +2778,7 @@ static int __cdecl aes_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t len)
- {
-     EVP_AES_KEY *dat = EVP_C_DATA(EVP_AES_KEY,ctx);
-@@ -2813,7 +2813,7 @@ static int __cdecl aes_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
-@@ -3069,7 +3069,7 @@ static int __cdecl aes_gcm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *ke
-  * and verify tag.
-  */
- 
--static int __cdecl aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -3187,7 +3187,7 @@ static int __cdecl aes_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return rv;
- }
- 
--static int __cdecl aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_GCM_CTX *gctx = EVP_C_DATA(EVP_AES_GCM_CTX,ctx);
-@@ -3476,7 +3476,7 @@ static int __cdecl aes_xts_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *ke
-     return 1;
- }
- 
--static int __cdecl aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_xts_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_XTS_CTX *xctx = EVP_C_DATA(EVP_AES_XTS_CTX,ctx);
-@@ -3648,7 +3648,7 @@ static int __cdecl aes_ccm_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *ke
-     return 1;
- }
- 
--static int __cdecl aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -3696,7 +3696,7 @@ static int __cdecl aes_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     }
- }
- 
--static int __cdecl aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_AES_CCM_CTX *cctx = EVP_C_DATA(EVP_AES_CCM_CTX,ctx);
-@@ -3810,7 +3810,7 @@ static int __cdecl aes_wrap_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *k
-     return 1;
- }
- 
--static int __cdecl aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inlen)
- {
-     EVP_AES_WRAP_CTX *wctx = EVP_C_DATA(EVP_AES_WRAP_CTX,ctx);
-@@ -4124,7 +4124,7 @@ static int __cdecl aes_ocb_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *ke
-     return 1;
- }
- 
--static int __cdecl aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aes_ocb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned char *buf;
-diff --git a/crypto/evp/e_aria.c b/crypto/evp/e_aria.c
-index 6effa90458..cb22e47d2c 100644
---- a/crypto/evp/e_aria.c
-+++ b/crypto/evp/e_aria.c
-@@ -168,7 +168,7 @@ static const EVP_CIPHER aria_##keylen##_##mode = { \
- const EVP_CIPHER * __cdecl EVP_aria_##keylen##_##mode(void) \
- { return &aria_##keylen##_##mode; }
- 
--static int __cdecl aria_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aria_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
-@@ -390,7 +390,7 @@ static int __cdecl aria_gcm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr
-     }
- }
- 
--static int __cdecl aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_ARIA_GCM_CTX *gctx = EVP_C_DATA(EVP_ARIA_GCM_CTX,ctx);
-@@ -446,7 +446,7 @@ static int __cdecl aria_gcm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return rv;
- }
- 
--static int __cdecl aria_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aria_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_ARIA_GCM_CTX *gctx = EVP_C_DATA(EVP_ARIA_GCM_CTX,ctx);
-@@ -628,7 +628,7 @@ static int __cdecl aria_ccm_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr
-     }
- }
- 
--static int __cdecl aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len)
- {
-     EVP_ARIA_CCM_CTX *cctx = EVP_C_DATA(EVP_ARIA_CCM_CTX,ctx);
-@@ -675,7 +675,7 @@ static int __cdecl aria_ccm_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     }
- }
- 
--static int __cdecl aria_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int aria_ccm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     EVP_ARIA_CCM_CTX *cctx = EVP_C_DATA(EVP_ARIA_CCM_CTX,ctx);
-diff --git a/crypto/evp/e_camellia.c b/crypto/evp/e_camellia.c
-index 36b1b83481..55223cf301 100644
---- a/crypto/evp/e_camellia.c
-+++ b/crypto/evp/e_camellia.c
-@@ -136,31 +136,31 @@ static int __cdecl cmll_t4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *ke
- }
- 
- #  define cmll_t4_cbc_cipher camellia_cbc_cipher
--static int __cdecl cmll_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ecb_cipher camellia_ecb_cipher
--static int __cdecl cmll_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ofb_cipher camellia_ofb_cipher
--static int __cdecl cmll_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb_cipher camellia_cfb_cipher
--static int __cdecl cmll_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb8_cipher camellia_cfb8_cipher
--static int __cdecl cmll_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len);
- 
- #  define cmll_t4_cfb1_cipher camellia_cfb1_cipher
--static int __cdecl cmll_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len);
- 
- #  define cmll_t4_ctr_cipher camellia_ctr_cipher
--static int __cdecl cmll_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int cmll_t4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t len);
- 
- #  define BLOCK_CIPHER_generic(nid,keylen,blocksize,ivlen,nmode,mode,MODE,flags) \
-@@ -237,7 +237,7 @@ static int __cdecl camellia_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *k
-     return 1;
- }
- 
--static int __cdecl camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -256,7 +256,7 @@ static int __cdecl camellia_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     size_t bl = EVP_CIPHER_CTX_block_size(ctx);
-@@ -272,7 +272,7 @@ static int __cdecl camellia_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -284,7 +284,7 @@ static int __cdecl camellia_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -296,7 +296,7 @@ static int __cdecl camellia_cfb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -308,7 +308,7 @@ static int __cdecl camellia_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t len)
- {
-     EVP_CAMELLIA_KEY *dat = EVP_C_DATA(EVP_CAMELLIA_KEY,ctx);
-@@ -340,7 +340,7 @@ static int __cdecl camellia_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl camellia_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int camellia_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
-diff --git a/crypto/evp/e_chacha20_poly1305.c b/crypto/evp/e_chacha20_poly1305.c
-index a6ca0d3b96..2270883814 100644
---- a/crypto/evp/e_chacha20_poly1305.c
-+++ b/crypto/evp/e_chacha20_poly1305.c
-@@ -54,7 +54,7 @@ static int __cdecl chacha_init_key(EVP_CIPHER_CTX *ctx,
-     return 1;
- }
- 
--static int __cdecl chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
-+static int chacha_cipher(EVP_CIPHER_CTX * ctx, unsigned char *out,
-                          const unsigned char *inp, size_t len)
- {
-     EVP_CHACHA_KEY *key = data(ctx);
-@@ -362,7 +362,7 @@ static int chacha20_poly1305_tls_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
- static const unsigned char zero[CHACHA_BLK_SIZE] = { 0 };
- #  endif
- 
--static int __cdecl chacha20_poly1305_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int chacha20_poly1305_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                     const unsigned char *in, size_t len)
- {
-     EVP_CHACHA_AEAD_CTX *actx = aead_data(ctx);
-diff --git a/crypto/evp/e_des.c b/crypto/evp/e_des.c
-index 51b9a49bbc..f80ec158d8 100644
---- a/crypto/evp/e_des.c
-+++ b/crypto/evp/e_des.c
-@@ -52,7 +52,7 @@ static int __cdecl des_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr);
-  * IMPLEMENT_BLOCK_CIPHER
-  */
- 
--static int __cdecl des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
-@@ -62,7 +62,7 @@ static int __cdecl des_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -85,7 +85,7 @@ static int __cdecl des_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t inl)
- {
-     EVP_DES_KEY *dat = (EVP_DES_KEY *) EVP_CIPHER_CTX_get_cipher_data(ctx);
-@@ -112,7 +112,7 @@ static int __cdecl des_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                             const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -141,7 +141,7 @@ static int __cdecl des_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-  * Although we have a CFB-r implementation for DES, it doesn't pack the right
-  * way, so wrap it here
-  */
--static int __cdecl des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     size_t n, chunk = EVP_MAXCHUNK / 8;
-@@ -170,7 +170,7 @@ static int __cdecl des_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-diff --git a/crypto/evp/e_des3.c b/crypto/evp/e_des3.c
-index 0487b2c7b7..f28d373df5 100644
---- a/crypto/evp/e_des3.c
-+++ b/crypto/evp/e_des3.c
-@@ -62,7 +62,7 @@ static int __cdecl des3_ctrl(EVP_CIPHER_CTX *c, int type, int arg, void *ptr);
-  * IMPLEMENT_BLOCK_CIPHER
-  */
- 
--static int __cdecl des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
-@@ -73,7 +73,7 @@ static int __cdecl des_ede_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -100,7 +100,7 @@ static int __cdecl des_ede_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                               const unsigned char *in, size_t inl)
- {
-     DES_EDE_KEY *dat = data(ctx);
-@@ -128,7 +128,7 @@ static int __cdecl des_ede_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -159,7 +159,7 @@ static int __cdecl des_ede_cfb64_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-  * Although we have a CFB-r implementation for 3-DES, it doesn't pack the
-  * right way, so wrap it here
-  */
--static int __cdecl des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     size_t n;
-@@ -181,7 +181,7 @@ static int __cdecl des_ede3_cfb1_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return 1;
- }
- 
--static int __cdecl des_ede3_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede3_cfb8_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-@@ -383,7 +383,7 @@ static int __cdecl des_ede3_wrap(EVP_CIPHER_CTX *ctx, unsigned char *out,
-     return inl + 16;
- }
- 
--static int __cdecl des_ede3_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int des_ede3_wrap_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                 const unsigned char *in, size_t inl)
- {
-     /*
-diff --git a/crypto/evp/e_idea.c b/crypto/evp/e_idea.c
-index 299889e25f..b7a7c4f73a 100644
---- a/crypto/evp/e_idea.c
-+++ b/crypto/evp/e_idea.c
-@@ -30,7 +30,7 @@ static int __cdecl idea_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-  * special case
-  */
- 
--static int __cdecl idea_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int idea_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     BLOCK_CIPHER_ecb_loop()
-diff --git a/crypto/evp/e_null.c b/crypto/evp/e_null.c
-index dbe92abcaf..e6b4d25421 100644
---- a/crypto/evp/e_null.c
-+++ b/crypto/evp/e_null.c
-@@ -15,7 +15,7 @@
- 
- static int __cdecl null_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                          const unsigned char *iv, int enc);
--static int __cdecl null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                        const unsigned char *in, size_t inl);
- static const EVP_CIPHER n_cipher = {
-     NID_undef,
-@@ -41,7 +41,7 @@ static int __cdecl null_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int __cdecl null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int null_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                        const unsigned char *in, size_t inl)
- {
-     if (in != out)
-diff --git a/crypto/evp/e_rc4.c b/crypto/evp/e_rc4.c
-index 7a7d46e01c..c788aea3fb 100644
---- a/crypto/evp/e_rc4.c
-+++ b/crypto/evp/e_rc4.c
-@@ -26,7 +26,7 @@ typedef struct {
- 
- static int __cdecl rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                         const unsigned char *iv, int enc);
--static int __cdecl rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                       const unsigned char *in, size_t inl);
- static const EVP_CIPHER r4_cipher = {
-     NID_rc4,
-@@ -73,7 +73,7 @@ static int __cdecl rc4_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-     return 1;
- }
- 
--static int __cdecl rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int rc4_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                       const unsigned char *in, size_t inl)
- {
-     RC4(&data(ctx)->ks, inl, in, out);
-diff --git a/crypto/evp/e_rc4_hmac_md5.c b/crypto/evp/e_rc4_hmac_md5.c
-index 9375a8a47f..dae198cd16 100644
---- a/crypto/evp/e_rc4_hmac_md5.c
-+++ b/crypto/evp/e_rc4_hmac_md5.c
-@@ -62,7 +62,7 @@ static int __cdecl rc4_hmac_md5_init_key(EVP_CIPHER_CTX *ctx,
- #  define md5_off 0
- # endif
- 
--static int __cdecl rc4_hmac_md5_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int rc4_hmac_md5_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                                const unsigned char *in, size_t len)
- {
-     EVP_RC4_HMAC_MD5 *key = data(ctx);
-diff --git a/crypto/evp/e_sm4.c b/crypto/evp/e_sm4.c
-index 4a5412716f..d34fb029fd 100644
---- a/crypto/evp/e_sm4.c
-+++ b/crypto/evp/e_sm4.c
-@@ -68,7 +68,7 @@ IMPLEMENT_BLOCK_CIPHER(sm4, ks, sm4, EVP_SM4_KEY, NID_sm4,
-                        16, 16, 16, 128, EVP_CIPH_FLAG_DEFAULT_ASN1,
-                        sm4_init_key, 0, 0, 0, 0)
- 
--static int __cdecl sm4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int sm4_ctr_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                           const unsigned char *in, size_t len)
- {
-     unsigned int num = EVP_CIPHER_CTX_num(ctx);
-diff --git a/crypto/evp/e_xcbc_d.c b/crypto/evp/e_xcbc_d.c
-index c347c6d10f..e2730bfc2f 100644
---- a/crypto/evp/e_xcbc_d.c
-+++ b/crypto/evp/e_xcbc_d.c
-@@ -19,7 +19,7 @@
- 
- static int __cdecl desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                              const unsigned char *iv, int enc);
--static int __cdecl desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl);
- 
- typedef struct {
-@@ -61,7 +61,7 @@ static int __cdecl desx_cbc_init_key(EVP_CIPHER_CTX *ctx, const unsigned char *k
-     return 1;
- }
- 
--static int __cdecl desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+static int desx_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                            const unsigned char *in, size_t inl)
- {
-     while (inl >= EVP_MAXCHUNK) {
-diff --git a/crypto/evp/evp_lib.c b/crypto/evp/evp_lib.c
-index ac9896c0be..3963007a63 100644
---- a/crypto/evp/evp_lib.c
-+++ b/crypto/evp/evp_lib.c
-@@ -189,7 +189,7 @@ int __cdecl EVP_CIPHER_impl_ctx_size(const EVP_CIPHER *e)
-     return e->ctx_size;
- }
- 
--int __cdecl EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-+int EVP_Cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
-                const unsigned char *in, unsigned int inl)
- {
-     return ctx->cipher->do_cipher(ctx, out, in, inl);
-diff --git a/crypto/include/internal/evp_int.h b/crypto/include/internal/evp_int.h
-index ffba70e3de..5a982f7b40 100644
---- a/crypto/include/internal/evp_int.h
-+++ b/crypto/include/internal/evp_int.h
-@@ -140,7 +140,7 @@ struct evp_cipher_st {
-     int (__cdecl *init) (EVP_CIPHER_CTX *ctx, const unsigned char *key,
-                  const unsigned char *iv, int enc);
-     /* encrypt/decrypt data */
--    int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx, unsigned char *out,
-+    int (*do_cipher) (EVP_CIPHER_CTX *ctx, unsigned char *out,
-                       const unsigned char *in, size_t inl);
-     /* cleanup ctx */
-     int (__cdecl *cleanup) (EVP_CIPHER_CTX *);
-@@ -171,7 +171,7 @@ struct evp_cipher_st {
-         for (i=0; i <= inl; i+=bl)
- 
- #define BLOCK_CIPHER_func_ecb(cname, cprefix, kstruct, ksched) \
--static int __cdecl cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         BLOCK_CIPHER_ecb_loop() \
-             cprefix##_ecb_encrypt(in + i, out + i, &EVP_C_DATA(kstruct,ctx)->ksched, EVP_CIPHER_CTX_encrypting(ctx)); \
-@@ -181,7 +181,7 @@ static int __cdecl cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, c
- #define EVP_MAXCHUNK ((size_t)1<<(sizeof(long)*8-2))
- 
- #define BLOCK_CIPHER_func_ofb(cname, cprefix, cbits, kstruct, ksched) \
--    static int __cdecl cname##_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+    static int cname##_ofb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         while(inl>=EVP_MAXCHUNK) {\
-             int num = EVP_CIPHER_CTX_num(ctx);\
-@@ -200,7 +200,7 @@ static int __cdecl cname##_ecb_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, c
- }
- 
- #define BLOCK_CIPHER_func_cbc(cname, cprefix, kstruct, ksched) \
--static int __cdecl cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-         while(inl>=EVP_MAXCHUNK) \
-             {\
-@@ -215,7 +215,7 @@ static int __cdecl cname##_cbc_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, c
- }
- 
- #define BLOCK_CIPHER_func_cfb(cname, cprefix, cbits, kstruct, ksched)  \
--static int __cdecl cname##_cfb##cbits##_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
-+static int cname##_cfb##cbits##_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out, const unsigned char *in, size_t inl) \
- {\
-     size_t chunk = EVP_MAXCHUNK;\
-     if (cbits == 1)  chunk >>= 3;\
-diff --git a/include/openssl/evp.h b/include/openssl/evp.h
-index a5a314d56b..759172279c 100644
---- a/include/openssl/evp.h
-+++ b/include/openssl/evp.h
-@@ -195,7 +195,7 @@ int __cdecl EVP_CIPHER_meth_set_init(EVP_CIPHER *cipher,
-                                           const unsigned char *iv,
-                                           int enc));
- int __cdecl EVP_CIPHER_meth_set_do_cipher(EVP_CIPHER *cipher,
--                                  int (__cdecl *do_cipher) (EVP_CIPHER_CTX *ctx,
-+                                  int (*do_cipher) (EVP_CIPHER_CTX *ctx,
-                                                     unsigned char *out,
-                                                     const unsigned char *in,
-                                                     size_t inl));
-@@ -215,7 +215,7 @@ int (__cdecl *EVP_CIPHER_meth_get_init(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX
-                                                           const unsigned char *key,
-                                                           const unsigned char *iv,
-                                                           int enc);
--int (__cdecl *EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-+int (*EVP_CIPHER_meth_get_do_cipher(const EVP_CIPHER *cipher))(EVP_CIPHER_CTX *ctx,
-                                                                unsigned char *out,
-                                                                const unsigned char *in,
-                                                                size_t inl);
-@@ -521,7 +521,7 @@ void BIO_set_md(BIO *, const EVP_MD *md);
- # define BIO_get_cipher_ctx(b,c_pp) BIO_ctrl(b,BIO_C_GET_CIPHER_CTX,0, \
-                                              (char *)(c_pp))
- 
--/*__owur*/ int __cdecl EVP_Cipher(EVP_CIPHER_CTX *c,
-+/*__owur*/ int EVP_Cipher(EVP_CIPHER_CTX *c,
-                           unsigned char *out,
-                           const unsigned char *in, unsigned int inl);
- 
